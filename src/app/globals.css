@@ -7,6 +7,23 @@
   --font-mono: "Roboto Mono Variable", "monospace";
 }
 
+/* Colors */
+
+:root[data-theme="dark"] {
+  --color-bg: #171717;
+  --color-text: #fff;
+}
+
+:root[data-theme="light"] {
+  --color-bg: #fff;
+  --color-text: #171717;
+}
+
 body {
   font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }

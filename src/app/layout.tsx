@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "@fontsource-variable/roboto-mono";
+import NavBar from "@/src/components/layout/NavBar";
+import { ThemeProvider } from "next-themes";
 
 export const metadata: Metadata = {
   title: "my web-site",
@@ -12,9 +15,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
-        {children}
+        <ThemeProvider
+          attribute="data-theme"
+          defaultTheme="system"
+          enableSystem={true}
+          value={{
+            dark: "dark",
+            light: "light",
+          }}
+        >
+          <NavBar />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
