@@ -4,7 +4,6 @@ import useSound from "use-sound";
 const useClickSound = (initialMuted = false, speed = 1.5) => {
   const [isMuted, setIsMuted] = useState(initialMuted);
 
-  // Cria o sound sem depender do estado
   const [playClick, { sound: clickSound }] = useSound("/sounds/click.mp3", {
     volume: 1,
     preload: true,

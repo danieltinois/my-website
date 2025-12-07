@@ -12,11 +12,15 @@
 :root[data-theme="dark"] {
   --color-bg: #171717;
   --color-text: #fff;
+  --color-bg-wave-first: #1780bd;
+  --color-bg-wave-second: #0c4c70;
 }
 
 :root[data-theme="light"] {
   --color-bg: #fff;
   --color-text: #171717;
+  --color-bg-wave-first: #0c4c70;
+  --color-bg-wave-second: #1780bd;
 }
 
 body {
