@@ -11,10 +11,14 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import useClickSound from "@/src/hooks/useClickSound";
 
+/* TODO - Adicionar botao de mudar linguagem, inicialmente PT-BR e EN
+ *  Vai abrir um modal gamificado igual a window!
+ */
+
 const NavBar = () => {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const { playClick, isMuted, toggleMute } = useClickSound(false, 1.5);
+  const { playClick, isMuted, toggleMute } = useClickSound(false, 2);
 
   useEffect(() => {
     //desencorajar efeitos que só servem para “fixar hydration” Mas neste caso, é exatamente para isso que serve.

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import useSound from "use-sound";
 
-const useClickSound = (initialMuted = false, speed = 1.5) => {
+const useClickSound = (initialMuted = false, speed = 2) => {
   const [isMuted, setIsMuted] = useState(initialMuted);
 
   const [playClick, { sound: clickSound }] = useSound("/sounds/click.mp3", {
@@ -12,41 +12,36 @@ const useClickSound = (initialMuted = false, speed = 1.5) => {
     playbackRate: speed,
   });
 
-  // Aplica filtro low-pass para som abafado
   useEffect(() => {
-    if (!clickSound?._sounds?.length) return;
+    if (!clickSound?._sounds?.[0]?._node) return;
 
     const source = clickSound._sounds[0]._node;
     const ctx = source.context;
 
-    if (ctx.state === "suspended") {
-      ctx.resume();
-    }
+    if (ctx.state === "suspended") ctx.resume();
 
     const lowPass = ctx.createBiquadFilter();
     lowPass.type = "lowpass";
-    lowPass.frequency.value = 800;
-    lowPass.Q.value = 1;
+    lowPass.frequency.value = 6500;
 
-    source.disconnect();
+    try {
+      source.disconnect();
+    } catch (e) {
+      console.log(e);
+    }
+
     source.connect(lowPass);
     lowPass.connect(ctx.destination);
   }, [clickSound]);
 
   const toggleMute = () => {
-    setIsMuted((prevMuted) => {
-      const newMuted = !prevMuted;
-
-      // Se desmutando, toca o som
-      if (newMuted === false) {
-        playClick();
-      }
-
-      return newMuted;
+    setIsMuted((prev) => {
+      const newVal = !prev;
+      if (!newVal) playClick();
+      return newVal;
     });
   };
 
-  // Função para tocar o som respeitando mudo
   const play = () => {
     if (!isMuted) playClick();
   };

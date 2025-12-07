@@ -1,5 +1,8 @@
 import NavBar from "@/src/components/layout/NavBar";
 
+// TODO - Legal adicionar resize de window
+// TODO - Legal aidiconar cursor personalizado (pensando na tematica windows xp)
+
 export default function Home() {
   return (
     <div>
