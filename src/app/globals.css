@@ -5,22 +5,39 @@
     ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
     "Segoe UI Symbol", "Noto Color Emoji";
   --font-mono: "Roboto Mono Variable", "monospace";
+
+  --window-width: clamp(40rem, 90vw, 50rem); /* min 640px, max 800px */
+  --window-height: clamp(25rem, 60vh, 35rem);
 }
 
 /* Colors */
 
 :root[data-theme="dark"] {
   --color-bg: #171717;
+  --color-bg-secondary: #132135;
+  --color-bg-header: #171717;
+  --color-border: #fff;
+  --color-border-secondary: #fff;
   --color-text: #fff;
+  --color-text-secondary: #fff;
   --color-bg-wave-first: #1780bd;
   --color-bg-wave-second: #0c4c70;
 }
 
 :root[data-theme="light"] {
   --color-bg: #fff;
+  --color-bg-secondary: #ffff;
+  --color-bg-header: #424242;
+  --color-border: #424242;
+  --color-border-secondary: #a4a4a4;
   --color-text: #171717;
+  --color-text-secondary: #fff;
   --color-bg-wave-first: #0c4c70;
   --color-bg-wave-second: #1780bd;
+}
+
+@theme {
+  --shadow-flat: 0px 8px 0px 0px rgba(0, 0, 0, 0.1);
 }
 
 body {

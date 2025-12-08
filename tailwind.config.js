@@ -1,16 +1,17 @@
+/** @type {import('tailwindcss').Config} */
 module.exports = {
-  fontFamily: {
-    sans: "var(--font-sans)",
-    mono: "var(--font-mono)",
-  },
+  content: [
+    "./app/**/*.{ts,tsx}",
+    "./src/components/**/*.{ts,tsx}",
+    "./src/components/**/**/*.{ts,tsx}",
+  ],
   theme: {
     extend: {
-      colors: {
-        "color-bg": "var(--color-bg)",
-        "color-text": "var(--color-text)",
-        "color-bg-wave-first": "var(--color-bg-wave-first)",
-        "color-bg-wave-second": "var(--color-bg-wave-second)",
+      fontFamily: {
+        sans: "var(--font-sans)",
+        mono: "var(--font-mono)",
       },
     },
   },
+  plugins: [],
 };

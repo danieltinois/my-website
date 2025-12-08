@@ -34,7 +34,7 @@ const NavBar = () => {
   };
 
   return (
-    <div className="grid grid-cols-[auto_1fr_auto] justify-start items-center px-6 h-20">
+    <div className="grid grid-cols-[auto_1fr_auto] justify-start items-center h-16 relative z-50">
       <div className="grid grid-flow-col gap-4">
         <button
           className="cursor-pointer hover:scale-110 duration-250 active:scale-80"
