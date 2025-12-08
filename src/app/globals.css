@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@theme {
+  --shadow-flat: 0px 8px 0px 0px rgba(0, 0, 0, 0.1);
+}
+
 :root {
   --font-sans:
     ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
@@ -34,10 +38,6 @@
   --color-text-secondary: #fff;
   --color-bg-wave-first: #0c4c70;
   --color-bg-wave-second: #1780bd;
-}
-
-@theme {
-  --shadow-flat: 0px 8px 0px 0px rgba(0, 0, 0, 0.1);
 }
 
 body {
