@@ -3,6 +3,7 @@ import "./globals.css";
 import "@fontsource-variable/roboto-mono";
 import { ThemeProvider } from "next-themes";
 import Wave from "react-wavify";
+import { SoundProvider } from "../contexts/SoundContext";
 
 export const metadata: Metadata = {
   title: "my web-site",
@@ -26,7 +27,7 @@ export default function RootLayout({
             light: "light",
           }}
         >
-          {children}
+          <SoundProvider>{children}</SoundProvider>
           <div className="fixed bottom-0 left-0 w-full h-[1020px] md:h-[380px] -z-10 overflow-hidden">
             <Wave
               fill="var(--color-bg-wave-first)"

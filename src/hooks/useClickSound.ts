@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import useSound from "use-sound";
+import { useSoundContext } from "@/src/contexts/SoundContext";
 
 const useClickSound = (initialMuted = false, speed = 2) => {
-  const [isMuted, setIsMuted] = useState(initialMuted);
+  const { isMuted, toggleMute: globalToggleMute } = useSoundContext();
 
   const [playClick, { sound: clickSound }] = useSound("/sounds/click.mp3", {
     volume: 1,
@@ -35,11 +36,11 @@ const useClickSound = (initialMuted = false, speed = 2) => {
   }, [clickSound]);
 
   const toggleMute = () => {
-    setIsMuted((prev) => {
-      const newVal = !prev;
-      if (!newVal) playClick();
-      return newVal;
-    });
+    globalToggleMute();
+    if (isMuted) {
+      // If currently muted, we are unmuting, so play sound
+      playClick();
+    }
   };
 
   const play = () => {
