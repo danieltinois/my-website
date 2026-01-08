@@ -9,7 +9,6 @@ const NotFound = () => {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    //desencorajar efeitos que só servem para “fixar hydration” Mas neste caso, é exatamente para isso que serve.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
