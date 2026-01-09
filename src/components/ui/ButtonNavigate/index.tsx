@@ -1,8 +1,8 @@
 "use client";
 
 import { ButtonProps } from "@/src/components/ui/ButtonNavigate/interface";
-import { useRouter } from "next/navigation";
 import useClickSound from "@/src/hooks/useClickSound";
+import { useRouter } from "next/navigation";
 
 const ButtonNavigate = ({ tittle, route }: ButtonProps) => {
   const router = useRouter();

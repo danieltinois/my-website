@@ -1,8 +1,10 @@
 "use client";
 
 import { WindowProps } from "@/src/components/features/Window/interface";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
-const Window = ({ children, title }: WindowProps) => {
+const Window = ({ children, title, onClose }: WindowProps) => {
   return (
     <div className="absolute flex flex-col">
       <div
@@ -14,12 +16,27 @@ const Window = ({ children, title }: WindowProps) => {
           border-x-2 border-t-2 border-[color:var(--color-border)]
           "
       >
-        <div className="flex grow flex-row justify-between">{title}</div>
+        <div className="flex grow flex-row justify-between items-center gap-4">
+          <span>{title}</span>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="hover:text-[var(--color-text-highlight)] cursor-pointer flex items-center hover:scale-110 duration-250 active:scale-90"
+            >
+              <HugeiconsIcon
+                icon={Cancel01Icon}
+                size={25}
+                color="color-text"
+                strokeWidth={2.5}
+              />
+            </button>
+          )}
+        </div>
       </div>
 
       <div
         className="
-        flex flex-col justify-center items-center
+        flex flex-col
         bg-[var(--color-bg-secondary)]
         border-2 border-[color:var(--color-border-secondary)]
         rounded-b-xl m-0 shadow-flat

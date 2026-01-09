@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import useSound from "use-sound";
 import { useSoundContext } from "@/src/contexts/SoundContext";
+import { useEffect } from "react";
+import useSound from "use-sound";
 
 const useClickSound = (initialMuted = false, speed = 2) => {
   const { isMuted, toggleMute: globalToggleMute } = useSoundContext();

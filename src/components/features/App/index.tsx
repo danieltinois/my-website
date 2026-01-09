@@ -1,14 +1,30 @@
 "use client";
 
+import { useWindowManager } from "@/src/context/WindowManager";
 import useClickSound from "@/src/hooks/useClickSound";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useState } from "react";
 import { AppProps } from "./interface";
 
-const App = ({ title, icon }: AppProps) => {
+const App = ({ title, icon, windowContent }: AppProps) => {
   const { playClick } = useClickSound(false, 1.5);
+  const { openWindow, focusWindow, windows } = useWindowManager();
+  const [activeWindowId, setActiveWindowId] = useState<string | null>(null);
 
   const handleClick = () => {
     playClick();
+
+    if (windowContent) {
+      const isWindowOpen =
+        activeWindowId && windows.some((w) => w.id === activeWindowId);
+
+      if (isWindowOpen) {
+        focusWindow(activeWindowId);
+      } else {
+        const newWindowId = openWindow(windowContent, title);
+        setActiveWindowId(newWindowId);
+      }
+    }
   };
 
   return (
