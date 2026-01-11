@@ -1,12 +1,77 @@
 @import "tailwindcss";
 
+@theme {
+  --shadow-flat: 0px 8px 0px 0px rgba(0, 0, 0, 0.1);
+}
+
 :root {
-  --font-sans:
-    ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
-    "Segoe UI Symbol", "Noto Color Emoji";
+  --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-mono: "Roboto Mono Variable", "monospace";
+
+  --window-width: clamp(40rem, 90vw, 50rem); /* min 640px, max 800px */
+  --window-height: clamp(25rem, 60vh, 35rem);
+}
+
+/* Colors */
+
+:root[data-theme="dark"] {
+  --color-bg: #171717;
+  --color-bg-secondary: #132135;
+  --color-bg-header: #171717;
+  --color-border: #fff;
+  --color-border-secondary: #fff;
+  --color-text: #fff;
+  --color-text-secondary: #fff;
+  --color-bg-wave-first: #1780bd;
+  --color-bg-wave-second: #0c4c70;
+}
+
+:root[data-theme="light"] {
+  --color-bg: #fff;
+  --color-bg-secondary: #ffff;
+  --color-bg-header: #424242;
+  --color-border: #424242;
+  --color-border-secondary: #a4a4a4;
+  --color-text: #171717;
+  --color-text-secondary: #fff;
+  --color-bg-wave-first: #0c4c70;
+  --color-bg-wave-second: #1780bd;
 }
 
 body {
   font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+@keyframes popIn {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes popOut {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+}
+
+.animate-pop-in {
+  animation: popIn 0.1s ease-out forwards;
+}
+
+.animate-pop-out {
+  animation: popOut 0.08s ease-in forwards;
 }

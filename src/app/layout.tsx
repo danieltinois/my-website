@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "@fontsource-variable/roboto-mono";
+import { ThemeProvider } from "next-themes";
+import Wave from "react-wavify";
+import { SoundProvider } from "../contexts/SoundContext";
 
 export const metadata: Metadata = {
   title: "my web-site",
@@ -12,9 +16,44 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
-        {children}
+        <ThemeProvider
+          attribute="data-theme"
+          defaultTheme="system"
+          enableSystem={true}
+          value={{
+            dark: "dark",
+            light: "light",
+          }}
+        >
+          <SoundProvider>{children}</SoundProvider>
+          <div className="fixed bottom-0 left-0 w-full h-[1020px] md:h-[380px] -z-10 overflow-hidden">
+            <Wave
+              fill="var(--color-bg-wave-first)"
+              paused={false}
+              options={{
+                height: 1,
+                amplitude: 25,
+                speed: 0.15,
+                points: 3,
+              }}
+              className="absolute bottom-0 w-full md:top-10"
+            />
+
+            <Wave
+              fill="var(--color-bg-wave-second)"
+              paused={false}
+              options={{
+                height: 20,
+                amplitude: 35,
+                speed: 0.2,
+                points: 4,
+              }}
+              className="absolute bottom-0 w-full md:top-10"
+            />
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );
