@@ -13,7 +13,11 @@ import { v4 as uuidv4 } from "uuid";
 interface WindowInstance {
   id: string;
   title: string;
+
   content: ReactNode;
+  defaultPosition?: { x: number; y: number };
+  zIndex: number;
+  isClosing?: boolean;
 }
 
 interface WindowManagerContextProps {
@@ -40,28 +44,47 @@ export const WindowManagerProvider = ({
       id,
       title,
       content,
+      defaultPosition: {
+        x: Math.random() * 1200 - 1000,
+        y: Math.random() * 250 - 400,
+      },
+      zIndex: 100,
     };
-    setWindows((prev) => [...prev, newWindow]);
+    setWindows((prev) => {
+      const maxZ =
+        prev.length > 0 ? Math.max(...prev.map((w) => w.zIndex)) : 99;
+      newWindow.zIndex = maxZ + 1;
+      return [...prev, newWindow];
+    });
     return id;
   }, []);
 
   const closeWindow = useCallback((id: string) => {
-    setWindows((prev) => prev.filter((window) => window.id !== id));
+    setWindows((prev) =>
+      prev.map((window) =>
+        window.id === id ? { ...window, isClosing: true } : window
+      )
+    );
   }, []);
 
   const closeWindowWithClick = useCallback((id: string) => {
-    setWindows((prev) => prev.filter((window) => window.id !== id));
+    setWindows((prev) =>
+      prev.map((window) =>
+        window.id === id ? { ...window, isClosing: true } : window
+      )
+    );
   }, []);
 
   const focusWindow = useCallback((id: string) => {
     setWindows((prev) => {
-      const windowIndex = prev.findIndex((window) => window.id === id);
-      if (windowIndex === -1) return prev;
+      const targetWindow = prev.find((w) => w.id === id);
+      if (!targetWindow) return prev;
 
-      const newWindows = [...prev];
-      const [movedWindow] = newWindows.splice(windowIndex, 1);
-      newWindows.push(movedWindow);
-      return newWindows;
+      const maxZ = Math.max(...prev.map((w) => w.zIndex));
+      // If already top, do nothing
+      if (targetWindow.zIndex === maxZ) return prev;
+
+      return prev.map((w) => (w.id === id ? { ...w, zIndex: maxZ + 1 } : w));
     });
   }, []);
 
@@ -73,12 +96,22 @@ export const WindowManagerProvider = ({
       {windows.map((window) => (
         <div
           key={window.id}
-          className="fixed flex mx-auto w-screen h-screen items-center justify-center -translate-y-16 z-10 pointer-events-none"
+          className={`fixed flex mx-auto w-screen h-screen items-center justify-center -translate-y-16 pointer-events-none ${
+            window.isClosing ? "animate-pop-out" : "animate-pop-in"
+          }`}
+          style={{ zIndex: window.zIndex }}
+          onAnimationEnd={() => {
+            if (window.isClosing) {
+              setWindows((prev) => prev.filter((w) => w.id !== window.id));
+            }
+          }}
         >
           <div className="pointer-events-auto">
             <Window
               title={window.title}
               onClose={() => closeWindowWithClick(window.id)}
+              onFocus={() => focusWindow(window.id)}
+              defaultPosition={window.defaultPosition}
             >
               {window.content}
             </Window>

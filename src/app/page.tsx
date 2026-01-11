@@ -20,7 +20,7 @@ export default function Home() {
           <NavBar />
         </nav>
         <div className="fixed flex mx-auto w-screen h-screen items-center justify-center -translate-y-16 z-0">
-          <Window title="home">
+          <Window title="home" disabled={true}>
             <div className="flex flex-row flex-wrap justify-center content-center h-full gap-6 p-8">
               <App
                 title="about"
