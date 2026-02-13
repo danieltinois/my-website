@@ -47,7 +47,6 @@ const NotFound = () => {
           te levar de volta para casa!
         </p>
 
-        {/* Botão */}
         <div className="relative z-10">
           <ButtonNavigate tittle="Voltar para casa" route="/" />
         </div>
