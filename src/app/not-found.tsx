@@ -38,7 +38,7 @@ const NotFound = () => {
         <span className="text-blue-500 font-semibold text-sm mb-2">Oops!</span>
 
         <h1 className="text-4xl sm:text-5xl font-extrabold mb-4">
-          Parece que você se perdeu..
+          Parece que você se perdeu...
         </h1>
 
         <p className="text-gray-500 mb-8 text-base sm:text-lg">
@@ -49,7 +49,7 @@ const NotFound = () => {
 
         {/* Botão */}
         <div className="relative z-10">
-          <ButtonNavigate tittle="De volta para casa." route="/" />
+          <ButtonNavigate tittle="Voltar para casa" route="/" />
         </div>
       </div>
     </div>
