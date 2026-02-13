@@ -3,6 +3,7 @@
 import ButtonNavigate from "@/src/components/ui/ButtonNavigate";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
+import Image from "next/image";
 
 const NotFound = () => {
   const { theme } = useTheme();
@@ -17,37 +18,20 @@ const NotFound = () => {
 
   return (
     <div className="relative flex flex-col items-center justify-center h-screen px-4 overflow-hidden">
-      <img
+      <Image
         src={
           theme === "dark"
             ? "/drawns/curled_arrow_light.png"
             : "/drawns/curled_arrow_dark.png"
         }
         alt="Flecha-enrolada"
+        width={150}
+        height={150}
+        priority
         className="absolute w-20 sm:w-24 md:w-28
                    bottom-[35%] sm:bottom-[33%] left-[17%] sm:left-[40%]
                    -translate-x-1/2 rotate-20
-                   hover:scale-110 duration-250 active:scale-80"
-      />
-      <img
-        src={
-          theme === "dark"
-            ? "/drawns/heart_light.png"
-            : "/drawns/heart_dark.png"
-        }
-        alt="Coração"
-        className="absolute w-12 sm:w-16 md:w-20
-                   top-[10%] sm:top-[15%] left-[5%] sm:left-[10%]
-                   hover:scale-110 duration-250 active:scale-80"
-      />
-      <img
-        src={
-          theme === "dark" ? "/drawns/star_light.png" : "/drawns/star_dark.png"
-        }
-        alt="Estrela"
-        className="absolute w-10 sm:w-12 md:w-16
-                   top-[5%] sm:top-[10%] right-[5%] sm:right-[10%]
-                   hover:scale-110 duration-250 active:scale-80"
+                   hover:scale-110 duration-250 active:scale-80 select-none"
       />
 
       <div className="max-w-xl mx-auto text-center z-10">
