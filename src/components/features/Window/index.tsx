@@ -36,6 +36,8 @@ const Window = ({
       disabled={disabled}
       onMouseDown={onFocus}
       defaultPosition={defaultPosition}
+      onStart={() => document.body.classList.add("grabbing-active")}
+      onStop={() => document.body.classList.remove("grabbing-active")}
     >
       <div ref={nodeRef} className="absolute flex flex-col" style={style}>
         <motion.div
@@ -52,6 +54,7 @@ const Window = ({
             className="
           handle
           select-none
+          active:cursor-[var(--cursor-grabbing)]
           rounded-t-lg font-mono flex
           bg-[var(--color-bg-header)]
           text-[var(--color-text-secondary)]
