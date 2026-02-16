@@ -29,7 +29,7 @@ const App = ({ title, icon, windowContent }: AppProps) => {
 
   return (
     <button
-      className="flex flex-col items-center cursor-pointer hover:scale-110 duration-250 active:scale-90"
+      className="flex flex-col items-center cursor-pointer hover:scale-110 duration-250 active:scale-90 select-none"
       onClick={handleClick}
     >
       <div>
