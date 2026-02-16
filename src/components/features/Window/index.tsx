@@ -5,6 +5,8 @@ import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useRef } from "react";
 import Draggable from "react-draggable";
+import useCustomSound from "@/src/hooks/useCustomSound";
+import { motion } from "framer-motion";
 
 const Window = ({
   children,
@@ -17,6 +19,16 @@ const Window = ({
 }: WindowProps) => {
   const nodeRef = useRef(null);
 
+  const closeClickSound = useCustomSound("./sounds/bubble.mp3", {
+    speed: 1,
+    lowPassFreq: 18000,
+  });
+
+  const handleClose = () => {
+    closeClickSound.play();
+    if (onClose) onClose();
+  };
+
   return (
     <Draggable
       nodeRef={nodeRef}
@@ -26,8 +38,18 @@ const Window = ({
       defaultPosition={defaultPosition}
     >
       <div ref={nodeRef} className="absolute flex flex-col" style={style}>
-        <div
-          className="
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{
+            opacity: 0,
+            scale: 1.1,
+            filter: "blur(10px)",
+            transition: { duration: 0.15, ease: "easeOut" },
+          }}
+        >
+          <div
+            className="
           handle
           select-none
           rounded-t-lg font-mono flex
@@ -36,36 +58,37 @@ const Window = ({
           text-xl top-0 left-0 px-6 py-3
           border-x-2 border-t-2 border-[color:var(--color-border)]
           "
-        >
-          <div className="flex grow flex-row justify-between items-center gap-4">
-            <span>{title}</span>
-            {onClose && (
-              <button
-                onClick={onClose}
-                className="hover:text-[var(--color-text-highlight)] cursor-pointer flex items-center hover:scale-110 duration-250 active:scale-90"
-              >
-                <HugeiconsIcon
-                  icon={Cancel01Icon}
-                  size={25}
-                  color="color-text"
-                  strokeWidth={2.5}
-                />
-              </button>
-            )}
+          >
+            <div className="flex grow flex-row justify-between items-center gap-4">
+              <span>{title}</span>
+              {onClose && (
+                <button
+                  onClick={handleClose}
+                  className="hover:text-[var(--color-text-highlight)] cursor-pointer flex items-center hover:scale-120 duration-250 active:scale-90"
+                >
+                  <HugeiconsIcon
+                    icon={Cancel01Icon}
+                    size={25}
+                    color="color-text"
+                    strokeWidth={2.5}
+                  />
+                </button>
+              )}
+            </div>
           </div>
-        </div>
 
-        <div
-          className="
+          <div
+            className="
         flex flex-col
         bg-[var(--color-bg-secondary)]
         border-2 border-[color:var(--color-border-secondary)]
         rounded-b-xl m-0 shadow-flat
         w-[var(--window-width)] h-[var(--window-height)]
         "
-        >
-          {children}
-        </div>
+          >
+            {children}
+          </div>
+        </motion.div>
       </div>
     </Draggable>
   );
