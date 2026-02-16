@@ -8,6 +8,7 @@ import {
 import About from "../components/features/About";
 import Teste from "../components/features/Teste";
 import { WindowManagerProvider } from "../context/WindowManager";
+import Footer from "@/src/components/layout/Footer";
 
 // TODO - Legal adicionar resize de window
 // TODO - Legal aidiconar cursor personalizado (pensando na tematica windows xp)
@@ -37,7 +38,7 @@ export default function Home() {
         </div>
         <footer>
           <div className="flex absolute w-screen bottom-[1.5%] bg-(--transparent) md:flex justify-center">
-            <h1>Redes</h1>
+            <Footer />
           </div>
         </footer>
       </div>

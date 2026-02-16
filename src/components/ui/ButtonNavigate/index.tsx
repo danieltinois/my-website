@@ -1,6 +1,6 @@
 "use client";
 
-import { ButtonProps } from "@/src/components/ui/ButtonNavigate/interface";
+import ButtonProps from "@/src/components/ui/ButtonNavigate/interface";
 import useClickSound from "@/src/hooks/useClickSound";
 import { useRouter } from "next/navigation";
 
