@@ -7,7 +7,7 @@ export const TerminalPrompt = () => (
   <span className="mr-2 select-none">
     <span className="text-green-400">daniel@macbook-pro</span>
     <span className="text-white">:</span>
-    <span className="text-blue-400">~/portfolio</span>
+    <span className="text-blue-400">~/my-website</span>
     <span className="text-white">$</span>
   </span>
 );

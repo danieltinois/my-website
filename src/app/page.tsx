@@ -1,12 +1,8 @@
 import App from "@/src/components/features/App";
 import Window from "@/src/components/features/Window";
 import NavBar from "@/src/components/layout/NavBar";
-import {
-  FavouriteCircleFreeIcons,
-  UserAccountIcon,
-} from "@hugeicons/core-free-icons";
+import { UserAccountIcon } from "@hugeicons/core-free-icons";
 import About from "../components/features/About";
-import Teste from "../components/features/Teste";
 import { WindowManagerProvider } from "../context/WindowManager";
 import Footer from "@/src/components/layout/Footer";
 
@@ -27,11 +23,6 @@ export default function Home() {
                 title="about"
                 icon={UserAccountIcon}
                 windowContent={<About />}
-              />
-              <App
-                title="teste"
-                icon={FavouriteCircleFreeIcons}
-                windowContent={<Teste />}
               />
             </div>
           </Window>
