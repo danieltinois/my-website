@@ -53,12 +53,12 @@ const ButtonSocialMedia = ({
           "--hover-clr": hoverColor,
         } as ButtonSocialMediaProps["style"]
       }
-      className="flex shrink-0 aspect-square items-center justify-center text-(--color-docker-icon) transition-colors duration-300 hover:text-(--hover-clr)"
+      className="flex shrink-0 aspect-square items-center justify-center text-(--color-docker-icon) transition-colors duration-300 hover:text-(--hover-clr) cursor-pointer"
       onClick={handleClick}
     >
       <motion.div
         style={{ width: iconSize, height: iconSize }}
-        className="flex items-center justify-center cursor-pointer"
+        className="flex items-center justify-center"
       >
         <HugeiconsIcon icon={icon} size="100%" />
       </motion.div>

@@ -34,6 +34,13 @@
   --color-docker-bg: rgba(23, 23, 23, 0.6);
   --color-docker-border: rgba(255, 255, 255, 0.1);
   --color-docker-icon: #fff;
+
+  /* Cursors */
+  --cursor-default: url("../../public/cursors/dark/default-dark.png"), auto;
+  --cursor-pointer: url("../../public/cursors/dark/select-dark.png"), pointer;
+  --cursor-text: url("../../public/cursors/dark/text-select-dark.png"), text;
+  --cursor-grab: url("../../public/cursors/dark/move-dark.png"), grab;
+  --cursor-grabbing: url("../../public/cursors/dark/move-dark.png"), grabbing;
 }
 
 :root[data-theme="light"] {
@@ -49,6 +56,40 @@
   --color-docker-bg: rgba(255, 255, 255, 0.4);
   --color-docker-border: rgba(0, 0, 0, 0.1);
   --color-docker-icon: #1d1d1f;
+
+  /* Cursors */
+  --cursor-default: url("../../public/cursors/light/default-light.png"), auto;
+  --cursor-pointer: url("../../public/cursors/light/select-light.png"), pointer;
+  --cursor-text: url("../../public/cursors/light/text-select-light.png"), text;
+  --cursor-grab: url("../../public/cursors/light/move-light.png"), grab;
+  --cursor-grabbing: url("../../public/cursors/light/move-light.png"), grabbing;
+}
+
+html,
+body {
+  cursor: var(--cursor-default);
+}
+
+a,
+button,
+[role="button"],
+select,
+summary,
+.pointer,
+input[type="submit"],
+input[type="button"] {
+  cursor: var(--cursor-pointer) !important;
+}
+
+input,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+textarea,
+[contenteditable="true"] {
+  cursor: var(--cursor-text);
 }
 
 body {
@@ -58,6 +99,15 @@ body {
   transition:
     background-color 0.3s ease,
     color 0.3s ease;
+}
+
+.handle {
+  cursor: var(--cursor-grab), grab;
+}
+
+.react-draggable-dragging,
+.react-draggable-dragging .handle {
+  cursor: var(--cursor-grabbing) !important;
 }
 
 @keyframes popIn {

@@ -1,4 +1,4 @@
-import { useSoundContext } from "@/src/contexts/SoundContext";
+import { useSoundContext } from "@/src/context/SoundContext";
 import { useEffect } from "react";
 import useSound from "use-sound";
 
