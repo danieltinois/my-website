@@ -3,7 +3,7 @@ import "./globals.css";
 import "@fontsource-variable/roboto-mono";
 import { ThemeProvider } from "next-themes";
 import Wave from "react-wavify";
-import { SoundProvider } from "../context/SoundContext";
+import { SoundProvider } from "@/shared/providers/SoundProvider";
 
 export const metadata: Metadata = {
   title: "my web-site",

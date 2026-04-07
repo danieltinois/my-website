@@ -1,6 +1,6 @@
 "use client";
 
-import ButtonNavigate from "@/src/components/ui/ButtonNavigate";
+import ButtonNavigate from "@/shared/components/button-navigate/ButtonNavigate";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import Image from "next/image";
