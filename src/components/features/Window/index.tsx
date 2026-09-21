@@ -1,8 +1,6 @@
 "use client";
 
 import { WindowProps } from "@/src/components/features/Window/interface";
-import { Cancel01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useRef } from "react";
 import Draggable from "react-draggable";
 import useSound from "@/src/hooks/useSound";
@@ -41,8 +39,15 @@ const Window = ({
     >
       <div ref={nodeRef} className="absolute flex flex-col" style={style}>
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
+          className="shadow-bump w-[var(--window-width)]"
+          initial={{ opacity: 0, scale: 0.6, y: -30, rotate: -2 }}
+          animate={{
+            opacity: 1,
+            scale: 1,
+            y: 0,
+            rotate: 0,
+            transition: { type: "spring", stiffness: 380, damping: 17 },
+          }}
           exit={{
             opacity: 0,
             scale: 1.1,
@@ -55,26 +60,31 @@ const Window = ({
           handle
           select-none
           active:cursor-[var(--cursor-grabbing)]
-          rounded-t-lg font-mono flex
+          rounded-t-[22px] font-mono flex
           bg-[var(--color-bg-header)]
           text-[var(--color-text-secondary)]
           text-xl top-0 left-0 px-6 py-3
-          border-x-2 border-t-2 border-[color:var(--color-border)]
+          border-6 border-[var(--color-cn-border)]
+          shadow-bump
           "
           >
             <div className="flex grow flex-row justify-between items-center gap-4">
-              <span>{title}</span>
+              <div className="flex flex-col">
+                <span className="font-bold leading-tight">{title}</span>
+                <span className="text-xs opacity-70 font-mono">
+                  C:\daniel\portfolio\{title}
+                </span>
+              </div>
               {onClose && (
                 <button
                   onClick={handleClose}
-                  className="hover:text-[var(--color-text-highlight)] cursor-pointer flex items-center hover:scale-120 duration-250 active:scale-90"
+                  aria-label={`fechar ${title}`}
+                  className="flex items-center justify-center size-8 rounded-full bg-[#ff5252] text-white
+                  text-base font-black border-3 border-[var(--color-cn-border)]
+                  shadow-bump-sm hover:bg-[#ff8a80] active:translate-y-1 active:shadow-none
+                  cursor-pointer select-none leading-none"
                 >
-                  <HugeiconsIcon
-                    icon={Cancel01Icon}
-                    size={25}
-                    color="color-text"
-                    strokeWidth={2.5}
-                  />
+                  ✕
                 </button>
               )}
             </div>
@@ -84,9 +94,9 @@ const Window = ({
             className="
         flex flex-col
         bg-[var(--color-bg-secondary)]
-        border-2 border-[color:var(--color-border-secondary)]
-        rounded-b-xl m-0 shadow-flat
-        w-[var(--window-width)] h-[var(--window-height)]
+        border-6 border-[var(--color-cn-border)]
+        rounded-b-[22px] m-0
+        w-full h-[var(--window-height)]
         "
           >
             {children}

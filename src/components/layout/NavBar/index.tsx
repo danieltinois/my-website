@@ -38,7 +38,7 @@ const NavBar = () => {
       <div className="grid grid-cols-[auto_1fr_auto] justify-start items-center h-16 relative z-50 select-none">
         <div className="grid grid-flow-col gap-4">
           <button
-            className="cursor-pointer hover:scale-110 duration-250 active:scale-80"
+            className="cursor-pointer rounded-2xl border-3 border-[var(--color-cn-border)] p-2.5 shadow-bump-sm hover:scale-110 hover:rotate-6 active:scale-90 active:translate-y-1 active:shadow-none duration-200"
             onClick={handleTheme}
           >
             <HugeiconsIcon
@@ -49,7 +49,7 @@ const NavBar = () => {
             />
           </button>
           <button
-            className="cursor-pointer hover:scale-110 duration-250 active:scale-80"
+            className="cursor-pointer rounded-2xl border-3 border-[var(--color-cn-border)] p-2.5 shadow-bump-sm hover:scale-110 hover:rotate-6 active:scale-90 active:translate-y-1 active:shadow-none duration-200"
             onClick={toggleMute}
           >
             <HugeiconsIcon
@@ -80,7 +80,7 @@ const NavBar = () => {
     <div className="grid grid-cols-[auto_1fr_auto] justify-start items-center h-16 relative z-50 select-none">
       <div className="grid grid-flow-col gap-4">
         <button
-          className="cursor-pointer hover:scale-110 duration-250 active:scale-80"
+          className="cursor-pointer rounded-2xl border-3 border-[var(--color-cn-border)] p-2.5 shadow-bump-sm hover:scale-110 hover:rotate-6 active:scale-90 active:translate-y-1 active:shadow-none duration-200"
           onClick={handleTheme}
         >
           <HugeiconsIcon
@@ -91,7 +91,7 @@ const NavBar = () => {
           />
         </button>
         <button
-          className="cursor-pointer hover:scale-110 duration-250 active:scale-80"
+          className="cursor-pointer rounded-2xl border-3 border-[var(--color-cn-border)] p-2.5 shadow-bump-sm hover:scale-110 hover:rotate-6 active:scale-90 active:translate-y-1 active:shadow-none duration-200"
           onClick={toggleMute}
         >
           <HugeiconsIcon

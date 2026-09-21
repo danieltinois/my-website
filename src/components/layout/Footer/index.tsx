@@ -16,11 +16,11 @@ const Footer = () => {
     <motion.div
       onMouseMove={(e) => mouseX.set(e.pageX)}
       onMouseLeave={() => mouseX.set(Infinity)}
-      className="mx-auto flex h-16 items-end gap-4 px-4 pb-3 rounded-2xl
+      className="mx-auto flex h-16 items-end gap-4 px-4 pb-3 rounded-[22px]
       bg-(--color-docker-bg)
       backdrop-blur-xl
-      border border-(--color-docker-border)
-      shadow-[0_8px_32px_0_rgba(0,0,0,0.08)]
+      border-4 border-(--color-cn-border)
+      shadow-bump
       overflow-visible"
     >
       <ButtonSocialMedia

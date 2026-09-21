@@ -4,6 +4,7 @@ import "@fontsource-variable/roboto-mono";
 import { ThemeProvider } from "next-themes";
 import Wave from "react-wavify";
 import { SoundProvider } from "../context/SoundContext";
+import PartyMode from "../components/layout/PartyMode";
 
 export const metadata: Metadata = {
   title: "daniel@portfolio",
@@ -28,7 +29,10 @@ export default function RootLayout({
             light: "light",
           }}
         >
-          <SoundProvider>{children}</SoundProvider>
+          <SoundProvider>
+            {children}
+            <PartyMode />
+          </SoundProvider>
           <div className="fixed bottom-0 left-0 w-full h-[1020px] md:h-[380px] -z-10 overflow-hidden">
             <Wave
               fill="var(--color-bg-wave-first)"

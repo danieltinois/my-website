@@ -29,18 +29,18 @@ const DesktopApp = ({ title, icon, windowContent }: DesktopAppProps) => {
 
   return (
     <button
-      className="flex flex-col items-center cursor-pointer hover:scale-110 duration-250 active:scale-90 select-none"
+      className="desktop-icon w-24 flex flex-col items-center gap-2 cursor-pointer hover:scale-125 hover:-rotate-3 active:scale-90 duration-200 select-none"
       onClick={handleClick}
     >
-      <div>
-        <HugeiconsIcon
-          icon={icon}
-          size={70}
-          color="color-text"
-          strokeWidth={1.5}
-        />
-      </div>
-      <span>{title}</span>
+      <HugeiconsIcon
+        icon={icon}
+        size={70}
+        color="color-text"
+        strokeWidth={1.5}
+      />
+      <span className="px-2 py-0.5 rounded-xl bg-[var(--color-bg-secondary)] border-2 border-(--color-cn-border) shadow-bump-sm text-sm">
+        {title}
+      </span>
     </button>
   );
 };
