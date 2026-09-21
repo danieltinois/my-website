@@ -40,7 +40,7 @@ const Decor = () => {
     >
       {says && (
         <span
-          className="absolute bottom-full right-0 mb-2 w-max max-w-[min(calc(100vw-3rem),16rem)]
+          className="absolute bottom-full left-0 mb-2 w-max max-w-[min(calc(100vw-5rem),20rem)]
             px-3 py-1.5 rounded-[14px] bg-white text-sm font-bold whitespace-normal
             border-2 border-(--color-cn-border) shadow-bump-sm"
         >
