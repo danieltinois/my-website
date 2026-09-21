@@ -177,13 +177,14 @@ export const WindowManagerProvider = ({
       </AnimatePresence>
 
       <AnimatePresence>
-        {windows
-          .filter((w) => !w.minimized)
-          .map((window) => (
+        {windows.map((window) => (
             <div
               key={window.id}
               className="fixed flex mx-auto w-screen h-screen items-center justify-center pointer-events-none"
-              style={{ zIndex: window.zIndex }}
+              style={{
+                zIndex: window.zIndex,
+                display: window.minimized ? "none" : undefined,
+              }}
             >
               <div className="pointer-events-auto">
                 <Window
