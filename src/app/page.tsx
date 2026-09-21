@@ -35,7 +35,7 @@ export default function Home() {
             </div>
           </Window>
         </div>
-        <footer>
+        <footer className="z-[9998]">
           <div className="flex absolute w-screen bottom-[1.5%] bg-(--transparent) md:flex justify-center">
             <Footer />
           </div>

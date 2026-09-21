@@ -37,6 +37,7 @@ const Window = ({
 
   const handleExpand = () => {
     play();
+    onFocus?.();
     setMaximized((m) => !m);
   };
 
@@ -51,17 +52,13 @@ const Window = ({
       onStart={() => document.body.classList.add("grabbing-active")}
       onStop={() => document.body.classList.remove("grabbing-active")}
     >
-      <div ref={nodeRef} className="flex flex-col" style={style}>
+      <div
+        ref={nodeRef}
+        className={maximized ? "fixed inset-x-5 top-5 bottom-24" : "flex flex-col"}
+        style={style}
+      >
         <motion.div
-          className="shadow-bump w-[var(--window-width)]"
-          style={
-            maximized
-              ? {
-                  width: "calc(100vw - 3rem)",
-                  height: "calc(100vh - 3rem)",
-                }
-              : undefined
-          }
+          className={maximized ? "shadow-bump w-full h-full" : "shadow-bump w-[var(--window-width)]"}
           initial={{ opacity: 0, scale: 0.6, y: -30, rotate: -2 }}
           animate={{
             opacity: 1,

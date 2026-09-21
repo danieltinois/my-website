@@ -3,8 +3,9 @@
 import React, { useRef } from "react";
 import ButtonSocialMediaProps from "@/src/components/ui/ButtonSocialMedia/interface";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { motion, useSpring, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import useSound from "@/src/hooks/useSound";
+import { useDockMagnet } from "@/src/hooks/useDockMagnet";
 
 const ButtonSocialMedia = ({
   link,
@@ -15,21 +16,7 @@ const ButtonSocialMedia = ({
 }: ButtonSocialMediaProps) => {
   const ref = useRef<HTMLAnchorElement>(null);
   const { play } = useSound("/sounds/click.mp3", { speed: 1.5 });
-
-  const distance = useTransform(mouseX, (val: number) => {
-    const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
-    return val - bounds.x - bounds.width / 2;
-  });
-
-  const sizeSync = useTransform(distance, [-100, 0, 100], [55, 100, 40]);
-
-  const size = useSpring(sizeSync, {
-    mass: 0.1,
-    stiffness: 150,
-    damping: 12,
-  });
-
-  const iconSize = useTransform(size, [55, 100], [40, 65]);
+  const { size, iconSize } = useDockMagnet(mouseX, ref);
 
   const handleClick = () => {
     play();

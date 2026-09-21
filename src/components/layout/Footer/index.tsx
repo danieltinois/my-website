@@ -2,12 +2,11 @@
 
 import React from "react";
 import ButtonSocialMedia from "@/src/components/ui/ButtonSocialMedia";
-import { HugeiconsIcon } from "@hugeicons/react";
+import ButtonDockApp from "@/src/components/ui/ButtonDockApp";
 import {
   GithubIcon,
   InstagramIcon,
   Linkedin01Icon,
-  TerminalIcon,
 } from "@hugeicons/core-free-icons";
 import { motion, useMotionValue } from "framer-motion";
 import { useWindowManager } from "@/src/context/WindowManager";
@@ -29,19 +28,12 @@ const Footer = () => {
       overflow-visible"
     >
       {minimized.map((w) => (
-        <button
+        <ButtonDockApp
           key={w.id}
-          onClick={() => restoreWindow(w.id)}
-          aria-label={`restaurar ${w.title}`}
+          mouseX={mouseX}
           title={w.title}
-          className="flex size-11 flex-none items-center justify-center rounded-[14px]
-            bg-(--color-docker-icon)/10 text-(--color-docker-icon)
-            border-2 border-(--color-cn-border)/60
-            hover:-translate-y-1 hover:bg-(--color-docker-icon)/20
-            active:scale-95 cursor-pointer transition-all"
-        >
-          <HugeiconsIcon icon={TerminalIcon} size={22} strokeWidth={1.5} />
-        </button>
+          onRestore={() => restoreWindow(w.id)}
+        />
       ))}
       {minimized.length > 0 && (
         <div
