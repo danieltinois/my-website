@@ -1,13 +1,14 @@
 "use client";
 
 import useSound from "@/src/hooks/useSound";
-import {
-  SketchCat,
-  SketchDuck,
-  SketchMug,
-  SketchTrash,
-} from "@/src/components/layout/Decor/critters";
 import { useState } from "react";
+
+type DecorProps = {
+  trashSvg: string;
+  mugSvg: string;
+  duckSvg: string;
+  catSvg: string;
+};
 
 const TRASH_SAYS = [
   "mais uma lixeira vazia...",
@@ -15,7 +16,7 @@ const TRASH_SAYS = [
   "vou guardar por 30 dias, depois sumo",
 ];
 
-const Decor = () => {
+const Decor = ({ trashSvg, mugSvg, duckSvg, catSvg }: DecorProps) => {
   const { play } = useSound("/sounds/bubble.mp3", {
     speed: 1.4,
     lowPassFreq: 8000,
@@ -45,30 +46,30 @@ const Decor = () => {
             {says}
           </span>
         )}
-        <SketchTrash size={92} className="group-hover:-rotate-6 transition-transform duration-200" />
+        <span
+          className="group-hover:-rotate-6 transition-transform duration-200"
+          dangerouslySetInnerHTML={{ __html: trashSvg }}
+        />
       </button>
 
       <div
         className="fixed bottom-14 right-10 z-0 pointer-events-none select-none decor-wobble"
         title="café de produção (sempre quente)"
-      >
-        <SketchMug size={130} />
-      </div>
+        dangerouslySetInnerHTML={{ __html: mugSvg }}
+      />
 
       <div
         className="fixed top-24 right-10 z-0 pointer-events-none select-none decor-bob"
         title="planteria? é um patinho legal"
-      >
-        <SketchDuck size={120} />
-      </div>
+        dangerouslySetInnerHTML={{ __html: duckSvg }}
+      />
 
       <div
         className="fixed top-28 left-8 z-0 pointer-events-none select-none decor-bob"
         style={{ animationDelay: "1.2s" }}
         title="mascote oficial do repo"
-      >
-        <SketchCat size={140} />
-      </div>
+        dangerouslySetInnerHTML={{ __html: catSvg }}
+      />
     </>
   );
 };

@@ -6,6 +6,7 @@ import Window from "../components/features/Window";
 import Footer from "@/src/components/layout/Footer";
 import NavBar from "@/src/components/layout/NavBar";
 import { WindowManagerProvider } from "../context/WindowManager";
+import { catSvg, duckSvg, mugSvg, trashSvg } from "@/src/lib/critters";
 
 // TODO - Legal adicionar resize de window
 // TODO - Legal aidiconar cursor personalizado (pensando na tematica windows xp)
@@ -22,7 +23,12 @@ export default function Home() {
   return (
     <WindowManagerProvider>
       <div>
-        <Decor />
+        <Decor
+          catSvg={catSvg(140)}
+          duckSvg={duckSvg(120)}
+          mugSvg={mugSvg(130)}
+          trashSvg={trashSvg(92)}
+        />
         <nav className="p-3">
           <NavBar />
         </nav>
