@@ -1,7 +1,7 @@
 "use client";
 
 import { WindowProps } from "@/src/components/features/Window/interface";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Draggable from "react-draggable";
 import useSound from "@/src/hooks/useSound";
 import { motion } from "framer-motion";
@@ -10,12 +10,15 @@ const Window = ({
   children,
   title,
   onClose,
+  onMinimize,
   disabled = false,
   onFocus,
   defaultPosition,
   style,
 }: WindowProps) => {
   const nodeRef = useRef(null);
+  const [maximized, setMaximized] = useState(false);
+  const [pos, setPos] = useState(defaultPosition ?? { x: 0, y: 0 });
 
   const { play } = useSound("/sounds/bubble.mp3", {
     speed: 1,
@@ -27,19 +30,38 @@ const Window = ({
     if (onClose) onClose();
   };
 
+  const handleMinimize = () => {
+    play();
+    if (onMinimize) onMinimize();
+  };
+
+  const handleExpand = () => {
+    play();
+    setMaximized((m) => !m);
+  };
+
   return (
     <Draggable
       nodeRef={nodeRef}
       handle=".handle"
-      disabled={disabled}
+      disabled={disabled || maximized}
+      position={maximized ? { x: 0, y: 0 } : pos}
       onMouseDown={onFocus}
-      defaultPosition={defaultPosition}
+      onDrag={(_, d) => setPos({ x: d.x, y: d.y })}
       onStart={() => document.body.classList.add("grabbing-active")}
       onStop={() => document.body.classList.remove("grabbing-active")}
     >
       <div ref={nodeRef} className="flex flex-col" style={style}>
         <motion.div
           className="shadow-bump w-[var(--window-width)]"
+          style={
+            maximized
+              ? {
+                  width: "calc(100vw - 3rem)",
+                  height: "calc(100vh - 3rem)",
+                }
+              : undefined
+          }
           initial={{ opacity: 0, scale: 0.6, y: -30, rotate: -2 }}
           animate={{
             opacity: 1,
@@ -71,13 +93,27 @@ const Window = ({
               <div className="flex flex-row items-center gap-1.5">
                 <button
                   onClick={handleClose}
-                  aria-label={`fechar ${title}`}
+                  disabled={!onClose}
+                  aria-label={onClose ? `fechar ${title}` : undefined}
                   className="size-3 rounded-full bg-[#ff5f57] border border-black/20
-                  hover:brightness-110 hover:scale-110 active:translate-y-px
+                  enabled:hover:brightness-110 enabled:hover:scale-110 active:translate-y-px
+                  disabled:cursor-default cursor-pointer transition-transform"
+                />
+                <button
+                  onClick={handleMinimize}
+                  disabled={!onMinimize}
+                  aria-label={onMinimize ? `minimizar ${title}` : undefined}
+                  className="size-3 rounded-full bg-[#febc2e] border border-black/20
+                  enabled:hover:scale-110 active:translate-y-px
+                  disabled:cursor-default cursor-pointer transition-transform"
+                />
+                <button
+                  onClick={handleExpand}
+                  aria-label={`${maximized ? "restaurar" : "expandir"} ${title}`}
+                  className="size-3 rounded-full bg-[#28c840] border border-black/20
+                  hover:scale-110 active:translate-y-px
                   cursor-pointer transition-transform"
                 />
-                <span aria-hidden="true" className="size-3 rounded-full bg-[#febc2e] border border-black/20" />
-                <span aria-hidden="true" className="size-3 rounded-full bg-[#28c840] border border-black/20" />
               </div>
               <div className="flex flex-col text-center">
                 <span className="font-bold leading-tight">{title}</span>
@@ -90,13 +126,13 @@ const Window = ({
           </div>
 
           <div
-            className="
+            className={`
         flex flex-col
         bg-[var(--color-bg-secondary)]
         border-6 border-[var(--color-cn-border)]
         rounded-b-[22px] m-0 overflow-hidden
-        w-full h-[var(--window-height)]
-        "
+        w-full ${maximized ? "h-full" : "h-[var(--window-height)]"}
+        `}
           >
             {children}
           </div>

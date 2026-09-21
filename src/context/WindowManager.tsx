@@ -16,6 +16,7 @@ interface WindowInstance {
   content: ReactNode;
   defaultPosition?: { x: number; y: number };
   zIndex: number;
+  minimized: boolean;
 }
 
 interface Bubble {
@@ -29,6 +30,8 @@ interface WindowManagerContextProps {
   windows: WindowInstance[];
   openWindow: (content: ReactNode, title: string) => string;
   closeWindow: (id: string) => void;
+  minimizeWindow: (id: string) => void;
+  restoreWindow: (id: string) => void;
   focusWindow: (id: string) => void;
 }
 
@@ -88,6 +91,7 @@ export const WindowManagerProvider = ({
         x: Math.round(Math.random() * 40 - 20),
         y: Math.round(Math.random() * 40 - 20),
       },
+      minimized: false,
       zIndex: 100,
     };
     setWindows((prev) => {
@@ -105,6 +109,23 @@ export const WindowManagerProvider = ({
     spawnBubble(CLOSE_POPS[Math.floor(Math.random() * CLOSE_POPS.length)]);
   }, [spawnBubble]);
 
+  const minimizeWindow = useCallback((id: string) => {
+    setWindows((prev) =>
+      prev.map((w) => (w.id === id ? { ...w, minimized: true } : w)),
+    );
+  }, []);
+
+  const restoreWindow = useCallback((id: string) => {
+    setWindows((prev) => {
+      const target = prev.find((w) => w.id === id);
+      if (!target) return prev;
+      const maxZ = Math.max(...prev.map((w) => w.zIndex));
+      return prev.map((w) =>
+        w.id === id ? { ...w, minimized: false, zIndex: maxZ + 1 } : w,
+      );
+    });
+  }, []);
+
   const focusWindow = useCallback((id: string) => {
     setWindows((prev) => {
       const targetWindow = prev.find((w) => w.id === id);
@@ -117,7 +138,14 @@ export const WindowManagerProvider = ({
 
   return (
     <WindowManagerContext.Provider
-      value={{ windows, openWindow, closeWindow, focusWindow }}
+      value={{
+        windows,
+        openWindow,
+        closeWindow,
+        minimizeWindow,
+        restoreWindow,
+        focusWindow,
+      }}
     >
       {children}
 
@@ -149,24 +177,27 @@ export const WindowManagerProvider = ({
       </AnimatePresence>
 
       <AnimatePresence>
-        {windows.map((window) => (
-          <div
-            key={window.id}
-            className="fixed flex mx-auto w-screen h-screen items-center justify-center pointer-events-none"
-            style={{ zIndex: window.zIndex }}
-          >
-            <div className="pointer-events-auto">
-              <Window
-                title={window.title}
-                onClose={() => closeWindow(window.id)}
-                onFocus={() => focusWindow(window.id)}
-                defaultPosition={window.defaultPosition}
-              >
-                {window.content}
-              </Window>
+        {windows
+          .filter((w) => !w.minimized)
+          .map((window) => (
+            <div
+              key={window.id}
+              className="fixed flex mx-auto w-screen h-screen items-center justify-center pointer-events-none"
+              style={{ zIndex: window.zIndex }}
+            >
+              <div className="pointer-events-auto">
+                <Window
+                  title={window.title}
+                  onClose={() => closeWindow(window.id)}
+                  onMinimize={() => minimizeWindow(window.id)}
+                  onFocus={() => focusWindow(window.id)}
+                  defaultPosition={window.defaultPosition}
+                >
+                  {window.content}
+                </Window>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
       </AnimatePresence>
     </WindowManagerContext.Provider>
   );
