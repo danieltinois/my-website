@@ -36,6 +36,7 @@ const Window = ({
   };
 
   const handleExpand = () => {
+    if (disabled) return;
     play();
     onFocus?.();
     setMaximized((m) => !m);
@@ -106,10 +107,15 @@ const Window = ({
                 />
                 <button
                   onClick={handleExpand}
-                  aria-label={`${maximized ? "restaurar" : "expandir"} ${title}`}
+                  disabled={disabled}
+                  aria-label={
+                    disabled
+                      ? undefined
+                      : `${maximized ? "restaurar" : "expandir"} ${title}`
+                  }
                   className="size-3 rounded-full bg-[#28c840] border border-black/20
-                  hover:scale-110 active:translate-y-px
-                  cursor-pointer transition-transform"
+                  enabled:hover:scale-110 active:translate-y-px
+                  disabled:cursor-default cursor-pointer transition-transform"
                 />
               </div>
               <div className="flex flex-col text-center">
