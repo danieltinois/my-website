@@ -3,7 +3,8 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Delete02Icon } from "@hugeicons/core-free-icons";
 import useSound from "@/src/hooks/useSound";
-import { useState } from "react";
+import { Typewriter } from "@/src/components/ui/Typewriter";
+import { useCallback, useRef, useState } from "react";
 
 const TRASH_SAYS = [
   "mais uma lixeira vazia...",
@@ -17,12 +18,18 @@ const Decor = () => {
     lowPassFreq: 8000,
   });
   const [says, setSays] = useState<string | null>(null);
+  const hideTimer = useRef<number | null>(null);
 
-  const handleTrash = () => {
+  const handleTrash = useCallback(() => {
     play();
+    if (hideTimer.current) window.clearTimeout(hideTimer.current);
     setSays(TRASH_SAYS[Math.floor(Math.random() * TRASH_SAYS.length)]);
-    window.setTimeout(() => setSays(null), 1600);
-  };
+  }, [play]);
+
+  const handleComplete = useCallback(() => {
+    if (hideTimer.current) window.clearTimeout(hideTimer.current);
+    hideTimer.current = window.setTimeout(() => setSays(null), 1800);
+  }, []);
 
   return (
     <button
@@ -33,11 +40,15 @@ const Decor = () => {
     >
       {says && (
         <span
-          className="absolute -top-12 left-1/2 -translate-x-1/2 w-max px-3 py-1 rounded-full
-            bg-white text-sm font-bold text-[#1a1a1a] shadow-bump-sm
-            border-2 border-(--color-cn-border)"
+          className="absolute bottom-full right-0 mb-2 w-max max-w-[min(calc(100vw-3rem),16rem)]
+            px-3 py-1.5 rounded-[14px] bg-white text-sm font-bold whitespace-normal
+            border-2 border-(--color-cn-border) shadow-bump-sm"
         >
-          {says}
+          <Typewriter
+            text={says}
+            className="text-[#1a1a1a]"
+            onComplete={handleComplete}
+          />
         </span>
       )}
       <div
