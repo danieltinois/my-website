@@ -37,7 +37,7 @@ const Window = ({
       onStart={() => document.body.classList.add("grabbing-active")}
       onStop={() => document.body.classList.remove("grabbing-active")}
     >
-      <div ref={nodeRef} className="absolute flex flex-col" style={style}>
+      <div ref={nodeRef} className="flex flex-col" style={style}>
         <motion.div
           className="shadow-bump w-[var(--window-width)]"
           initial={{ opacity: 0, scale: 0.6, y: -30, rotate: -2 }}
@@ -68,24 +68,24 @@ const Window = ({
           "
           >
             <div className="flex grow flex-row justify-between items-center gap-4">
-              <div className="flex flex-col">
+              <div className="flex flex-row items-center gap-1.5">
+                <button
+                  onClick={handleClose}
+                  aria-label={`fechar ${title}`}
+                  className="size-3 rounded-full bg-[#ff5f57] border border-black/20
+                  hover:brightness-110 hover:scale-110 active:translate-y-px
+                  cursor-pointer transition-transform"
+                />
+                <span aria-hidden="true" className="size-3 rounded-full bg-[#febc2e] border border-black/20" />
+                <span aria-hidden="true" className="size-3 rounded-full bg-[#28c840] border border-black/20" />
+              </div>
+              <div className="flex flex-col text-center">
                 <span className="font-bold leading-tight">{title}</span>
                 <span className="text-xs opacity-70 font-mono">
                   C:\daniel\portfolio\{title}
                 </span>
               </div>
-              {onClose && (
-                <button
-                  onClick={handleClose}
-                  aria-label={`fechar ${title}`}
-                  className="flex items-center justify-center size-8 rounded-full bg-[#ff5252] text-white
-                  text-base font-black border-3 border-[var(--color-cn-border)]
-                  shadow-bump-sm hover:bg-[#ff8a80] active:translate-y-1 active:shadow-none
-                  cursor-pointer select-none leading-none"
-                >
-                  ✕
-                </button>
-              )}
+              <div aria-hidden="true" className="w-[76px]" />
             </div>
           </div>
 

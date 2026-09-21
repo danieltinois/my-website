@@ -85,8 +85,8 @@ export const WindowManagerProvider = ({
       title,
       content,
       defaultPosition: {
-        x: Math.round(Math.random() * 60 - 30),
-        y: Math.round(Math.random() * 60 - 30),
+        x: Math.round(Math.random() * 40 - 20),
+        y: Math.round(Math.random() * 40 - 20),
       },
       zIndex: 100,
     };
