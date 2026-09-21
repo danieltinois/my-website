@@ -1,9 +1,12 @@
 "use client";
 
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Delete02Icon } from "@hugeicons/core-free-icons";
 import useSound from "@/src/hooks/useSound";
-import { Cat, Ghost, Mug } from "react-kawaii";
+import {
+  SketchCat,
+  SketchDuck,
+  SketchMug,
+  SketchTrash,
+} from "@/src/components/layout/Decor/critters";
 import { useState } from "react";
 
 const TRASH_SAYS = [
@@ -30,45 +33,33 @@ const Decor = () => {
       <button
         onClick={handleTrash}
         aria-label="lixeira de decoração"
-        className="fixed bottom-24 left-6 z-10 flex flex-col items-center gap-1 cursor-pointer
+        className="fixed bottom-16 left-6 z-10 flex flex-col items-center gap-1 cursor-pointer
           hover:scale-110 active:scale-90 transition-transform duration-200 group"
       >
         {says && (
           <span
             className="absolute -top-12 left-1/2 -translate-x-1/2 w-max px-3 py-1 rounded-full
               bg-white text-sm font-bold text-[#1a1a1a] shadow-bump-sm
-              border-2 border-[var(--color-cn-border)]"
+              border-2 border-(--color-cn-border)"
           >
             {says}
           </span>
         )}
-        <div
-          className="flex flex-col items-center gap-1 px-4 py-3 rounded-[18px]
-            bg-[var(--color-bg-secondary)] border-4 border-(--color-cn-border) shadow-bump
-            group-hover:-rotate-6 transition-transform duration-200"
-        >
-          <HugeiconsIcon
-            icon={Delete02Icon}
-            size={40}
-            color="color-text"
-            strokeWidth={1.5}
-          />
-          <span className="text-xs font-mono opacity-70">lixeira</span>
-        </div>
+        <SketchTrash size={92} className="group-hover:-rotate-6 transition-transform duration-200" />
       </button>
 
       <div
-        className="fixed bottom-16 right-10 z-0 pointer-events-none select-none decor-wobble"
+        className="fixed bottom-14 right-10 z-0 pointer-events-none select-none decor-wobble"
         title="café de produção (sempre quente)"
       >
-        <Mug size={120} mood="happy" color="#c8b393" />
+        <SketchMug size={130} />
       </div>
 
       <div
         className="fixed top-24 right-10 z-0 pointer-events-none select-none decor-bob"
-        title="planteria? é um fantasminha legal"
+        title="planteria? é um patinho legal"
       >
-        <Ghost size={110} mood="blissful" color="#f7e6ff" />
+        <SketchDuck size={120} />
       </div>
 
       <div
@@ -76,7 +67,7 @@ const Decor = () => {
         style={{ animationDelay: "1.2s" }}
         title="mascote oficial do repo"
       >
-        <Cat size={130} mood="lovestruck" color="#f39c12" />
+        <SketchCat size={140} />
       </div>
     </>
   );
