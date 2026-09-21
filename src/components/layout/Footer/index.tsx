@@ -5,7 +5,7 @@ import ButtonSocialMedia from "@/src/components/ui/ButtonSocialMedia";
 import {
   GithubIcon,
   InstagramIcon,
-  LinkedinIcon,
+  Linkedin01Icon,
 } from "@hugeicons/core-free-icons";
 import { motion, useMotionValue } from "framer-motion";
 
@@ -26,7 +26,7 @@ const Footer = () => {
       <ButtonSocialMedia
         mouseX={mouseX}
         link="https://www.linkedin.com/in/danieltinois"
-        icon={LinkedinIcon}
+        icon={Linkedin01Icon}
         hoverColor="var(--color-linkdin)"
         label="Acesse meu Linkedin"
       />

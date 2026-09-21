@@ -1,17 +1,21 @@
-import App from "@/src/components/features/App";
-import Window from "@/src/components/features/Window";
-import NavBar from "@/src/components/layout/NavBar";
-import {
-  FavouriteCircleFreeIcons,
-  UserAccountIcon,
-} from "@hugeicons/core-free-icons";
+import { UserAccountIcon } from "@hugeicons/core-free-icons";
 import About from "../components/features/About";
-import Teste from "../components/features/Teste";
-import { WindowManagerProvider } from "../context/WindowManager";
+import DesktopApp from "../components/features/DesktopApp";
+import Window from "../components/features/Window";
 import Footer from "@/src/components/layout/Footer";
+import NavBar from "@/src/components/layout/NavBar";
+import { WindowManagerProvider } from "../context/WindowManager";
 
 // TODO - Legal adicionar resize de window
 // TODO - Legal aidiconar cursor personalizado (pensando na tematica windows xp)
+
+const desktopApps = [
+  {
+    title: "about",
+    icon: UserAccountIcon,
+    windowContent: <About />,
+  },
+];
 
 export default function Home() {
   return (
@@ -23,16 +27,9 @@ export default function Home() {
         <div className="fixed flex mx-auto w-screen h-screen items-center justify-center -translate-y-16 z-0">
           <Window title="home" disabled={true}>
             <div className="flex flex-row flex-wrap justify-center content-center h-full gap-6 p-8">
-              <App
-                title="about"
-                icon={UserAccountIcon}
-                windowContent={<About />}
-              />
-              <App
-                title="teste"
-                icon={FavouriteCircleFreeIcons}
-                windowContent={<Teste />}
-              />
+              {desktopApps.map((app) => (
+                <DesktopApp key={app.title} {...app} />
+              ))}
             </div>
           </Window>
         </div>

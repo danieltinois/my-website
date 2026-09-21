@@ -5,7 +5,7 @@ import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useRef } from "react";
 import Draggable from "react-draggable";
-import useCustomSound from "@/src/hooks/useCustomSound";
+import useSound from "@/src/hooks/useSound";
 import { motion } from "framer-motion";
 
 const Window = ({
@@ -19,13 +19,13 @@ const Window = ({
 }: WindowProps) => {
   const nodeRef = useRef(null);
 
-  const closeClickSound = useCustomSound("./sounds/bubble.mp3", {
+  const { play } = useSound("/sounds/bubble.mp3", {
     speed: 1,
     lowPassFreq: 18000,
   });
 
   const handleClose = () => {
-    closeClickSound.play();
+    play();
     if (onClose) onClose();
   };
 

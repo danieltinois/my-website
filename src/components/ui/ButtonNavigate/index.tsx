@@ -1,15 +1,15 @@
 "use client";
 
 import ButtonProps from "@/src/components/ui/ButtonNavigate/interface";
-import useClickSound from "@/src/hooks/useClickSound";
+import useSound from "@/src/hooks/useSound";
 import { useRouter } from "next/navigation";
 
 const ButtonNavigate = ({ tittle, route }: ButtonProps) => {
   const router = useRouter();
-  const { playClick } = useClickSound(false, 1.5);
+  const { play } = useSound("/sounds/click.mp3", { speed: 1.5 });
 
   const handleGoHome = () => {
-    playClick();
+    play();
     router.push(route);
   };
   return (

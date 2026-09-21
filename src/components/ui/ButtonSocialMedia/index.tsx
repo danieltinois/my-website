@@ -4,7 +4,7 @@ import React, { useRef } from "react";
 import ButtonSocialMediaProps from "@/src/components/ui/ButtonSocialMedia/interface";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { motion, useSpring, useTransform } from "framer-motion";
-import useClickSound from "@/src/hooks/useClickSound";
+import useSound from "@/src/hooks/useSound";
 
 const ButtonSocialMedia = ({
   link,
@@ -14,7 +14,7 @@ const ButtonSocialMedia = ({
   hoverColor = "white",
 }: ButtonSocialMediaProps) => {
   const ref = useRef<HTMLAnchorElement>(null);
-  const { playClick } = useClickSound(false, 1.5);
+  const { play } = useSound("/sounds/click.mp3", { speed: 1.5 });
 
   const distance = useTransform(mouseX, (val: number) => {
     const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
@@ -32,7 +32,7 @@ const ButtonSocialMedia = ({
   const iconSize = useTransform(size, [55, 100], [40, 65]);
 
   const handleClick = () => {
-    playClick();
+    play();
   };
 
   return (
