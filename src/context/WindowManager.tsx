@@ -36,7 +36,18 @@ const WindowManagerContext = createContext<
   WindowManagerContextProps | undefined
 >(undefined);
 
-const POPS = ["bwoop!", "boing!", "poom!", "bada-bing!", "cha-ching!"];
+const POPS = [
+  "bwoop!",
+  "ó-ó-ó!",
+  "boing!",
+  "tatum!",
+  "SKRRT!",
+  "phssshh!",
+  "wheee!",
+  "puf-puf!",
+];
+
+const CLOSE_POPS = ["poom!", "aiaiai!", "chiau!", "pop!"];
 
 export const WindowManagerProvider = ({
   children,
@@ -57,7 +68,7 @@ export const WindowManagerProvider = ({
         id,
         text,
         x: window.innerWidth / 2 + (Math.random() * 240 - 120),
-        y: window.innerHeight / 2 - 240,
+        y: window.innerHeight / 2 - 260 + (Math.random() * 60 - 30),
       },
     ]);
     window.setTimeout(
@@ -74,8 +85,8 @@ export const WindowManagerProvider = ({
       title,
       content,
       defaultPosition: {
-        x: Math.round(window.innerWidth / 2 - 400 + Math.random() * 120 - 60),
-        y: Math.round(window.innerHeight / 2 - 300 + Math.random() * 120 - 60),
+        x: Math.round(Math.random() * 60 - 30),
+        y: Math.round(Math.random() * 60 - 30),
       },
       zIndex: 100,
     };
@@ -91,7 +102,7 @@ export const WindowManagerProvider = ({
 
   const closeWindow = useCallback((id: string) => {
     setWindows((prev) => prev.filter((w) => w.id !== id));
-    spawnBubble("poom!");
+    spawnBubble(CLOSE_POPS[Math.floor(Math.random() * CLOSE_POPS.length)]);
   }, [spawnBubble]);
 
   const focusWindow = useCallback((id: string) => {
@@ -114,15 +125,22 @@ export const WindowManagerProvider = ({
         {bubbles.map((bubble) => (
           <motion.div
             key={bubble.id}
-            initial={{ opacity: 0, scale: 0.3, y: 10 }}
-            animate={{ opacity: 1, scale: 1.25, y: -6 }}
-            className="fixed font-black text-4xl select-none pointer-events-none
+            initial={{ opacity: 0, scale: 0.2, y: 16, rotate: -8 }}
+            animate={{
+              opacity: 1,
+              scale: 1.15,
+              y: -4,
+              rotate: (bubble.id.charCodeAt(0) % 2 ? 1 : -1) * 5,
+              transition: { type: "spring", stiffness: 300, damping: 12 },
+            }}
+            className="fixed font-black text-5xl select-none pointer-events-none
               text-[var(--color-cn-highlight)]"
             style={{
               left: bubble.x,
               top: bubble.y,
               zIndex: 9999,
-              textShadow: "0 4px 0 var(--color-cn-shadow)",
+              textShadow:
+                "0 4px 0 var(--color-cn-shadow), 0 0 18px rgba(255,255,255,0.25)",
             }}
           >
             {bubble.text}
@@ -134,7 +152,7 @@ export const WindowManagerProvider = ({
         {windows.map((window) => (
           <div
             key={window.id}
-            className="fixed flex mx-auto w-screen h-screen items-center justify-center -translate-y-16 pointer-events-none"
+            className="fixed flex mx-auto w-screen h-screen items-center justify-center pointer-events-none"
             style={{ zIndex: window.zIndex }}
           >
             <div className="pointer-events-auto">

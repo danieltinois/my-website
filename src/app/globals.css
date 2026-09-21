@@ -31,23 +31,23 @@
 /* Colors */
 
 :root[data-theme="dark"] {
-  --color-bg: #171717;
-  --color-bg-secondary: #241c33;
-  --color-bg-header: #4c1d95;
-  --color-border: #fff;
-  --color-border-secondary: #ffd23f;
-  --color-text: #fff;
-  --color-text-secondary: #fff;
-  --color-bg-wave-first: #7c3aed;
-  --color-bg-wave-second: #4c1d95;
-  --color-docker-bg: rgba(23, 23, 23, 0.6);
-  --color-docker-border: rgba(255, 255, 255, 0.1);
-  --color-docker-icon: #fff;
+  --color-bg: #16110b;
+  --color-bg-secondary: #221a12;
+  --color-bg-header: #e2601a;
+  --color-border: #ffe9d2;
+  --color-border-secondary: #ffb347;
+  --color-text: #f5e8d8;
+  --color-text-secondary: #ffffff;
+  --color-bg-wave-first: #ff8c42;
+  --color-bg-wave-second: #c94f1d;
+  --color-docker-bg: rgba(22, 17, 11, 0.6);
+  --color-docker-border: rgba(255, 233, 210, 0.12);
+  --color-docker-icon: #f5e8d8;
 
   /* cartoon network */
-  --color-cn-border: #fff;
-  --color-cn-shadow: #8b5cf6;
-  --color-cn-highlight: #ffe066;
+  --color-cn-border: #ffe9d2;
+  --color-cn-shadow: #a3470f;
+  --color-cn-highlight: #ffb347;
 
   /* Cursors */
   --cursor-default: url("../../public/cursors/dark/default-dark.png"), auto;
@@ -188,4 +188,33 @@ body.cn-party .desktop-icon {
 
 body.cn-party .desktop-icon:nth-child(2n) {
   animation-delay: 0.2s;
+}
+
+/* background doodles */
+@keyframes decor-wobble {
+  0%,
+  100% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(4deg);
+  }
+}
+
+@keyframes decor-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(4deg);
+  }
+}
+
+.decor-wobble {
+  animation: decor-wobble 3s ease-in-out infinite;
+}
+
+.decor-bob {
+  animation: decor-bob 4s ease-in-out infinite;
 }

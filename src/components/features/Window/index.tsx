@@ -65,7 +65,6 @@ const Window = ({
           text-[var(--color-text-secondary)]
           text-xl top-0 left-0 px-6 py-3
           border-6 border-[var(--color-cn-border)]
-          shadow-bump
           "
           >
             <div className="flex grow flex-row justify-between items-center gap-4">
@@ -95,7 +94,7 @@ const Window = ({
         flex flex-col
         bg-[var(--color-bg-secondary)]
         border-6 border-[var(--color-cn-border)]
-        rounded-b-[22px] m-0
+        rounded-b-[22px] m-0 overflow-hidden
         w-full h-[var(--window-height)]
         "
           >

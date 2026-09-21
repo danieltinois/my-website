@@ -1,5 +1,6 @@
 import { UserAccountIcon } from "@hugeicons/core-free-icons";
 import About from "../components/features/About";
+import Decor from "../components/layout/Decor";
 import DesktopApp from "../components/features/DesktopApp";
 import Window from "../components/features/Window";
 import Footer from "@/src/components/layout/Footer";
@@ -21,6 +22,7 @@ export default function Home() {
   return (
     <WindowManagerProvider>
       <div>
+        <Decor />
         <nav className="p-3">
           <NavBar />
         </nav>
