@@ -49,7 +49,7 @@ const Contributions = ({ className = "" }: { className?: string }) => {
         </p>
       ) : !weeks ? (
         <p className="text-xs text-[var(--color-text)] opacity-60">
-          carregando contribuições… ☕
+          carregando contribuições…
         </p>
       ) : (
         <>

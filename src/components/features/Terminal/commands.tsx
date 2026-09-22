@@ -113,7 +113,7 @@ export const runCommand = (
         output: (
           <pre className="whitespace-pre-wrap">{`       .--.          daniel@portfolio
       /    \\         --------------------
-     /  🐧  \\        OS: PortfolioOS XP (3.11 vibes)
+     /  ~~  \\        OS: PortfolioOS XP (3.11 vibes)
      '~-.-~'         Uptime: ∞ (perpetuamente)
   daniel@portfolio   Shell: bash 5.2 (falso)
   -----------------  DE: Desktop Window Manager

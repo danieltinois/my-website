@@ -22,7 +22,7 @@ export const useGitHubRepos = (): { repos: Project[]; loading: boolean } => {
           .filter((r) => !r.fork)
           .map((r) => ({
             name: r.name,
-            description: r.description ?? "sem descrição — abre o repo 👀",
+            description: r.description ?? "sem descrição — abre o repo",
             stack: [r.language, ...(r.topics ?? [])]
               .filter(Boolean)
               .slice(0, 4),

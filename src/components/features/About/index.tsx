@@ -2,6 +2,14 @@
 
 import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  Refresh01Icon,
+  Coffee01Icon,
+  Mail01Icon,
+} from "@hugeicons/core-free-icons";
 import useSound from "@/src/hooks/useSound";
 import { FILES, SOCIALS } from "@/src/components/features/Terminal/commands";
 import Mascot from "./Mascot";
@@ -47,14 +55,14 @@ const About = () => {
             onClick={() => play()}
             className="border-[3px] border-(--color-cn-shadow) bg-[var(--color-bg)] px-1.5 font-bold leading-none text-[var(--color-text)] shadow-[2px_2px_0_var(--color-cn-shadow)] active:translate-y-0.5 active:shadow-none cursor-pointer"
           >
-            ◀
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={16} color="color-text" strokeWidth={2} />
           </button>
           <button
             aria-label="avançar"
             onClick={() => play()}
             className="border-[3px] border-(--color-cn-shadow) bg-[var(--color-bg)] px-1.5 font-bold leading-none text-[var(--color-text)] shadow-[2px_2px_0_var(--color-cn-shadow)] active:translate-y-0.5 active:shadow-none cursor-pointer"
           >
-            ▶
+            <HugeiconsIcon icon={ArrowRight01Icon} size={16} color="color-text" strokeWidth={2} />
           </button>
           <button
             aria-label="atualizar"
@@ -65,10 +73,10 @@ const About = () => {
             }}
             className="border-[3px] border-(--color-cn-shadow) bg-[var(--color-bg)] px-1.5 font-bold leading-none text-[var(--color-text)] shadow-[2px_2px_0_var(--color-cn-shadow)] active:translate-y-0.5 active:shadow-none cursor-pointer"
           >
-            ⟳
+            <HugeiconsIcon icon={Refresh01Icon} size={16} color="color-text" strokeWidth={2} />
           </button>
           <div className="flex flex-1 items-center gap-2 border-[3px] border-(--color-cn-shadow) bg-[var(--color-bg)] px-2 py-1 text-[11px] text-[var(--color-text)]">
-            <span aria-hidden>☕</span>
+            <HugeiconsIcon icon={Coffee01Icon} size={16} color="color-cn-highlight" strokeWidth={2} />
             <span className="truncate">
               http://tinois.dev/~daniel/{page}.html
             </span>
@@ -90,12 +98,12 @@ const About = () => {
       <div className="mt-4 overflow-hidden border-y-[3px] border-(--color-cn-shadow) bg-(--color-bg-secondary) py-1">
         <div className="retro-marquee flex w-max whitespace-nowrap">
           <span className="px-4 text-xs font-bold tracking-widest text-[var(--color-text)]">
-            ✦ bem-vindo ao meu site ★ site dentro do site ✦ café &amp; código ★
-            full stack dev ☕ feito em são paulo ✦
+            * bem-vindo ao meu site * site dentro do site * café &amp; código *
+            full stack dev em são paulo *
           </span>
           <span aria-hidden className="px-4 text-xs font-bold tracking-widest text-[var(--color-text)]">
-            ✦ bem-vindo ao meu site ★ site dentro do site ✦ café &amp; código ★
-            full stack dev ☕ feito em são paulo ✦
+            * bem-vindo ao meu site * site dentro do site * café &amp; código *
+            full stack dev em são paulo *
           </span>
         </div>
       </div>
@@ -125,17 +133,17 @@ const About = () => {
                   </p>
                   <p className="mt-1 text-sm text-[var(--color-text)] opacity-80">
                     status:{" "}
-                    <span className="retro-blink inline-block text-(--color-cn-highlight)">
-                      ■
-                    </span>{" "}
+                    <span className="retro-blink inline-block size-2 bg-(--color-cn-highlight)" />{" "}
                     online &amp;&amp; coding
                   </p>
                   <div className="mt-4 flex flex-wrap justify-center gap-2 md:justify-start">
                     <button onClick={() => go("sobre")} className={tabCls(false)}>
-                      ler sobre ▸
+                      ler sobre&nbsp;
+                      <HugeiconsIcon icon={ArrowRight01Icon} size={14} color="color-text" strokeWidth={2} />
                     </button>
                     <button onClick={() => go("stack")} className={tabCls(false)}>
-                      ver stack ▸
+                      ver stack&nbsp;
+                      <HugeiconsIcon icon={ArrowRight01Icon} size={14} color="color-text" strokeWidth={2} />
                     </button>
                   </div>
                 </div>
@@ -225,11 +233,12 @@ const About = () => {
                       onClick={() => play()}
                       className="border-[3px] border-(--color-cn-border) bg-[var(--color-bg)] px-4 py-2 text-sm font-bold uppercase tracking-widest text-[var(--color-text)] shadow-[3px_3px_0_var(--color-cn-shadow)] transition-transform hover:bg-(--color-bg-secondary) active:translate-y-1 active:shadow-none"
                     >
-                      e-mail ✉
+                      e-mail&nbsp;
+                      <HugeiconsIcon icon={Mail01Icon} size={16} color="color-text" strokeWidth={2} />
                     </a>
                   </div>
                   <p className="text-xs text-[var(--color-text)] opacity-70">
-                    resposta em até 1 café ☕ (~8h)
+                    resposta em até 1 café (~8h)
                   </p>
                 </div>
                 <Mascot mood="wave" className="w-16 h-auto shrink-0 self-center" />
@@ -241,8 +250,8 @@ const About = () => {
 
       {/* ── barra de status ── */}
       <div className="border-t-[3px] border-(--color-cn-shadow) bg-(--color-bg-secondary) px-3 py-1 text-[10px] text-[var(--color-text)] opacity-70">
-        feito com ☕ em são paulo · {page}.html carregado · v2.4.1 ·{" "}
-        <span className="retro-blink">▓</span>
+        feito com café em são paulo · {page}.html carregado · v2.4.1 ·{" "}
+        <span className="retro-blink inline-block size-2 bg-(--color-cn-highlight)" />
       </div>
     </div>
   );
