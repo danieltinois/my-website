@@ -1,0 +1,92 @@
+/* estética retrô/pixel do about — animações steps() e scanlines */
+
+@keyframes retro-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.retro-marquee {
+  animation: retro-marquee 14s linear infinite;
+}
+
+@keyframes retro-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.retro-blink {
+  animation: retro-blink 1.1s steps(1) infinite;
+}
+
+@keyframes retro-loader {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+.retro-loader {
+  animation: retro-loader 0.35s linear forwards;
+}
+
+@keyframes retro-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+.retro-bob {
+  animation: retro-bob 0.9s ease-in-out infinite;
+}
+
+@keyframes retro-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-1px);
+  }
+  75% {
+    transform: translateX(1px);
+  }
+}
+.retro-shake {
+  animation: retro-shake 0.15s steps(2) 3;
+}
+
+/* scanlines de CRT por cima do conteúdo */
+.scanlines {
+  position: relative;
+}
+.scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.12),
+    rgba(0, 0, 0, 0.12) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+/* textura xadrez sutil de fundo, cara de web antiga */
+.retro-bg {
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.025) 0 8px,
+    transparent 8px 16px
+  );
+}
