@@ -59,7 +59,7 @@ const Window = ({
         style={style}
       >
         <motion.div
-          className={maximized ? "shadow-bump w-full h-full" : "shadow-bump w-[var(--window-width)]"}
+          className={maximized ? "shadow-bump rounded-[22px] w-full h-full" : "shadow-bump rounded-[22px] w-[var(--window-width)]"}
           initial={{ opacity: 0, scale: 0.6, y: -30, rotate: -2 }}
           animate={{
             opacity: 1,
