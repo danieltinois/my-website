@@ -1,7 +1,7 @@
 "use client";
 
 import { WindowProps } from "@/src/components/features/Window/interface";
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import Draggable from "react-draggable";
 import useSound from "@/src/hooks/useSound";
 import { motion } from "framer-motion";
@@ -19,6 +19,7 @@ const Window = ({
   const nodeRef = useRef(null);
   const [maximized, setMaximized] = useState(false);
   const [pos, setPos] = useState(defaultPosition ?? { x: 0, y: 0 });
+  const [size, setSize] = useState<{ w: number; h: number } | null>(null);
 
   const { play } = useSound("/sounds/bubble.mp3", {
     speed: 1,
@@ -42,6 +43,32 @@ const Window = ({
     setMaximized((m) => !m);
   };
 
+  const startResize = (e: React.PointerEvent) => {
+    if (maximized || disabled) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const el = nodeRef.current as HTMLElement | null;
+    if (!el) return;
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startW = el.offsetWidth;
+    const startH = el.offsetHeight;
+
+    const onMove = (ev: PointerEvent) => {
+      setSize({
+        w: Math.max(640, startW + ev.clientX - startX),
+        h: Math.max(400, startH + ev.clientY - startY),
+      });
+    };
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  };
+
   return (
     <Draggable
       nodeRef={nodeRef}
@@ -59,7 +86,12 @@ const Window = ({
         style={style}
       >
         <motion.div
-          className={maximized ? "shadow-bump rounded-[22px] w-full h-full" : "shadow-bump rounded-[22px] w-[var(--window-width)]"}
+          className={maximized ? "shadow-bump rounded-[22px] relative w-full h-full" : "shadow-bump rounded-[22px] relative w-[var(--window-width)]"}
+          style={
+            size
+              ? ({ "--window-width": `${size.w}px`, "--window-height": `${size.h}px` } as React.CSSProperties)
+              : undefined
+          }
           initial={{ opacity: 0, scale: 0.6, y: -30, rotate: -2 }}
           animate={{
             opacity: 1,
@@ -139,6 +171,17 @@ const Window = ({
           >
             {children}
           </div>
+
+          {!maximized && !disabled && (
+            <button
+              aria-label="redimensionar janela"
+              onPointerDown={startResize}
+              className="absolute bottom-1 right-1 z-10 h-7 w-7 touch-none
+              border-b-[7px] border-r-[7px] border-(--color-cn-border)
+              rounded-br-[18px] pointer-events-auto select-none"
+              style={{ cursor: "nwse-resize" }}
+            />
+          )}
         </motion.div>
       </div>
     </Draggable>

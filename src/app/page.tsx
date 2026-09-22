@@ -1,5 +1,8 @@
-import { UserAccountIcon } from "@hugeicons/core-free-icons";
+import { UserAccountIcon, SquareTerminalIcon, FolderCodeIcon, ComputerActivityIcon } from "@hugeicons/core-free-icons";
 import About from "../components/features/About";
+import Terminal from "../components/features/Terminal";
+import Projects from "../components/features/Projects";
+import SystemMonitor from "../components/features/SystemMonitor";
 import Decor from "../components/layout/Decor";
 import DesktopApp from "../components/features/DesktopApp";
 import Window from "../components/features/Window";
@@ -7,14 +10,28 @@ import Footer from "@/src/components/layout/Footer";
 import NavBar from "@/src/components/layout/NavBar";
 import { WindowManagerProvider } from "../context/WindowManager";
 
-// TODO - Legal adicionar resize de window
-// TODO - Legal aidiconar cursor personalizado (pensando na tematica windows xp)
+// TODO - Legal adicionar cursor personalizado (pensando na tematica windows xp)
 
 const desktopApps = [
   {
     title: "about",
     icon: UserAccountIcon,
     windowContent: <About />,
+  },
+  {
+    title: "terminal",
+    icon: SquareTerminalIcon,
+    windowContent: <Terminal />,
+  },
+  {
+    title: "projects",
+    icon: FolderCodeIcon,
+    windowContent: <Projects />,
+  },
+  {
+    title: "monitor",
+    icon: ComputerActivityIcon,
+    windowContent: <SystemMonitor />,
   },
 ];
 
