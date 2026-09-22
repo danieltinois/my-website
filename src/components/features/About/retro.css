@@ -219,7 +219,7 @@
   animation: skit-bug 1.2s steps(2) forwards;
 }
 
-/* pernas: passada alternada na corrida/dash */
+/* pernas e braços: passada alternada na corrida/dash */
 @keyframes leg-run {
   0%,
   100% {
@@ -229,11 +229,13 @@
     transform: translateY(-3px);
   }
 }
-.leg-run-left {
+.leg-run-left,
+.arm-run-left {
   transform-box: fill-box;
   animation: leg-run 0.3s steps(2) infinite;
 }
-.leg-run-right {
+.leg-run-right,
+.arm-run-right {
   transform-box: fill-box;
   animation: leg-run 0.3s steps(2) infinite reverse;
 }

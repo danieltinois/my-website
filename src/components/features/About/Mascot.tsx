@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-// sprite do mascote — dev de argila com boné, 10 px de largura
+// sprite do mascote — dev de argila de corpo completo, 10 px de largura
 // C cap, H sombra do cap, S pele, E contorno/sombra, T camisa, W botão
 const ROWS = [
   "..CCCCCC..", // 0 cap
@@ -12,18 +12,13 @@ const ROWS = [
   ".CSSSSSSC.", // 4 cara
   ".CSSSSSSC.", // 5 olhos (injetados no render, blink)
   ".CSSEESSC.", // 6 boca
-  ".CTTTTTTC.", // 7 camisa
-  ".CTWTWTTC.", // 8 botões
-  ".CTWTWTTC.", // 9
-];
-
-const HEAD = 7; // variants "head" mostram só as 7 primeiras linhas (cabeça)
-
-// pernas (3 linhas, embaixo da camisa): esquerda x3, direita x6
-const LEGS = [
-  "...E.E...",
-  "...E.E...",
-  "..EEE.EEE.", // sapatos
+  ".TTTTTTTT.", // 7 ombros
+  "ETTTTTTTTE", // 8 braços pra fora
+  "E.TTTTTT.E", // 9 braços + tronco
+  ".ETTTTTTE.", // 10 quadril
+  "...E.E...", // 11 pernas
+  "...E.E...", // 12
+  "..EEE.EEE.", // 13 sapatos
 ];
 
 const COLOR: Record<string, string> = {
@@ -42,17 +37,22 @@ const BG = ["EEEEE", "ERERE", "ERERE", "EEEEE"];
 const SW = [".....", "..W..", "..W..", "..W..", ".EWE.", ".E.E."];
 
 type Mood = "idle" | "think" | "type" | "wave";
-type Variant = "head" | "full";
+
+// gaveta por lado para animar braços e pernas
+const isLeftArm = (x: number, y: number) =>
+  (x === 0 && y >= 8 && y <= 9) || (x === 1 && y === 9);
+const isRightArm = (x: number, y: number) =>
+  (x === 9 && y >= 8 && y <= 9) || (x === 8 && y === 9);
+const isLeftLeg = (x: number, y: number) => y >= 11 && x <= 4;
+const isRightLeg = (x: number, y: number) => y >= 11 && x >= 6;
 
 const Mascot = ({
   mood = "idle",
-  variant = "full",
   sprint = false,
   bug = false,
   className = "w-24 md:w-28",
 }: {
   mood?: Mood;
-  variant?: Variant;
   sprint?: boolean;
   bug?: boolean;
   className?: string;
@@ -69,96 +69,71 @@ const Mascot = ({
 
   // pensando = olhar pra cima (pupila na linha de cima)
   const eyeY = mood === "think" ? 4 : 5;
-  const head = variant === "head";
 
-  // cada tela tem UMA animação assinatura — sprint (dash) e bug (espadada)
-  // são eventos pontuais disparados pela tela, não random daqui
   const bodyAnim = sprint
     ? "mascot-run"
     : bug
       ? "mascot-lunge"
-      : head
-        ? "retro-bob"
-        : mood === "think"
-          ? "mascot-think"
-          : mood === "type"
-            ? "mascot-type"
-            : mood === "wave"
-              ? "mascot-wave"
-              : "retro-bob";
+      : mood === "think"
+        ? "mascot-think"
+        : mood === "type"
+          ? "mascot-type"
+          : mood === "wave"
+            ? "mascot-wave"
+            : "retro-bob";
 
   const legAnim = sprint ? "run" : bug ? "stance" : "";
 
+  const partClass = (x: number, y: number) => {
+    if (legAnim === "run") {
+      if (isLeftLeg(x, y)) return "leg-run-left";
+      if (isRightLeg(x, y)) return "leg-run-right";
+      if (isLeftArm(x, y)) return "arm-run-left";
+      if (isRightArm(x, y)) return "arm-run-right";
+    }
+    if (legAnim === "stance") {
+      if (isLeftLeg(x, y)) return "leg-stance-left";
+      if (isRightLeg(x, y)) return "leg-stance-right";
+    }
+    return "";
+  };
+
   return (
     <div className={`relative mascot-pop ${className}`}>
-      <div className="flex flex-col">
-        <svg
-          viewBox={`0 0 10 ${head ? HEAD : ROWS.length}`}
-          shapeRendering="crispEdges"
-          className={`w-full h-auto ${bodyAnim}`}
-          aria-label="mascote dev de argila"
-          role="img"
-        >
-          {ROWS.slice(0, head ? HEAD : ROWS.length).map((row, y) =>
-            [...row].map((ch, x) => {
-              // olhos (colunas 3 e 6): escuros abertos, pele quando pisca
-              const isEye = y === eyeY && (x === 3 || x === 6);
-              if (ch === ".") return null;
-              return (
-                <rect
-                  key={`${x}-${y}`}
-                  x={x}
-                  y={y}
-                  width={1}
-                  height={1}
-                  fill={isEye && awake ? COLOR.E : COLOR[ch]}
-                />
-              );
-            }),
-          )}
-        </svg>
-
-        {!head && (
-          <svg
-            viewBox="0 0 10 3"
-            shapeRendering="crispEdges"
-            className="w-full h-auto"
-            aria-hidden
-          >
-            {LEGS.map((row, y) =>
-              [...row].map((ch, x) => {
-                if (ch !== "E") return null;
-                const side = x <= 4 ? "left" : "right";
-                const cls =
-                  legAnim === "run"
-                    ? `leg-run-${side}`
-                    : legAnim === "stance"
-                      ? `leg-stance-${side}`
-                      : "";
-                return (
-                  <rect
-                    key={`${x}-${y}`}
-                    className={cls}
-                    x={x}
-                    y={y}
-                    width={1}
-                    height={1}
-                    fill={COLOR.E}
-                  />
-                );
-              }),
-            )}
-          </svg>
+      <svg
+        viewBox={`0 0 10 ${ROWS.length}`}
+        shapeRendering="crispEdges"
+        className={`w-full h-auto ${bodyAnim}`}
+        aria-label="mascote dev de argila"
+        role="img"
+      >
+        {ROWS.map((row, y) =>
+          [...row].map((ch, x) => {
+            // olhos (colunas 3 e 6): escuros abertos, pele quando pisca
+            const isEye = y === eyeY && (x === 3 || x === 6);
+            if (ch === ".") return null;
+            return (
+              <rect
+                key={`${x}-${y}`}
+                className={partClass(x, y)}
+                x={x}
+                y={y}
+                width={1}
+                height={1}
+                fill={isEye && awake ? COLOR.E : COLOR[ch]}
+              />
+            );
+          }),
         )}
-      </div>
+      </svg>
 
-      {bug && !head && (
+      {bug && (
         <>
           {/* espada: sobe da mão e gira na hora do golpe */}
           <svg
             viewBox="0 0 5 6"
             shapeRendering="crispEdges"
-            className="mascot-sword absolute right-1 bottom-2 w-5"
+            className="mascot-sword absolute right-1 bottom-3 w-5"
             aria-hidden
           >
             {SW.map((row, y) =>

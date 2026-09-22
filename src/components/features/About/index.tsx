@@ -181,7 +181,8 @@ const About = () => {
           >
             {page === "inicio" && (
               <div className="flex flex-col items-center gap-8 md:flex-row md:items-start">
-                <Mascot variant="head" />
+                <Mascot />
+
                 <div className="text-center md:text-left">
                   <h1 className="text-4xl font-black uppercase tracking-wide text-[var(--color-text)] [text-shadow:3px_3px_0_var(--color-cn-shadow)] sm:text-5xl">
                     Daniel
