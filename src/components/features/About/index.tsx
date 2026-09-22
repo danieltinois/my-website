@@ -37,16 +37,28 @@ const About = () => {
   const [page, setPage] = useState<PageId>("inicio");
   const [loading, setLoading] = useState(false);
   const [dash, setDash] = useState(false);
+  const [bug, setBug] = useState(false);
   const { play } = useSound("/sounds/click.mp3", { speed: 1.5 });
 
-  // de vez em quando o mascote cruza a janela inteira correndo
+  // inicio: de vez em quando o mascote cruza a janela correndo
   useEffect(() => {
+    if (page !== "inicio") return;
     const id = setInterval(() => {
       setDash(true);
       setTimeout(() => setDash(false), 1500);
     }, 11000);
     return () => clearInterval(id);
-  }, []);
+  }, [page]);
+
+  // sobre: o mascote pensa e, de tempos em tempos, dá espadada num bug
+  useEffect(() => {
+    if (page !== "sobre") return;
+    const id = setInterval(() => {
+      setBug(true);
+      setTimeout(() => setBug(false), 1500);
+    }, 5500);
+    return () => clearInterval(id);
+  }, [page]);
 
   const go = (id: PageId) => {
     if (id === page) return;
@@ -62,7 +74,7 @@ const About = () => {
       {dash && (
         <div className="pointer-events-none absolute inset-x-0 top-14 z-[9]">
           <div className="mascot-dash">
-            <Mascot className="w-20" />
+            <Mascot className="w-20" sprint />
           </div>
         </div>
       )}
@@ -169,7 +181,7 @@ const About = () => {
           >
             {page === "inicio" && (
               <div className="flex flex-col items-center gap-8 md:flex-row md:items-start">
-                <Mascot />
+                <Mascot variant="head" />
                 <div className="text-center md:text-left">
                   <h1 className="text-4xl font-black uppercase tracking-wide text-[var(--color-text)] [text-shadow:3px_3px_0_var(--color-cn-shadow)] sm:text-5xl">
                     Daniel
@@ -239,6 +251,7 @@ const About = () => {
                 </div>
                 <Mascot
                   mood="think"
+                  bug={bug}
                   className="w-14 h-auto shrink-0 self-center"
                 />
               </div>

@@ -219,6 +219,55 @@
   animation: skit-bug 1.2s steps(2) forwards;
 }
 
+/* pernas: passada alternada na corrida/dash */
+@keyframes leg-run {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+.leg-run-left {
+  transform-box: fill-box;
+  animation: leg-run 0.3s steps(2) infinite;
+}
+.leg-run-right {
+  transform-box: fill-box;
+  animation: leg-run 0.3s steps(2) infinite reverse;
+}
+
+/* pernas: base aberta na investida da espada */
+@keyframes leg-stance-left {
+  0%,
+  45% {
+    transform: translateX(0);
+  }
+  55%,
+  100% {
+    transform: translateX(-2px);
+  }
+}
+@keyframes leg-stance-right {
+  0%,
+  45% {
+    transform: translateX(0);
+  }
+  55%,
+  100% {
+    transform: translateX(3px);
+  }
+}
+.leg-stance-left {
+  transform-box: fill-box;
+  animation: leg-stance-left 1.2s steps(1) forwards;
+}
+.leg-stance-right {
+  transform-box: fill-box;
+  animation: leg-stance-right 1.2s steps(1) forwards;
+}
+
 /* scanlines de CRT por cima do conteúdo */
 .scanlines {
   position: relative;
