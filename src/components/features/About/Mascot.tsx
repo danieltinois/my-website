@@ -51,12 +51,12 @@ const Mascot = ({
       setTimeout(() => setAwake(true), 200);
     }, 3200);
 
-    // esquetes aleatórias: corre ou ataca um bug
+    // esquetes aleatórias: corre ou ataca um bug, a cada ~4.2s
     const show = setInterval(() => {
       const s: NonNullable<Skit> = Math.random() < 0.5 ? "run" : "bug";
       setSkit(s);
-      setTimeout(() => setSkit(null), s === "run" ? 2600 : 1300);
-    }, 9000);
+      setTimeout(() => setSkit(null), s === "run" ? 2200 : 1400);
+    }, 4200);
 
     return () => {
       clearInterval(blink);

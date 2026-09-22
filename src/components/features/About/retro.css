@@ -41,11 +41,11 @@
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-3px);
+    transform: translateY(-5px);
   }
 }
 .retro-bob {
-  animation: retro-bob 0.9s ease-in-out infinite;
+  animation: retro-bob 0.7s ease-in-out infinite;
 }
 
 /* aceno: descansa a maior parte do tempo, balança duas vezes */
@@ -57,15 +57,15 @@
   }
   76%,
   86% {
-    transform: rotate(-8deg) translateY(-2px);
+    transform: rotate(-14deg) translateY(-4px);
   }
   81%,
   91% {
-    transform: rotate(8deg) translateY(-2px);
+    transform: rotate(14deg) translateY(-4px);
   }
 }
 .mascot-wave {
-  animation: retro-wave 5s steps(1) infinite;
+  animation: retro-wave 3.5s steps(1) infinite;
   transform-origin: 50% 90%;
 }
 
@@ -77,11 +77,11 @@
   }
   30%,
   70% {
-    transform: rotate(-6deg);
+    transform: rotate(-10deg);
   }
 }
 .mascot-think {
-  animation: retro-think 3s ease-in-out infinite;
+  animation: retro-think 2.4s ease-in-out infinite;
   transform-origin: 50% 90%;
 }
 
@@ -92,11 +92,11 @@
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
   }
 }
 .mascot-type {
-  animation: retro-type 0.25s steps(2) infinite;
+  animation: retro-type 0.2s steps(2) infinite;
 }
 
 /* entrada em pixel */
@@ -121,17 +121,31 @@
     transform: translateX(0) rotate(0) translateY(0);
   }
   25% {
-    transform: translateX(9px) rotate(-5deg) translateY(-5px);
+    transform: translateX(16px) rotate(-8deg) translateY(-7px);
   }
   50% {
     transform: translateX(0) rotate(0) translateY(0);
   }
   75% {
-    transform: translateX(-9px) rotate(5deg) translateY(-5px);
+    transform: translateX(-16px) rotate(8deg) translateY(-7px);
   }
 }
 .mascot-run {
-  animation: skit-run 0.45s steps(2) infinite;
+  animation: skit-run 0.4s steps(2) infinite;
+}
+
+/* dash: cruza a janela inteira da esquerda pra direita, com passos */
+@keyframes retro-dash {
+  from {
+    left: -110px;
+  }
+  to {
+    left: 100%;
+  }
+}
+.mascot-dash {
+  position: absolute;
+  animation: retro-dash 1.4s steps(9) forwards;
 }
 
 /* ataque ao bug: lunge + espada gira + bug some */

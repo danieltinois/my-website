@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -24,7 +24,8 @@ const PAGES = [
 
 type PageId = (typeof PAGES)[number]["id"];
 
-const chip = "border-[3px] border-(--color-cn-shadow) bg-(--color-bg-secondary) px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--color-text)]";
+const chip =
+  "border-[3px] border-(--color-cn-shadow) bg-(--color-bg-secondary) px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--color-text)]";
 const tabCls = (active: boolean) =>
   `border-[3px] px-3 py-1 font-bold uppercase tracking-widest text-xs transition-transform active:translate-y-0.5 cursor-pointer ${
     active
@@ -35,7 +36,17 @@ const tabCls = (active: boolean) =>
 const About = () => {
   const [page, setPage] = useState<PageId>("inicio");
   const [loading, setLoading] = useState(false);
+  const [dash, setDash] = useState(false);
   const { play } = useSound("/sounds/click.mp3", { speed: 1.5 });
+
+  // de vez em quando o mascote cruza a janela inteira correndo
+  useEffect(() => {
+    const id = setInterval(() => {
+      setDash(true);
+      setTimeout(() => setDash(false), 1500);
+    }, 11000);
+    return () => clearInterval(id);
+  }, []);
 
   const go = (id: PageId) => {
     if (id === page) return;
@@ -46,7 +57,16 @@ const About = () => {
   };
 
   return (
-    <div className="retro-bg scanlines h-full w-full overflow-y-auto bg-[var(--color-bg)] font-mono">
+    <div className="retro-bg scanlines relative h-full w-full overflow-y-auto bg-[var(--color-bg)] font-mono">
+      {/* ── dash: mascote atravessa a janela ── */}
+      {dash && (
+        <div className="pointer-events-none absolute inset-x-0 top-14 z-[9]">
+          <div className="mascot-dash">
+            <Mascot className="w-20" />
+          </div>
+        </div>
+      )}
+
       {/* ── chrome de browser falso: site dentro do site ── */}
       <div className="sticky top-0 z-10 border-b-[3px] border-(--color-cn-shadow) bg-(--color-bg-header)">
         <div className="flex items-center gap-2 px-3 py-2 text-xs">
@@ -55,14 +75,24 @@ const About = () => {
             onClick={() => play()}
             className="border-[3px] border-(--color-cn-shadow) bg-[var(--color-bg)] px-1.5 font-bold leading-none text-[var(--color-text)] shadow-[2px_2px_0_var(--color-cn-shadow)] active:translate-y-0.5 active:shadow-none cursor-pointer"
           >
-            <HugeiconsIcon icon={ArrowLeft01Icon} size={16} color="color-text" strokeWidth={2} />
+            <HugeiconsIcon
+              icon={ArrowLeft01Icon}
+              size={16}
+              color="color-text"
+              strokeWidth={2}
+            />
           </button>
           <button
             aria-label="avançar"
             onClick={() => play()}
             className="border-[3px] border-(--color-cn-shadow) bg-[var(--color-bg)] px-1.5 font-bold leading-none text-[var(--color-text)] shadow-[2px_2px_0_var(--color-cn-shadow)] active:translate-y-0.5 active:shadow-none cursor-pointer"
           >
-            <HugeiconsIcon icon={ArrowRight01Icon} size={16} color="color-text" strokeWidth={2} />
+            <HugeiconsIcon
+              icon={ArrowRight01Icon}
+              size={16}
+              color="color-text"
+              strokeWidth={2}
+            />
           </button>
           <button
             aria-label="atualizar"
@@ -73,22 +103,38 @@ const About = () => {
             }}
             className="border-[3px] border-(--color-cn-shadow) bg-[var(--color-bg)] px-1.5 font-bold leading-none text-[var(--color-text)] shadow-[2px_2px_0_var(--color-cn-shadow)] active:translate-y-0.5 active:shadow-none cursor-pointer"
           >
-            <HugeiconsIcon icon={Refresh01Icon} size={16} color="color-text" strokeWidth={2} />
+            <HugeiconsIcon
+              icon={Refresh01Icon}
+              size={16}
+              color="color-text"
+              strokeWidth={2}
+            />
           </button>
           <div className="flex flex-1 items-center gap-2 border-[3px] border-(--color-cn-shadow) bg-[var(--color-bg)] px-2 py-1 text-[11px] text-[var(--color-text)]">
-            <HugeiconsIcon icon={Coffee01Icon} size={16} color="color-cn-highlight" strokeWidth={2} />
+            <HugeiconsIcon
+              icon={Coffee01Icon}
+              size={16}
+              color="color-cn-highlight"
+              strokeWidth={2}
+            />
             <span className="truncate">
-              http://tinois.dev/~daniel/{page}.html
+              http://danieltinois.dev/~daniel/{page}.html
             </span>
           </div>
         </div>
-        {loading && <div className="retro-loader h-[3px] bg-(--color-cn-highlight)" />}
+        {loading && (
+          <div className="retro-loader h-[3px] bg-(--color-cn-highlight)" />
+        )}
       </div>
 
       {/* ── menu do site ── */}
       <nav className="flex flex-wrap gap-2 px-4 pt-4">
         {PAGES.map((p) => (
-          <button key={p.id} onClick={() => go(p.id)} className={tabCls(p.id === page)}>
+          <button
+            key={p.id}
+            onClick={() => go(p.id)}
+            className={tabCls(p.id === page)}
+          >
             {p.label}
           </button>
         ))}
@@ -101,7 +147,10 @@ const About = () => {
             * bem-vindo ao meu site * site dentro do site * café &amp; código *
             full stack dev em são paulo *
           </span>
-          <span aria-hidden className="px-4 text-xs font-bold tracking-widest text-[var(--color-text)]">
+          <span
+            aria-hidden
+            className="px-4 text-xs font-bold tracking-widest text-[var(--color-text)]"
+          >
             * bem-vindo ao meu site * site dentro do site * café &amp; código *
             full stack dev em são paulo *
           </span>
@@ -137,13 +186,29 @@ const About = () => {
                     online &amp;&amp; coding
                   </p>
                   <div className="mt-4 flex flex-wrap justify-center gap-2 md:justify-start">
-                    <button onClick={() => go("sobre")} className={tabCls(false)}>
+                    <button
+                      onClick={() => go("sobre")}
+                      className={tabCls(false)}
+                    >
                       ler sobre&nbsp;
-                      <HugeiconsIcon icon={ArrowRight01Icon} size={14} color="color-text" strokeWidth={2} />
+                      <HugeiconsIcon
+                        icon={ArrowRight01Icon}
+                        size={14}
+                        color="color-text"
+                        strokeWidth={2}
+                      />
                     </button>
-                    <button onClick={() => go("stack")} className={tabCls(false)}>
+                    <button
+                      onClick={() => go("stack")}
+                      className={tabCls(false)}
+                    >
                       ver stack&nbsp;
-                      <HugeiconsIcon icon={ArrowRight01Icon} size={14} color="color-text" strokeWidth={2} />
+                      <HugeiconsIcon
+                        icon={ArrowRight01Icon}
+                        size={14}
+                        color="color-text"
+                        strokeWidth={2}
+                      />
                     </button>
                   </div>
                 </div>
@@ -161,7 +226,9 @@ const About = () => {
                   </p>
                   <blockquote className="border-l-[3px] border-(--color-cn-highlight) pl-3 text-sm italic text-[var(--color-text)] opacity-75">
                     {FILES["mindset.txt"]}
-                    <span className="retro-blink text-(--color-cn-highlight)">_</span>
+                    <span className="retro-blink text-(--color-cn-highlight)">
+                      _
+                    </span>
                   </blockquote>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     <div className={chip}>user: daniel</div>
@@ -170,7 +237,10 @@ const About = () => {
                     <div className={chip}>cafés hoje: 4+</div>
                   </div>
                 </div>
-                <Mascot mood="think" className="w-14 h-auto shrink-0 self-center" />
+                <Mascot
+                  mood="think"
+                  className="w-14 h-auto shrink-0 self-center"
+                />
               </div>
             )}
 
@@ -205,7 +275,10 @@ const About = () => {
                     extra: git rebase com orgulho, deploy às 22h sem medo
                   </p>
                 </div>
-                <Mascot mood="type" className="w-14 h-auto shrink-0 self-center" />
+                <Mascot
+                  mood="type"
+                  className="w-14 h-auto shrink-0 self-center"
+                />
               </div>
             )}
 
@@ -234,14 +307,22 @@ const About = () => {
                       className="border-[3px] border-(--color-cn-border) bg-[var(--color-bg)] px-4 py-2 text-sm font-bold uppercase tracking-widest text-[var(--color-text)] shadow-[3px_3px_0_var(--color-cn-shadow)] transition-transform hover:bg-(--color-bg-secondary) active:translate-y-1 active:shadow-none"
                     >
                       e-mail&nbsp;
-                      <HugeiconsIcon icon={Mail01Icon} size={16} color="color-text" strokeWidth={2} />
+                      <HugeiconsIcon
+                        icon={Mail01Icon}
+                        size={16}
+                        color="color-text"
+                        strokeWidth={2}
+                      />
                     </a>
                   </div>
                   <p className="text-xs text-[var(--color-text)] opacity-70">
                     resposta em até 1 café (~8h)
                   </p>
                 </div>
-                <Mascot mood="wave" className="w-16 h-auto shrink-0 self-center" />
+                <Mascot
+                  mood="wave"
+                  className="w-16 h-auto shrink-0 self-center"
+                />
               </div>
             )}
           </motion.div>
