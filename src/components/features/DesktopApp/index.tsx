@@ -1,18 +1,18 @@
 "use client";
 
 import { useWindowManager } from "@/src/context/WindowManager";
-import useClickSound from "@/src/hooks/useClickSound";
+import useSound from "@/src/hooks/useSound";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useState } from "react";
-import { AppProps } from "./interface";
+import { DesktopAppProps } from "./interface";
 
-const App = ({ title, icon, windowContent }: AppProps) => {
-  const { playClick } = useClickSound(false, 1.5);
+const DesktopApp = ({ title, icon, windowContent }: DesktopAppProps) => {
+  const { play } = useSound("/sounds/click.mp3", { speed: 1.5 });
   const { openWindow, focusWindow, windows } = useWindowManager();
   const [activeWindowId, setActiveWindowId] = useState<string | null>(null);
 
   const handleClick = () => {
-    playClick();
+    play();
 
     if (windowContent) {
       const isWindowOpen =
@@ -45,4 +45,4 @@ const App = ({ title, icon, windowContent }: AppProps) => {
   );
 };
 
-export default App;
+export default DesktopApp;

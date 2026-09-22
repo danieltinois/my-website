@@ -9,7 +9,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import useClickSound from "@/src/hooks/useClickSound";
+import useSound from "@/src/hooks/useSound";
 
 /* TODO - Adicionar botao de mudar linguagem, inicialmente PT-BR e EN
  *  Vai abrir um modal gamificado igual a window!
@@ -18,7 +18,9 @@ import useClickSound from "@/src/hooks/useClickSound";
 const NavBar = () => {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const { playClick, isMuted, toggleMute } = useClickSound(false, 1.5);
+  const { play, isMuted, toggleMute } = useSound("/sounds/click.mp3", {
+    speed: 1.5,
+  });
 
   useEffect(() => {
     //desencorajar efeitos que só servem para “fixar hydration” Mas neste caso, é exatamente para isso que serve.
@@ -27,7 +29,7 @@ const NavBar = () => {
   }, []);
 
   const handleTheme = () => {
-    playClick();
+    play();
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
@@ -66,7 +68,7 @@ const NavBar = () => {
           target="_blank"
           rel="noopener noreferrer"
           className="cursor-pointer hover:scale-110 hover:underline duration-250 active:scale-80"
-          onClick={() => playClick()}
+          onClick={() => play()}
         >
           <h1 className="font-mono text-xl">@danieltinois</h1>
         </a>
@@ -108,7 +110,7 @@ const NavBar = () => {
         target="_blank"
         rel="noopener noreferrer"
         className="cursor-pointer hover:scale-110 hover:underline duration-250 active:scale-80"
-        onClick={() => playClick()}
+        onClick={() => play()}
       >
         <h1 className="font-mono text-xl">@danieltinois</h1>
       </a>

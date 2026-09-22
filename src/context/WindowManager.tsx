@@ -8,7 +8,6 @@ import {
   useContext,
   useState,
 } from "react";
-import { v4 as uuidv4 } from "uuid";
 import { AnimatePresence } from "framer-motion";
 
 interface WindowInstance {
@@ -38,14 +37,14 @@ export const WindowManagerProvider = ({
   const [windows, setWindows] = useState<WindowInstance[]>([]);
 
   const openWindow = useCallback((content: ReactNode, title: string) => {
-    const id = uuidv4();
+    const id = typeof crypto !== "undefined" ? crypto.randomUUID() : `w-${Date.now()}`;
     const newWindow: WindowInstance = {
       id,
       title,
       content,
       defaultPosition: {
-        x: Math.random() * 350 - 600,
-        y: Math.random() * 150 - 400,
+        x: Math.round(window.innerWidth / 2 - 400 + Math.random() * 120 - 60),
+        y: Math.round(window.innerHeight / 2 - 300 + Math.random() * 120 - 60),
       },
       zIndex: 100,
     };
