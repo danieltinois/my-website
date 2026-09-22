@@ -48,20 +48,68 @@
   animation: retro-bob 0.9s ease-in-out infinite;
 }
 
-@keyframes retro-shake {
+/* aceno: descansa a maior parte do tempo, balança duas vezes */
+@keyframes retro-wave {
   0%,
+  70%,
   100% {
-    transform: translateX(0);
+    transform: rotate(0) translateY(0);
   }
-  25% {
-    transform: translateX(-1px);
+  76%,
+  86% {
+    transform: rotate(-8deg) translateY(-2px);
   }
-  75% {
-    transform: translateX(1px);
+  81%,
+  91% {
+    transform: rotate(8deg) translateY(-2px);
   }
 }
-.retro-shake {
-  animation: retro-shake 0.15s steps(2) 3;
+.mascot-wave {
+  animation: retro-wave 5s steps(1) infinite;
+  transform-origin: 50% 90%;
+}
+
+/* pensando: inclina devagar e volta */
+@keyframes retro-think {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  30%,
+  70% {
+    transform: rotate(-6deg);
+  }
+}
+.mascot-think {
+  animation: retro-think 3s ease-in-out infinite;
+  transform-origin: 50% 90%;
+}
+
+/* digitando: tremida rápida e contínua */
+@keyframes retro-type {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+.mascot-type {
+  animation: retro-type 0.25s steps(2) infinite;
+}
+
+/* entrada em pixel */
+@keyframes retro-pop {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+.mascot-pop {
+  animation: retro-pop 0.25s steps(3) 1;
 }
 
 /* scanlines de CRT por cima do conteúdo */

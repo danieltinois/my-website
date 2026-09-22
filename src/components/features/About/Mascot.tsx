@@ -27,7 +27,13 @@ const COLOR: Record<string, string> = {
   W: "#f0e2c8",
 };
 
-const Mascot = () => {
+const Mascot = ({
+  mood = "idle",
+  className = "w-24 h-auto md:w-28",
+}: {
+  mood?: "idle" | "think" | "type" | "wave";
+  className?: string;
+}) => {
   const [awake, setAwake] = useState(true);
 
   useEffect(() => {
@@ -38,18 +44,29 @@ const Mascot = () => {
     return () => clearInterval(id);
   }, []);
 
+  // pensando = olhar pra cima (pupila na linha de cima)
+  const eyeY = mood === "think" ? 4 : 5;
+  const anim =
+    mood === "think"
+      ? "mascot-think"
+      : mood === "type"
+        ? "mascot-type"
+        : mood === "wave"
+          ? "mascot-wave"
+          : "retro-bob";
+
   return (
     <svg
       viewBox="0 0 10 11"
       shapeRendering="crispEdges"
-      className="retro-bob w-24 h-auto md:w-28"
+      className={`${anim} mascot-pop ${className}`}
       aria-label="mascote dev de argila"
       role="img"
     >
       {ROWS.map((row, y) =>
         [...row].map((ch, x) => {
-          // olhos (linha 5, colunas 3 e 6): escuros abertos, pele quando pisca
-          const isEye = y === 5 && (x === 3 || x === 6);
+          // olhos (colunas 3 e 6): escuros abertos, pele quando pisca
+          const isEye = y === eyeY && (x === 3 || x === 6);
           if (ch === ".") return null;
           return (
             <rect

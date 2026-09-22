@@ -143,84 +143,96 @@ const About = () => {
             )}
 
             {page === "sobre" && (
-              <div className="space-y-5">
-                <h2 className="text-xl font-black uppercase tracking-widest text-(--color-cn-highlight) [text-shadow:2px_2px_0_var(--color-cn-shadow)]">
-                  // sobre
-                </h2>
-                <p className="leading-relaxed text-[var(--color-text)] opacity-90">
-                  {FILES["bio.txt"]}
-                </p>
-                <blockquote className="border-l-[3px] border-(--color-cn-highlight) pl-3 text-sm italic text-[var(--color-text)] opacity-75">
-                  {FILES["mindset.txt"]}
-                  <span className="retro-blink text-(--color-cn-highlight)">_</span>
-                </blockquote>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  <div className={chip}>user: daniel</div>
-                  <div className={chip}>role: full stack</div>
-                  <div className={chip}>loc: sp, br</div>
-                  <div className={chip}>cafés hoje: 4+</div>
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+                <div className="space-y-5 sm:flex-1">
+                  <h2 className="text-xl font-black uppercase tracking-widest text-(--color-cn-highlight) [text-shadow:2px_2px_0_var(--color-cn-shadow)]">
+                    // sobre
+                  </h2>
+                  <p className="leading-relaxed text-[var(--color-text)] opacity-90">
+                    {FILES["bio.txt"]}
+                  </p>
+                  <blockquote className="border-l-[3px] border-(--color-cn-highlight) pl-3 text-sm italic text-[var(--color-text)] opacity-75">
+                    {FILES["mindset.txt"]}
+                    <span className="retro-blink text-(--color-cn-highlight)">_</span>
+                  </blockquote>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    <div className={chip}>user: daniel</div>
+                    <div className={chip}>role: full stack</div>
+                    <div className={chip}>loc: sp, br</div>
+                    <div className={chip}>cafés hoje: 4+</div>
+                  </div>
                 </div>
+                <Mascot mood="think" className="w-14 h-auto shrink-0 self-center" />
               </div>
             )}
 
             {page === "stack" && (
-              <div className="space-y-5">
-                <h2 className="text-xl font-black uppercase tracking-widest text-(--color-cn-highlight) [text-shadow:2px_2px_0_var(--color-cn-shadow)]">
-                  // stack
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    "react",
-                    "next.js",
-                    "typescript",
-                    "tailwind",
-                    "node.js",
-                    "postgresql",
-                    "react native",
-                    "git",
-                    "docker",
-                    "linux (arch btw)",
-                  ].map((t) => (
-                    <span key={t} className={chip}>
-                      {t}
-                    </span>
-                  ))}
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+                <div className="space-y-5 sm:flex-1">
+                  <h2 className="text-xl font-black uppercase tracking-widest text-(--color-cn-highlight) [text-shadow:2px_2px_0_var(--color-cn-shadow)]">
+                    // stack
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      "react",
+                      "next.js",
+                      "typescript",
+                      "javascript",
+                      "tailwind",
+                      "node.js",
+                      "postgresql",
+                      "react native",
+                      "dart",
+                      "flutter",
+                      "git",
+                      "docker",
+                      "linux (arch btw)",
+                    ].map((t) => (
+                      <span key={t} className={chip}>
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-xs text-[var(--color-text)] opacity-60">
+                    extra: git rebase com orgulho, deploy às 22h sem medo
+                  </p>
                 </div>
-                <p className="text-xs text-[var(--color-text)] opacity-60">
-                  extra: git rebase com orgulho, deploy às 22h sem medo
-                </p>
+                <Mascot mood="type" className="w-14 h-auto shrink-0 self-center" />
               </div>
             )}
 
             {page === "contato" && (
-              <div className="space-y-5">
-                <h2 className="text-xl font-black uppercase tracking-widest text-(--color-cn-highlight) [text-shadow:2px_2px_0_var(--color-cn-shadow)]">
-                  // contato
-                </h2>
-                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                  {SOCIALS.map((s) => (
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+                <div className="space-y-5 sm:flex-1">
+                  <h2 className="text-xl font-black uppercase tracking-widest text-(--color-cn-highlight) [text-shadow:2px_2px_0_var(--color-cn-shadow)]">
+                    // contato
+                  </h2>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                    {SOCIALS.map((s) => (
+                      <a
+                        key={s.label}
+                        href={s.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => play()}
+                        className="border-[3px] border-(--color-cn-border) bg-[var(--color-bg)] px-4 py-2 text-sm font-bold uppercase tracking-widest text-[var(--color-text)] shadow-[3px_3px_0_var(--color-cn-shadow)] transition-transform hover:bg-(--color-bg-secondary) active:translate-y-1 active:shadow-none"
+                      >
+                        {s.label} ↗
+                      </a>
+                    ))}
                     <a
-                      key={s.label}
-                      href={s.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href="mailto:danieltinois@gmail.com"
                       onClick={() => play()}
                       className="border-[3px] border-(--color-cn-border) bg-[var(--color-bg)] px-4 py-2 text-sm font-bold uppercase tracking-widest text-[var(--color-text)] shadow-[3px_3px_0_var(--color-cn-shadow)] transition-transform hover:bg-(--color-bg-secondary) active:translate-y-1 active:shadow-none"
                     >
-                      {s.label} ↗
+                      e-mail ✉
                     </a>
-                  ))}
-                  <a
-                    href="mailto:danieltinois@gmail.com"
-                    onClick={() => play()}
-                    className="border-[3px] border-(--color-cn-border) bg-[var(--color-bg)] px-4 py-2 text-sm font-bold uppercase tracking-widest text-[var(--color-text)] shadow-[3px_3px_0_var(--color-cn-shadow)] transition-transform hover:bg-(--color-bg-secondary) active:translate-y-1 active:shadow-none"
-                  >
-                    e-mail ✉
-                  </a>
+                  </div>
+                  <p className="text-xs text-[var(--color-text)] opacity-70">
+                    resposta em até 1 café ☕ (~8h)
+                  </p>
                 </div>
-                <p className="text-xs text-[var(--color-text)] opacity-70">
-                  resposta em até 1 café ☕ (~8h)
-                </p>
+                <Mascot mood="wave" className="w-16 h-auto shrink-0 self-center" />
               </div>
             )}
           </motion.div>
