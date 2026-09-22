@@ -2,15 +2,19 @@
 
 import React from "react";
 import ButtonSocialMedia from "@/src/components/ui/ButtonSocialMedia";
+import ButtonDockApp from "@/src/components/ui/ButtonDockApp";
 import {
   GithubIcon,
   InstagramIcon,
   Linkedin01Icon,
 } from "@hugeicons/core-free-icons";
 import { motion, useMotionValue } from "framer-motion";
+import { useWindowManager } from "@/src/context/WindowManager";
 
 const Footer = () => {
   const mouseX = useMotionValue(Infinity);
+  const { windows, restoreWindow } = useWindowManager();
+  const minimized = windows.filter((w) => w.minimized);
 
   return (
     <motion.div
@@ -23,6 +27,20 @@ const Footer = () => {
       shadow-bump
       overflow-visible"
     >
+      {minimized.map((w) => (
+        <ButtonDockApp
+          key={w.id}
+          mouseX={mouseX}
+          title={w.title}
+          onRestore={() => restoreWindow(w.id)}
+        />
+      ))}
+      {minimized.length > 0 && (
+        <div
+          aria-hidden="true"
+          className="h-10 w-px bg-(--color-cn-border) opacity-50 self-center"
+        />
+      )}
       <ButtonSocialMedia
         mouseX={mouseX}
         link="https://www.linkedin.com/in/danieltinois"
