@@ -1,12 +1,21 @@
 @import "tailwindcss";
 
 @theme {
+  --shadow-bump: 0 8px 0 0 var(--color-cn-shadow);
+  --shadow-bump-sm: 0 5px 0 0 var(--color-cn-shadow);
   --shadow-flat: 0px 8px 0px 0px rgba(0, 0, 0, 0.1);
 
   /* social media colors */
   --color-instagram: #e1306c;
   --color-linkdin: #0a66c2;
   --color-github: #6e5494;
+
+  /* cartoon network accents */
+  --color-cn-yellow: #ffe066;
+  --color-cn-cyan: #7df9ff;
+  --color-cn-pink: #ff7ba9;
+  --color-cn-green: #a6ff8b;
+  --color-cn-orange: #ffa657;
 }
 
 :root {
@@ -22,18 +31,23 @@
 /* Colors */
 
 :root[data-theme="dark"] {
-  --color-bg: #171717;
-  --color-bg-secondary: #132135;
-  --color-bg-header: #171717;
-  --color-border: #fff;
-  --color-border-secondary: #fff;
-  --color-text: #fff;
-  --color-text-secondary: #fff;
-  --color-bg-wave-first: #1780bd;
-  --color-bg-wave-second: #0c4c70;
-  --color-docker-bg: rgba(23, 23, 23, 0.6);
-  --color-docker-border: rgba(255, 255, 255, 0.1);
-  --color-docker-icon: #fff;
+  --color-bg: #16110b;
+  --color-bg-secondary: #221a12;
+  --color-bg-header: #e2601a;
+  --color-border: #ffe9d2;
+  --color-border-secondary: #ffb347;
+  --color-text: #f5e8d8;
+  --color-text-secondary: #ffffff;
+  --color-bg-wave-first: #ff8c42;
+  --color-bg-wave-second: #c94f1d;
+  --color-docker-bg: rgba(22, 17, 11, 0.6);
+  --color-docker-border: rgba(255, 233, 210, 0.12);
+  --color-docker-icon: #f5e8d8;
+
+  /* cartoon network */
+  --color-cn-border: #ffe9d2;
+  --color-cn-shadow: #a3470f;
+  --color-cn-highlight: #ffb347;
 
   /* Cursors */
   --cursor-default: url("../../public/cursors/dark/default-dark.png"), auto;
@@ -45,17 +59,22 @@
 
 :root[data-theme="light"] {
   --color-bg: #fff;
-  --color-bg-secondary: #ffff;
-  --color-bg-header: #424242;
-  --color-border: #424242;
-  --color-border-secondary: #a4a4a4;
+  --color-bg-secondary: #fff;
+  --color-bg-header: #171717;
+  --color-border: #171717;
+  --color-border-secondary: #ff0055;
   --color-text: #171717;
   --color-text-secondary: #fff;
-  --color-bg-wave-first: #0c4c70;
-  --color-bg-wave-second: #1780bd;
+  --color-bg-wave-first: #ff0055;
+  --color-bg-wave-second: #ff9a00;
   --color-docker-bg: rgba(255, 255, 255, 0.4);
   --color-docker-border: rgba(0, 0, 0, 0.1);
   --color-docker-icon: #1d1d1f;
+
+  /* cartoon network */
+  --color-cn-border: #171717;
+  --color-cn-shadow: #ff0055;
+  --color-cn-highlight: #ff7c00;
 
   /* Cursors */
   --cursor-default: url("../../public/cursors/light/default-light.png"), auto;
@@ -138,4 +157,64 @@ body {
 
 .animate-pop-out {
   animation: popOut 0.08s ease-in forwards;
+}
+
+/* cartoon network party mode (konami code) */
+@keyframes cn-hue {
+  from {
+    filter: hue-rotate(0deg);
+  }
+  to {
+    filter: hue-rotate(360deg);
+  }
+}
+
+@keyframes cn-bounce {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-10px);
+  }
+}
+
+body.cn-party {
+  animation: cn-hue 1.2s linear infinite;
+}
+
+body.cn-party .desktop-icon {
+  animation: cn-bounce 0.4s ease-in-out infinite alternate;
+}
+
+body.cn-party .desktop-icon:nth-child(2n) {
+  animation-delay: 0.2s;
+}
+
+/* background doodles */
+@keyframes decor-wobble {
+  0%,
+  100% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(4deg);
+  }
+}
+
+@keyframes decor-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(4deg);
+  }
+}
+
+.decor-wobble {
+  animation: decor-wobble 3s ease-in-out infinite;
+}
+
+.decor-bob {
+  animation: decor-bob 4s ease-in-out infinite;
 }

@@ -6,6 +6,7 @@ import TypewriterProps from "@/src/components/ui/Typewriter/interfaces";
 export const Typewriter = ({
   text,
   delay = 0,
+  className = "text-gray-100",
   onComplete,
 }: TypewriterProps) => {
   const [displayedText, setDisplayedText] = useState("");
@@ -37,5 +38,5 @@ export const Typewriter = ({
     };
   }, [text, delay]);
 
-  return <span className="text-gray-100">{displayedText}</span>;
+  return <span className={className}>{displayedText}</span>;
 };

@@ -8,7 +8,7 @@ import {
   useContext,
   useState,
 } from "react";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface WindowInstance {
   id: string;
@@ -16,6 +16,13 @@ interface WindowInstance {
   content: ReactNode;
   defaultPosition?: { x: number; y: number };
   zIndex: number;
+}
+
+interface Bubble {
+  id: string;
+  text: string;
+  x: number;
+  y: number;
 }
 
 interface WindowManagerContextProps {
@@ -29,22 +36,57 @@ const WindowManagerContext = createContext<
   WindowManagerContextProps | undefined
 >(undefined);
 
+const POPS = [
+  "bwoop!",
+  "ó-ó-ó!",
+  "boing!",
+  "tatum!",
+  "SKRRT!",
+  "phssshh!",
+  "wheee!",
+  "puf-puf!",
+];
+
+const CLOSE_POPS = ["poom!", "aiaiai!", "chiau!", "pop!"];
+
 export const WindowManagerProvider = ({
   children,
 }: {
   children: ReactNode;
 }) => {
   const [windows, setWindows] = useState<WindowInstance[]>([]);
+  const [bubbles, setBubbles] = useState<Bubble[]>([]);
+
+  const spawnBubble = useCallback((text: string) => {
+    const id =
+      typeof crypto !== "undefined"
+        ? crypto.randomUUID()
+        : `b-${Date.now()}`;
+    setBubbles((prev) => [
+      ...prev,
+      {
+        id,
+        text,
+        x: window.innerWidth / 2 + (Math.random() * 240 - 120),
+        y: window.innerHeight / 2 - 260 + (Math.random() * 60 - 30),
+      },
+    ]);
+    window.setTimeout(
+      () => setBubbles((prev) => prev.filter((b) => b.id !== id)),
+      700,
+    );
+  }, []);
 
   const openWindow = useCallback((content: ReactNode, title: string) => {
-    const id = typeof crypto !== "undefined" ? crypto.randomUUID() : `w-${Date.now()}`;
+    const id =
+      typeof crypto !== "undefined" ? crypto.randomUUID() : `w-${Date.now()}`;
     const newWindow: WindowInstance = {
       id,
       title,
       content,
       defaultPosition: {
-        x: Math.round(window.innerWidth / 2 - 400 + Math.random() * 120 - 60),
-        y: Math.round(window.innerHeight / 2 - 300 + Math.random() * 120 - 60),
+        x: Math.round(Math.random() * 40 - 20),
+        y: Math.round(Math.random() * 40 - 20),
       },
       zIndex: 100,
     };
@@ -54,12 +96,14 @@ export const WindowManagerProvider = ({
       newWindow.zIndex = maxZ + 1;
       return [...prev, newWindow];
     });
+    spawnBubble(POPS[Math.floor(Math.random() * POPS.length)]);
     return id;
-  }, []);
+  }, [spawnBubble]);
 
   const closeWindow = useCallback((id: string) => {
     setWindows((prev) => prev.filter((w) => w.id !== id));
-  }, []);
+    spawnBubble(CLOSE_POPS[Math.floor(Math.random() * CLOSE_POPS.length)]);
+  }, [spawnBubble]);
 
   const focusWindow = useCallback((id: string) => {
     setWindows((prev) => {
@@ -78,10 +122,37 @@ export const WindowManagerProvider = ({
       {children}
 
       <AnimatePresence>
+        {bubbles.map((bubble) => (
+          <motion.div
+            key={bubble.id}
+            initial={{ opacity: 0, scale: 0.2, y: 16, rotate: -8 }}
+            animate={{
+              opacity: 1,
+              scale: 1.15,
+              y: -4,
+              rotate: (bubble.id.charCodeAt(0) % 2 ? 1 : -1) * 5,
+              transition: { type: "spring", stiffness: 300, damping: 12 },
+            }}
+            className="fixed font-black text-5xl select-none pointer-events-none
+              text-[var(--color-cn-highlight)]"
+            style={{
+              left: bubble.x,
+              top: bubble.y,
+              zIndex: 9999,
+              textShadow:
+                "0 4px 0 var(--color-cn-shadow), 0 0 18px rgba(255,255,255,0.25)",
+            }}
+          >
+            {bubble.text}
+          </motion.div>
+        ))}
+      </AnimatePresence>
+
+      <AnimatePresence>
         {windows.map((window) => (
           <div
             key={window.id}
-            className="fixed flex mx-auto w-screen h-screen items-center justify-center -translate-y-16 pointer-events-none"
+            className="fixed flex mx-auto w-screen h-screen items-center justify-center pointer-events-none"
             style={{ zIndex: window.zIndex }}
           >
             <div className="pointer-events-auto">
