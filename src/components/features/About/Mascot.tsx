@@ -1,49 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+// Mascote — Golem de argila terracota (sprite REAL LPC "cutie golem":
+// chifres + olhos creme, corpo atarracado, transparente, CC-BY-SA 3.0,
+// sem recolor). Sprite-sheet idle 460x2088 (6 células de 348), animado
+// com CSS steps() — retrô/pixel do site. Sem emojis no <img> principal.
 
-// sprite do mascote — cavaleiro de argila (vibe metroidvania/hollow knight)
-// 12 px de largura: cabeça com chifres + corpo esguio
-// E contorno (sombra), H corpo, A ponta do chifre, W olhos
-const ROWS = [
-  "...A....A...", // 0 pontas dos chifres
-  "..EH....HE..", // 1 chifres
-  ".EHHHHHHHHE.", // 2 cabeça
-  ".EHHHHHHHHE.", // 3
-  ".EHHWHHWHHE.", // 4 olhos (blink no render)
-  ".EHHHHHHHHE.", // 5 queixo
-  "..EHHHHHHE..", // 6 pescoço
-  "..EHHHHHHE..", // 7 ombros
-  "..EHHHHHHE..", // 8 braços (x2/x9, animam)
-  "..EHHHHHHE..", // 9 braços
-  "...EHHHHE...", // 10 tronco
-  "...EHHHHE...", // 11 cintura
-  "....E.E.....", // 12 pernas
-  "..EEE.EEE...", // 13 sapatos
-];
-
-const COLOR: Record<string, string> = {
-  A: "#c1440e",
-  H: "#3a2415",
-  E: "#16100a",
-  W: "#f0e2c8",
-};
-
-// bug (5x4) que aparece pra levar espadada
-const BG = ["EEEEE", "ERERE", "ERERE", "EEEEE"];
-
-// espada: lâmina clara + guarda escura
-const SW = [".....", "..W..", "..W..", "..W..", ".EWE.", ".E.E."];
+const SHEET = "/mascot/golem_idle_sheet.png";
+const FRAMES = 6;
 
 type Mood = "idle" | "think" | "type" | "wave";
 
-// gaveta por lado para animar braços e pernas
-const isLeftArm = (x: number, y: number) => x === 2 && (y === 8 || y === 9);
-const isRightArm = (x: number, y: number) => x === 9 && (y === 8 || y === 9);
-const isLeftLeg = (x: number, y: number) =>
-  (y === 12 && x === 4) || (y === 13 && x >= 2 && x <= 4);
-const isRightLeg = (x: number, y: number) =>
-  (y === 12 && x === 6) || (y === 13 && x >= 6 && x <= 8);
+// espadada (bug) — sprite 5x6, lâmina clara W + guarda E (pixel art do site)
+const SW = ["..W..", "..W..", "..W..", ".EWE.", ".E.E."];
+// bug andando pra tomar a espadada (5x4, carapaça E + perninhas R)
+const BG = ["EEEEE", "ERERE", "ERERE", "EEEEE"];
 
 const Mascot = ({
   mood = "idle",
@@ -56,122 +26,35 @@ const Mascot = ({
   bug?: boolean;
   className?: string;
 }) => {
-  const [awake, setAwake] = useState(true);
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setAwake(false);
-      setTimeout(() => setAwake(true), 200);
-    }, 3200);
-    return () => clearInterval(id);
-  }, []);
-
-  // pensando = olhar pra cima (pupila na linha de cima)
-  const eyeY = mood === "think" ? 3 : 4;
-
-  const bodyAnim = sprint
+  const anim = sprint
     ? "mascot-run"
-    : bug
-      ? "mascot-lunge"
-      : mood === "think"
-        ? "mascot-think"
-        : mood === "type"
-          ? "mascot-type"
-          : mood === "wave"
-            ? "mascot-wave"
-            : "retro-bob";
-
-  const legAnim = sprint ? "run" : bug ? "stance" : "";
-
-  const partClass = (x: number, y: number) => {
-    if (legAnim === "run") {
-      if (isLeftLeg(x, y)) return "leg-run-left";
-      if (isRightLeg(x, y)) return "leg-run-right";
-      if (isLeftArm(x, y)) return "arm-run-left";
-      if (isRightArm(x, y)) return "arm-run-right";
-    }
-    if (legAnim === "stance") {
-      if (isLeftLeg(x, y)) return "leg-stance-left";
-      if (isRightLeg(x, y)) return "leg-stance-right";
-    }
-    return "";
-  };
+    : mood === "think"
+      ? "mascot-think"
+      : mood === "type"
+        ? "mascot-type"
+        : mood === "wave"
+          ? "mascot-wave"
+          : "mascot-bob";
 
   return (
     <div className={`relative mascot-pop ${className}`}>
-      <svg
-        viewBox={`0 0 12 ${ROWS.length}`}
-        shapeRendering="crispEdges"
-        className={`w-full h-auto ${bodyAnim}`}
-        aria-label="mascote cavaleiro de argila"
+      {/* sprite real: background-image do sheet + animação steps() vertical */}
+      <div
+        style={{
+          backgroundImage: `url(${SHEET})`,
+          backgroundSize: "100% 600%",
+          backgroundRepeat: "no-repeat",
+        }}
+        className={`mascot-sprite h-full w-full ${anim}`}
         role="img"
-      >
-        {ROWS.map((row, y) =>
-          [...row].map((ch, x) => {
-            if (ch === ".") return null;
-            // olhos (x4/x7 na linha eyeY): cream abertos, tom do corpo piscado
-            const isEye = y === eyeY && (x === 4 || x === 7);
-            const fill = isEye ? (awake ? COLOR.W : COLOR.H) : COLOR[ch];
-            return (
-              <rect
-                key={`${x}-${y}`}
-                className={partClass(x, y)}
-                x={x}
-                y={y}
-                width={1}
-                height={1}
-                fill={fill}
-              />
-            );
-          }),
-        )}
-      </svg>
+        aria-label="golem de argila terracota — sprite do jogo (cc-by-sa)"
+      />
 
+      {/* espadada + bug continuam (sketch do design anterior) */}
       {bug && (
-        <>
-          {/* espada: sobe da mão e gira na hora do golpe */}
-          <svg
-            viewBox="0 0 5 6"
-            shapeRendering="crispEdges"
-            className="mascot-sword absolute right-0 bottom-[42%] w-6"
-            aria-hidden
-          >
-            {SW.map((row, y) =>
-              [...row].map((ch, x) =>
-                ch === "." ? null : (
-                  <rect
-                    key={`${x}-${y}`}
-                    x={x}
-                    y={y}
-                    width={1}
-                    height={1}
-                    fill={ch === "W" ? COLOR.W : COLOR.E}
-                  />
-                ),
-              ),
-            )}
-          </svg>
-          {/* bug caminhando pra tomar a espadada */}
-          <svg
-            viewBox="0 0 5 4"
-            shapeRendering="crispEdges"
-            className="mascot-bug absolute -right-1 bottom-0 w-6"
-            aria-hidden
-          >
-            {BG.map((row, y) =>
-              [...row].map((ch, x) => (
-                <rect
-                  key={`${x}-${y}`}
-                  x={x}
-                  y={y}
-                  width={1}
-                  height={1}
-                  fill={ch === "E" ? COLOR.E : "#d65d0e"}
-                />
-              )),
-            )}
-          </svg>
-        </>
+        <span className="mascot-sword absolute right-1 bottom-2 text-[var(--color-cn-highlight)]" aria-hidden>
+          ⚔
+        </span>
       )}
     </div>
   );
