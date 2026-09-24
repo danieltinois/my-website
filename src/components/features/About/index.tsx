@@ -12,7 +12,6 @@ import {
 } from "@hugeicons/core-free-icons";
 import useSound from "@/src/hooks/useSound";
 import { FILES, SOCIALS } from "@/src/components/features/Terminal/commands";
-import Mascot from "./Mascot";
 import "./retro.css";
 
 const PAGES = [
@@ -36,29 +35,7 @@ const tabCls = (active: boolean) =>
 const About = () => {
   const [page, setPage] = useState<PageId>("inicio");
   const [loading, setLoading] = useState(false);
-  const [dash, setDash] = useState(false);
-  const [bug, setBug] = useState(false);
   const { play } = useSound("/sounds/click.mp3", { speed: 1.5 });
-
-  // inicio: de vez em quando o mascote cruza a janela correndo
-  useEffect(() => {
-    if (page !== "inicio") return;
-    const id = setInterval(() => {
-      setDash(true);
-      setTimeout(() => setDash(false), 1500);
-    }, 11000);
-    return () => clearInterval(id);
-  }, [page]);
-
-  // sobre: o mascote pensa e, de tempos em tempos, dá espadada num bug
-  useEffect(() => {
-    if (page !== "sobre") return;
-    const id = setInterval(() => {
-      setBug(true);
-      setTimeout(() => setBug(false), 1500);
-    }, 5500);
-    return () => clearInterval(id);
-  }, [page]);
 
   const go = (id: PageId) => {
     if (id === page) return;
@@ -70,15 +47,6 @@ const About = () => {
 
   return (
     <div className="retro-bg scanlines relative h-full w-full overflow-y-auto bg-[var(--color-bg)] font-mono">
-      {/* ── dash: mascote atravessa a janela ── */}
-      {dash && (
-        <div className="pointer-events-none absolute inset-x-0 top-14 z-[9]">
-          <div className="mascot-dash">
-            <Mascot className="w-20" sprint />
-          </div>
-        </div>
-      )}
-
       {/* ── chrome de browser falso: site dentro do site ── */}
       <div className="sticky top-0 z-10 border-b-[3px] border-(--color-cn-shadow) bg-(--color-bg-header)">
         <div className="flex items-center gap-2 px-3 py-2 text-xs">
@@ -180,10 +148,7 @@ const About = () => {
             transition={{ duration: 0.18 }}
           >
             {page === "inicio" && (
-              <div className="flex flex-col items-center gap-8 md:flex-row md:items-start">
-                <Mascot />
-
-                <div className="text-center md:text-left">
+              <div className="text-center md:text-left">
                   <h1 className="text-4xl font-black uppercase tracking-wide text-[var(--color-text)] [text-shadow:3px_3px_0_var(--color-cn-shadow)] sm:text-5xl">
                     Daniel
                   </h1>
@@ -224,46 +189,37 @@ const About = () => {
                       />
                     </button>
                   </div>
-                </div>
               </div>
             )}
 
             {page === "sobre" && (
-              <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-                <div className="space-y-5 sm:flex-1">
-                  <h2 className="text-xl font-black uppercase tracking-widest text-(--color-cn-highlight) [text-shadow:2px_2px_0_var(--color-cn-shadow)]">
-                    // sobre
-                  </h2>
-                  <p className="leading-relaxed text-[var(--color-text)] opacity-90">
-                    {FILES["bio.txt"]}
-                  </p>
-                  <blockquote className="border-l-[3px] border-(--color-cn-highlight) pl-3 text-sm italic text-[var(--color-text)] opacity-75">
-                    {FILES["mindset.txt"]}
-                    <span className="retro-blink text-(--color-cn-highlight)">
-                      _
-                    </span>
-                  </blockquote>
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                    <div className={chip}>user: daniel</div>
-                    <div className={chip}>role: full stack</div>
-                    <div className={chip}>loc: sp, br</div>
-                    <div className={chip}>cafés hoje: 4+</div>
-                  </div>
+              <div className="space-y-5">
+                <h2 className="text-xl font-black uppercase tracking-widest text-(--color-cn-highlight) [text-shadow:2px_2px_0_var(--color-cn-shadow)]">
+                  // sobre
+                </h2>
+                <p className="leading-relaxed text-[var(--color-text)] opacity-90">
+                  {FILES["bio.txt"]}
+                </p>
+                <blockquote className="border-l-[3px] border-(--color-cn-highlight) pl-3 text-sm italic text-[var(--color-text)] opacity-75">
+                  {FILES["mindset.txt"]}
+                  <span className="retro-blink text-(--color-cn-highlight)">
+                    _
+                  </span>
+                </blockquote>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <div className={chip}>user: daniel</div>
+                  <div className={chip}>role: full stack</div>
+                  <div className={chip}>loc: sp, br</div>
+                  <div className={chip}>cafés hoje: 4+</div>
                 </div>
-                <Mascot
-                  mood="think"
-                  bug={bug}
-                  className="w-14 h-auto shrink-0 self-center"
-                />
               </div>
             )}
 
             {page === "stack" && (
-              <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-                <div className="space-y-5 sm:flex-1">
-                  <h2 className="text-xl font-black uppercase tracking-widest text-(--color-cn-highlight) [text-shadow:2px_2px_0_var(--color-cn-shadow)]">
-                    // stack
-                  </h2>
+              <div className="space-y-5">
+                <h2 className="text-xl font-black uppercase tracking-widest text-(--color-cn-highlight) [text-shadow:2px_2px_0_var(--color-cn-shadow)]">
+                  // stack
+                </h2>
                   <div className="flex flex-wrap gap-2">
                     {[
                       "react",
@@ -288,20 +244,14 @@ const About = () => {
                   <p className="text-xs text-[var(--color-text)] opacity-60">
                     extra: git rebase com orgulho, deploy às 22h sem medo
                   </p>
-                </div>
-                <Mascot
-                  mood="type"
-                  className="w-14 h-auto shrink-0 self-center"
-                />
               </div>
             )}
 
             {page === "contato" && (
-              <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-                <div className="space-y-5 sm:flex-1">
-                  <h2 className="text-xl font-black uppercase tracking-widest text-(--color-cn-highlight) [text-shadow:2px_2px_0_var(--color-cn-shadow)]">
-                    // contato
-                  </h2>
+              <div className="space-y-5">
+                <h2 className="text-xl font-black uppercase tracking-widest text-(--color-cn-highlight) [text-shadow:2px_2px_0_var(--color-cn-shadow)]">
+                  // contato
+                </h2>
                   <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                     {SOCIALS.map((s) => (
                       <a
@@ -332,11 +282,6 @@ const About = () => {
                   <p className="text-xs text-[var(--color-text)] opacity-70">
                     resposta em até 1 café (~8h)
                   </p>
-                </div>
-                <Mascot
-                  mood="wave"
-                  className="w-16 h-auto shrink-0 self-center"
-                />
               </div>
             )}
           </motion.div>
