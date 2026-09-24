@@ -1,7 +1,11 @@
-// Cloudflare Pages Function — responde /api/github/contributions no MESMO
-// formato que a antiga Route Handler do Next (que não roda com output:
-// "export"). O componente Contributions.tsx continua fetchando /api/... sem
-// mudança. Em dev local use `wrangler pages dev out` para testar.
+// Worker principal do site (Cloudflare Workers Static Assets).
+//
+// O Cloudflare serve os arquivos de out/ (binding ASSETS) direto, sem rodar
+// este Worker. O Worker so roda para paths que nao batem com nenhum asset —
+// aqui, /api/github/contributions (mesmo path da antiga Pages Function/Route
+// Handler; o componente Contributions.tsx continua fetchando /api/... sem
+// mudanca).
+
 interface DayCell {
   date: string;
   level: number;
@@ -30,7 +34,7 @@ const buildWeeks = (cells: DayCell[]): DayCell[][] => {
   );
 };
 
-export async function onRequestGet(): Promise<Response> {
+async function handleContributions(): Promise<Response> {
   try {
     const res = await fetch("https://github.com/users/danieltinois/contributions", {
       headers: { "User-Agent": "my-website" },
@@ -74,3 +78,17 @@ function json(body: unknown, status = 200): Response {
     headers: { "content-type": "application/json" },
   });
 }
+
+interface Env {
+  ASSETS: { fetch: (input: Request) => Promise<Response> };
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const url = new URL(request.url);
+    if (url.pathname === "/api/github/contributions") {
+      return handleContributions();
+    }
+    return env.ASSETS.fetch(request);
+  },
+};
