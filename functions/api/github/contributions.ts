@@ -1,9 +1,7 @@
-import { NextResponse } from "next/server";
-
-export const dynamic = "force-dynamic";
-
-const USER = "danieltinois";
-
+// Cloudflare Pages Function — responde /api/github/contributions no MESMO
+// formato que a antiga Route Handler do Next (que não roda com output:
+// "export"). O componente Contributions.tsx continua fetchando /api/... sem
+// mudança. Em dev local use `wrangler pages dev out` para testar.
 interface DayCell {
   date: string;
   level: number;
@@ -32,13 +30,13 @@ const buildWeeks = (cells: DayCell[]): DayCell[][] => {
   );
 };
 
-export async function GET() {
+export async function onRequestGet(): Promise<Response> {
   try {
-    const res = await fetch(`https://github.com/users/${USER}/contributions`, {
+    const res = await fetch("https://github.com/users/danieltinois/contributions", {
       headers: { "User-Agent": "my-website" },
     });
     if (!res.ok) {
-      return NextResponse.json({ error: `github: ${res.status}` }, { status: 502 });
+      return json({ error: `github: ${res.status}` }, 502);
     }
     const html = await res.text();
 
@@ -64,8 +62,15 @@ export async function GET() {
     );
     const total = totalMatch ? Number(totalMatch[1].replace(/,/g, "")) : 0;
 
-    return NextResponse.json({ weeks: buildWeeks(unique), total });
+    return json({ weeks: buildWeeks(unique), total });
   } catch {
-    return NextResponse.json({ error: "github indisponível" }, { status: 502 });
+    return json({ error: "github indisponível" }, 502);
   }
+}
+
+function json(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json" },
+  });
 }
