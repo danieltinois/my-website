@@ -31,23 +31,23 @@
 /* Colors */
 
 :root[data-theme="dark"] {
-  --color-bg: #16110b;
-  --color-bg-secondary: #221a12;
-  --color-bg-header: #e2601a;
-  --color-border: #ffe9d2;
-  --color-border-secondary: #ffb347;
-  --color-text: #f5e8d8;
-  --color-text-secondary: #ffffff;
-  --color-bg-wave-first: #ff8c42;
-  --color-bg-wave-second: #c94f1d;
-  --color-docker-bg: rgba(22, 17, 11, 0.6);
-  --color-docker-border: rgba(255, 233, 210, 0.12);
-  --color-docker-icon: #f5e8d8;
+  --color-bg: #16100a;
+  --color-bg-secondary: #20170e;
+  --color-bg-header: #c1440e;
+  --color-border: #e8d5b5;
+  --color-border-secondary: #fe8019;
+  --color-text: #f0e2c8;
+  --color-text-secondary: #1a120a;
+  --color-bg-wave-first: #c1440e;
+  --color-bg-wave-second: #9c3a12;
+  --color-docker-bg: rgba(26, 18, 10, 0.6);
+  --color-docker-border: rgba(214, 93, 14, 0.18);
+  --color-docker-icon: #f0e2c8;
 
   /* cartoon network */
-  --color-cn-border: #ffe9d2;
-  --color-cn-shadow: #a3470f;
-  --color-cn-highlight: #ffb347;
+  --color-cn-border: #e8d5b5;
+  --color-cn-shadow: #8a3a0f;
+  --color-cn-highlight: #fe8019;
 
   /* Cursors */
   --cursor-default: url("../../public/cursors/dark/default-dark.png"), auto;
@@ -58,23 +58,23 @@
 }
 
 :root[data-theme="light"] {
-  --color-bg: #fff;
-  --color-bg-secondary: #fff;
-  --color-bg-header: #171717;
-  --color-border: #171717;
-  --color-border-secondary: #ff0055;
-  --color-text: #171717;
-  --color-text-secondary: #fff;
-  --color-bg-wave-first: #ff0055;
-  --color-bg-wave-second: #ff9a00;
-  --color-docker-bg: rgba(255, 255, 255, 0.4);
-  --color-docker-border: rgba(0, 0, 0, 0.1);
-  --color-docker-icon: #1d1d1f;
+  --color-bg: #f7ecd3;
+  --color-bg-secondary: #f2e5bc;
+  --color-bg-header: #c1440e;
+  --color-border: #3c3836;
+  --color-border-secondary: #c1440e;
+  --color-text: #3c3836;
+  --color-text-secondary: #f7ecd3;
+  --color-bg-wave-first: #c1440e;
+  --color-bg-wave-second: #9c3a12;
+  --color-docker-bg: rgba(247, 236, 211, 0.4);
+  --color-docker-border: rgba(193, 68, 14, 0.18);
+  --color-docker-icon: #3c3836;
 
   /* cartoon network */
-  --color-cn-border: #171717;
-  --color-cn-shadow: #ff0055;
-  --color-cn-highlight: #ff7c00;
+  --color-cn-border: #3c3836;
+  --color-cn-shadow: #af3a03;
+  --color-cn-highlight: #d65d0e;
 
   /* Cursors */
   --cursor-default: url("../../public/cursors/light/default-light.png"), auto;
