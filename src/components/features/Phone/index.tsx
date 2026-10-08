@@ -31,6 +31,7 @@ const TINTS: Record<string, string> = {
   terminal: "#1a1a1a",
   projects: "var(--color-cn-orange)",
   monitor: "var(--color-cn-green)",
+  craft: "#5fbf3a",
 };
 
 const DOCK = [

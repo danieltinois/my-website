@@ -1,8 +1,9 @@
-import { UserAccountIcon, SquareTerminalIcon, FolderCodeIcon, ComputerActivityIcon } from "@hugeicons/core-free-icons";
+import { UserAccountIcon, SquareTerminalIcon, FolderCodeIcon, ComputerActivityIcon, PickaxeIcon } from "@hugeicons/core-free-icons";
 import About from "../components/features/About";
 import Terminal from "../components/features/Terminal";
 import Projects from "../components/features/Projects";
 import SystemMonitor from "../components/features/SystemMonitor";
+import Craft from "../components/features/Craft";
 import Decor from "../components/layout/Decor";
 import DesktopApp from "../components/features/DesktopApp";
 import Window from "../components/features/Window";
@@ -34,6 +35,11 @@ const desktopApps = [
     title: "monitor",
     icon: ComputerActivityIcon,
     windowContent: <SystemMonitor />,
+  },
+  {
+    title: "craft",
+    icon: PickaxeIcon,
+    windowContent: <Craft />,
   },
 ];
 
