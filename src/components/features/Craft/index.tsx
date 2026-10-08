@@ -1,617 +1,776 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTheme } from "next-themes";
-import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ArrowLeft01Icon,
-  ArrowRight01Icon,
-  ArrowUp01Icon,
-  CubeIcon,
-  PickaxeIcon,
-} from "@hugeicons/core-free-icons";
+import { VT323 } from "next/font/google";
 import useSound from "@/src/hooks/useSound";
 import {
-  AIR,
-  BEDROCK,
+  FURNACE,
   LOG,
-  ORE_BASE,
+  NAMES,
   ORES,
-  PLACEABLE,
-  STONE,
-  World,
-  drop,
-  generate,
-  hardness,
+  ORE_BASE,
+  PLANKS,
+  RECIPES,
+  Recipe,
+  STICK,
+  STONE_PICK,
+  TABLE,
+  TROPHY,
+  WOOD_PICK,
+  iconOf,
   isOre,
-  makeTextures,
-} from "./world";
+  isPick,
+  matchRecipe,
+  maxStack,
+  needsPick,
+} from "./blocks";
+import type { Engine } from "./engine";
 
-const PW = 0.6; // largura do jogador (em blocos)
-const PH = 1.8;
-const SPEED = 5;
-const GRAVITY = 32;
-const JUMP = 9.4;
-const REACH = 5;
-const HIT_EVERY = 0.22; // segurando o clique, um golpe a cada 220ms
+const pixel = VT323({ weight: "400", subsets: ["latin"] });
+
+type Slot = { id: number; n: number } | null;
+type Ui = null | "inv" | "table";
 
 interface Toast {
-  id: number;
-  titulo: string;
-  texto: string;
+  key: number;
+  title: string;
+  text: string;
+  icon: number;
 }
+
+// guia passo a passo, igual aos tutoriais do jogo
+const HINTS = [
+  "Segure numa árvore pra pegar madeira",
+  "Abra o inventário (E) e transforme o tronco em tábuas",
+  "4 tábuas em quadrado = bancada de trabalho",
+  "Coloque a bancada no chão e use ela",
+  "Faça gravetos e uma picareta de madeira",
+  "Agora dá pra minerar pedra: faça uma picareta de pedra",
+  "Desça nas cavernas e ache os 9 minérios da stack",
+  "Junte os 9 minérios na bancada...",
+  "Você zerou o portfólio. Bem-vindo à equipe!",
+];
+
+const RECIPE_HINT: Record<number, string> = {
+  [PLANKS]: "1 tronco",
+  [STICK]: "2 tábuas em coluna",
+  [TABLE]: "4 tábuas em quadrado",
+  [WOOD_PICK]: "3 tábuas + 2 gravetos",
+  [STONE_PICK]: "3 pedregulhos + 2 gravetos",
+  [FURNACE]: "8 pedregulhos (bancada)",
+  [TROPHY]: "os 9 minérios (bancada)",
+};
+
+const slotCls =
+  "relative flex size-[clamp(28px,8.6vw,36px)] shrink-0 items-center justify-center border-2 border-t-[#373737] border-l-[#373737] border-b-white border-r-white bg-[#8b8b8b]";
+const btnCls = "border-2 border-t-white border-l-white border-b-[#555] border-r-[#555] bg-[#c6c6c6] px-1.5 text-lg";
+
+const ItemIcon = ({ slot }: { slot: Slot }) =>
+  slot ? (
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={iconOf(slot.id)} alt="" draggable={false} className="pointer-events-none size-[80%] [image-rendering:pixelated]" />
+      {slot.n > 1 && (
+        <span className="pointer-events-none absolute -bottom-0.5 right-0.5 text-lg leading-none text-white [text-shadow:2px_2px_0_#3f3f3f]">
+          {slot.n}
+        </span>
+      )}
+    </>
+  ) : null;
+
+const Heart = () => (
+  <svg viewBox="0 0 9 9" className="size-[clamp(12px,3.6vw,16px)]" shapeRendering="crispEdges" aria-hidden>
+    <path d="M1 1h3v1h1V1h3v1h1v3H8v1H7v1H6v1H5v1H4V8H3V7H2V6H1V5H0V2h1z" fill="#000" />
+    <path d="M1 2h2v1h1v1h1V3h1V2h2v3H7v1H6v1H5v1H4V7H3V6H2V5H1z" fill="#e02020" />
+    <path d="M2 2h1v1H2z" fill="#fff" />
+  </svg>
+);
 
 const Craft = () => {
   const boxRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const engineRef = useRef<Engine | null>(null);
   const { resolvedTheme } = useTheme();
-  const nightRef = useRef(false);
-  useEffect(() => {
-    nightRef.current = resolvedTheme === "dark";
-  }, [resolvedTheme]);
+  const [, bump] = useReducer((x: number) => x + 1, 0);
 
-  const [counts, setCounts] = useState<Record<number, number>>({});
-  const [slot, setSlot] = useState(0);
-  const [found, setFound] = useState<number[]>(() => ORES.map(() => 0));
-  const [toasts, setToasts] = useState<Toast[]>([]);
+  // inventário mutável (o motor lê a cada frame) + bump pra re-renderizar
+  const slots = useRef<Slot[]>(Array(36).fill(null));
+  const selected = useRef(0);
+  const grid = useRef<Slot[]>(Array(9).fill(null));
+  const cursor = useRef<Slot>(null);
+  const uiRef = useRef<Ui>(null);
+
+  const [ui, setUi] = useState<Ui>(null);
+  const [ready, setReady] = useState(false);
+  const [locked, setLocked] = useState(false);
   const [touch, setTouch] = useState(false);
-  const [mode, setMode] = useState<"mine" | "place">("mine");
+  const [found, setFound] = useState<boolean[]>(() => ORES.map(() => false));
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [hint, setHint] = useState(0);
+  const [nameTag, setNameTag] = useState<{ key: number; text: string } | null>(null);
+  const [mouse, setMouse] = useState({ x: 0, y: 0 });
+  const [book, setBook] = useState(false);
+  const done = useRef(new Set<string>());
 
-  // refs espelham o estado que o game loop precisa ler sem re-render
-  const slotRef = useRef(0);
-  const modeRef = useRef<"mine" | "place">("mine");
-  const countsRef = useRef<Record<number, number>>({});
-  const keys = useRef({ left: false, right: false, jump: false });
-
-  const { play: playHit } = useSound("/sounds/click.mp3", { speed: 2.4 });
-  const { play: playBreak } = useSound("/sounds/bubble.mp3", { speed: 0.9, lowPassFreq: 3000 });
-  const { play: playPlace } = useSound("/sounds/bubble.mp3", { speed: 1.8 });
-  const sfx = useRef({ playHit, playBreak, playPlace });
+  const { play: playClick } = useSound("/sounds/click.mp3", { speed: 1.8 });
+  const { play: playBreak } = useSound("/sounds/bubble.mp3", { speed: 0.8, lowPassFreq: 2500 });
+  const { play: playPlace } = useSound("/sounds/bubble.mp3", { speed: 1.6, lowPassFreq: 4000 });
+  const sfx = useRef({ playClick, playBreak, playPlace });
   useEffect(() => {
-    sfx.current = { playHit, playBreak, playPlace };
-  }, [playHit, playBreak, playPlace]);
+    sfx.current = { playClick, playBreak, playPlace };
+  }, [playClick, playBreak, playPlace]);
 
-  const toast = useRef((titulo: string, texto: string) => {
-    const id = Date.now() + Math.random();
-    setToasts((t) => [...t, { id, titulo, texto }]);
-    window.setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3200);
-  });
-
-  useEffect(() => {
-    // matchMedia só existe no cliente
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTouch(window.matchMedia("(pointer: coarse)").matches);
+  const toast = useCallback((title: string, text: string, icon: number) => {
+    const key = Date.now() + Math.random();
+    setToasts((t) => [...t, { key, title, text, icon }]);
+    window.setTimeout(() => setToasts((t) => t.filter((x) => x.key !== key)), 3600);
   }, []);
 
-  useEffect(() => {
-    const box = boxRef.current!;
-    const canvas = canvasRef.current!;
-    const ctx = canvas.getContext("2d")!;
-    const tex = makeTextures();
-    const world: World = generate(Math.floor(Math.random() * 1e9));
-    const { w, h, tiles, surface } = world;
-    const at = (x: number, y: number) => {
-      if (x < 0 || x >= w || y >= h) return BEDROCK;
-      if (y < 0) return AIR;
-      return tiles[y * w + x];
-    };
-    const solid = (x: number, y: number) => at(x, y) !== AIR;
+  // conquista só uma vez
+  const achieve = useCallback(
+    (id: string, title: string, text: string, icon: number) => {
+      if (done.current.has(id)) return;
+      done.current.add(id);
+      toast(title, text, icon);
+    },
+    [toast],
+  );
 
-    const spawnX = Math.floor(w / 2);
-    const p = { x: spawnX + 0.2, y: surface[spawnX] - PH - 0.1, vx: 0, vy: 0, ground: false, face: 1, walk: 0 };
-    const hits = new Map<number, number>();
-    const pointer = { down: false, x: 0, y: 0, inside: false, button: 0 };
-    let hitTimer = 0;
-    let T = 28;
-    let vw = 0;
-    let vh = 0;
-    let cam = { x: 0, y: 0 };
-    let raf = 0;
-    let last = performance.now();
-    const firsts = { mined: false, wood: false, placed: false, full: false };
-    const foundLocal = ORES.map(() => 0);
-    const stars = Array.from({ length: 50 }, () => [Math.random(), Math.random() * 0.6]);
+  const advance = useCallback((step: number) => setHint((h) => Math.max(h, step)), []);
 
-    const resize = () => {
-      // clientWidth ignora transform: a janela abre com animação de escala
-      const dpr = window.devicePixelRatio || 1;
-      vw = box.clientWidth;
-      vh = box.clientHeight;
-      canvas.width = Math.round(vw * dpr);
-      canvas.height = Math.round(vh * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.imageSmoothingEnabled = false;
-      T = Math.max(18, Math.min(32, Math.floor(Math.min(vh / 17, vw / 20))));
-    };
-    const ro = new ResizeObserver(resize);
-    ro.observe(box);
-    resize();
+  // ── inventário ──
+  const give = useCallback((id: number, n = 1) => {
+    const s = slots.current;
+    const max = maxStack(id);
+    for (let i = 0; i < 36 && n > 0; i++) {
+      const it = s[i];
+      if (it && it.id === id && it.n < max) {
+        const add = Math.min(n, max - it.n);
+        s[i] = { id, n: it.n + add };
+        n -= add;
+      }
+    }
+    for (let i = 0; i < 36 && n > 0; i++) {
+      if (!s[i]) {
+        const add = Math.min(n, max);
+        s[i] = { id, n: add };
+        n -= add;
+      }
+    }
+    bump();
+  }, []);
 
-    const tileAtPointer = () => ({
-      tx: Math.floor((pointer.x + cam.x) / T),
-      ty: Math.floor((pointer.y + cam.y) / T),
+  const select = useCallback((i: number) => {
+    selected.current = ((i % 9) + 9) % 9;
+    const it = slots.current[selected.current];
+    if (it) setNameTag({ key: Date.now(), text: NAMES[it.id] });
+    bump();
+  }, []);
+
+  const returnGrid = useCallback(() => {
+    grid.current.forEach((g, i) => {
+      if (g) give(g.id, g.n);
+      grid.current[i] = null;
     });
-    const inReach = (tx: number, ty: number) =>
-      Math.hypot(tx + 0.5 - (p.x + PW / 2), ty + 0.5 - (p.y + PH / 2)) <= REACH;
+    if (cursor.current) give(cursor.current.id, cursor.current.n);
+    cursor.current = null;
+  }, [give]);
 
-    const addCount = (id: number, n: number) => {
-      countsRef.current = { ...countsRef.current, [id]: (countsRef.current[id] ?? 0) + n };
-      setCounts(countsRef.current);
-    };
+  const closeUi = useCallback(() => {
+    returnGrid();
+    uiRef.current = null;
+    setUi(null);
+    setBook(false);
+    engineRef.current?.setPaused(false);
+    engineRef.current?.lock();
+  }, [returnGrid]);
 
-    const mine = (tx: number, ty: number) => {
-      const id = at(tx, ty);
-      if (id === AIR || id === BEDROCK || !inReach(tx, ty)) return;
-      const key = ty * w + tx;
-      const n = (hits.get(key) ?? 0) + 1;
-      if (n < hardness(id)) {
-        hits.set(key, n);
-        sfx.current.playHit();
-        return;
-      }
-      hits.delete(key);
-      tiles[key] = AIR;
-      sfx.current.playBreak();
-      navigator.vibrate?.(6);
+  const openUi = useCallback(
+    (kind: "inv" | "table") => {
+      uiRef.current = kind;
+      setUi(kind);
+      engineRef.current?.setPaused(true);
+      if (kind === "table") advance(4);
+    },
+    [advance],
+  );
 
-      if (isOre(id)) {
-        const i = id - ORE_BASE;
-        const first = foundLocal[i] === 0;
-        foundLocal[i]++;
-        setFound([...foundLocal]);
-        if (first) toast.current(`${ORES[i].nome} encontrado!`, ORES[i].lore);
-        if (!firsts.full && foundLocal.every((c) => c > 0)) {
-          firsts.full = true;
-          toast.current("Full stack!", "você achou a stack inteira do daniel");
-        }
-        return;
-      }
-      addCount(drop(id), 1);
-      if (!firsts.mined) {
-        firsts.mined = true;
-        toast.current("Primeiro bloco", "é assim que começa");
-      }
-      if (id === LOG && !firsts.wood) {
-        firsts.wood = true;
-        toast.current("Pegando madeira", "todo mundo começa socando árvore");
-      }
-    };
+  // ── motor (carregado sob demanda) ──
+  useEffect(() => {
+    const isTouch = window.matchMedia("(pointer: coarse)").matches;
+    setTouch(isTouch);
+    let alive = true;
+    let engine: Engine | null = null;
 
-    const place = (tx: number, ty: number) => {
-      const block = PLACEABLE[slotRef.current].id;
-      if ((countsRef.current[block] ?? 0) <= 0) return;
-      if (at(tx, ty) !== AIR || ty < 0 || !inReach(tx, ty)) return;
-      // não coloca bloco dentro do jogador
-      if (tx + 1 > p.x && tx < p.x + PW && ty + 1 > p.y && ty < p.y + PH) return;
-      tiles[ty * w + tx] = block;
-      addCount(block, -1);
-      sfx.current.playPlace();
-      if (!firsts.placed) {
-        firsts.placed = true;
-        toast.current("Construtor", "colocou o primeiro bloco");
-      }
-    };
-
-    const act = () => {
-      const { tx, ty } = tileAtPointer();
-      const placing = pointer.button === 2 || modeRef.current === "place";
-      if (placing) place(tx, ty);
-      else mine(tx, ty);
-    };
-
-    // ── física: eixo x e y resolvidos separadamente contra os blocos ──
-    const collide = (axis: "x" | "y") => {
-      const x0 = Math.floor(p.x);
-      const x1 = Math.floor(p.x + PW - 1e-6);
-      const y0 = Math.floor(p.y);
-      const y1 = Math.floor(p.y + PH - 1e-6);
-      for (let ty = y0; ty <= y1; ty++)
-        for (let tx = x0; tx <= x1; tx++) {
-          if (!solid(tx, ty)) continue;
-          if (axis === "x") {
-            // auto-pulo de 1 bloco, como no jogo (salva a vida no celular)
-            const step = p.ground && ty === y1 && !solid(tx, ty - 1) && !solid(tx, ty - 2);
-            if (p.vx > 0) p.x = tx - PW;
-            else if (p.vx < 0) p.x = tx + 1;
-            if (step) p.vy = -JUMP * 0.8;
-            p.vx = 0;
-          } else {
-            if (p.vy > 0) {
-              p.y = ty - PH;
-              p.ground = true;
-            } else if (p.vy < 0) p.y = ty + 1;
-            p.vy = 0;
-          }
-          return;
-        }
-    };
-
-    const update = (dt: number) => {
-      const k = keys.current;
-      const dir = (k.right ? 1 : 0) - (k.left ? 1 : 0);
-      p.vx = dir * SPEED;
-      if (dir) p.face = dir;
-      p.walk = dir && p.ground ? p.walk + dt * 10 : 0;
-      if (k.jump && p.ground) p.vy = -JUMP;
-      p.vy = Math.min(p.vy + GRAVITY * dt, 20);
-
-      p.x += p.vx * dt;
-      collide("x");
-      p.ground = false;
-      p.y += p.vy * dt;
-      collide("y");
-
-      // caiu do mundo? volta pro spawn
-      if (p.y > h + 5) {
-        p.x = spawnX + 0.2;
-        p.y = surface[spawnX] - PH - 2;
-        p.vy = 0;
-      }
-
-      if (pointer.down) {
-        hitTimer -= dt;
-        if (hitTimer <= 0) {
-          act();
-          hitTimer = HIT_EVERY;
-        }
-      }
-    };
-
-    const drawPlayer = (px: number, py: number) => {
-      const u = T / 16; // 1 "pixel" do personagem
-      const W = PW * T;
-      const swing = Math.sin(p.walk) * 3 * u;
-      // pernas
-      ctx.fillStyle = "#3a4a8a";
-      ctx.fillRect(px + W * 0.12, py + 18 * u, W * 0.36, 11 * u + swing * 0.3);
-      ctx.fillRect(px + W * 0.52, py + 18 * u, W * 0.36, 11 * u - swing * 0.3);
-      // corpo (camiseta terracota da marca)
-      ctx.fillStyle = "#c1440e";
-      ctx.fillRect(px, py + 8 * u, W, 10 * u);
-      // braço balançando
-      ctx.fillStyle = "#9c3a12";
-      ctx.fillRect(px + W / 2 - 1.5 * u + swing * 0.6 * p.face, py + 9 * u, 3 * u, 8 * u);
-      // cabeça
-      ctx.fillStyle = "#e0ac69";
-      ctx.fillRect(px + W * 0.1, py, W * 0.8, 8 * u);
-      ctx.fillStyle = "#3b2a1a";
-      ctx.fillRect(px + W * 0.1, py, W * 0.8, 2.5 * u);
-      // olho do lado que está olhando
-      ctx.fillStyle = "#1a1a1a";
-      ctx.fillRect(px + (p.face > 0 ? W * 0.62 : W * 0.25), py + 4 * u, 1.6 * u, 1.6 * u);
-    };
-
-    const draw = (time: number) => {
-      const night = nightRef.current;
-      // céu
-      const g = ctx.createLinearGradient(0, 0, 0, vh);
-      if (night) {
-        g.addColorStop(0, "#0b1026");
-        g.addColorStop(1, "#2a1f3d");
-      } else {
-        g.addColorStop(0, "#6fb7ff");
-        g.addColorStop(1, "#cde8ff");
-      }
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, vw, vh);
-
-      if (night) {
-        ctx.fillStyle = "#ffffff";
-        for (const [sx, sy] of stars) ctx.fillRect(sx * vw, sy * vh, 2, 2);
-        ctx.fillStyle = "#f0f0d0";
-        ctx.fillRect(vw * 0.78, vh * 0.1, T * 1.4, T * 1.4);
-      } else {
-        ctx.fillStyle = "#ffe066";
-        ctx.fillRect(vw * 0.78, vh * 0.08, T * 1.6, T * 1.6);
-        ctx.fillStyle = "rgba(255,255,255,0.9)";
-        for (let c = 0; c < 4; c++) {
-          const cx = ((c * 260 + time * 0.008) % (vw + 200)) - 100;
-          ctx.fillRect(cx, vh * (0.12 + c * 0.05), T * 3, T * 0.7);
-          ctx.fillRect(cx + T * 0.6, vh * (0.12 + c * 0.05) - T * 0.4, T * 1.6, T * 0.5);
-        }
-      }
-
-      // câmera segue o jogador, presa nas bordas do mundo
-      cam = {
-        x: Math.max(0, Math.min(w * T - vw, (p.x + PW / 2) * T - vw / 2)),
-        y: Math.max(0, Math.min(h * T - vh, (p.y + PH / 2) * T - vh / 2)),
-      };
-      const x0 = Math.floor(cam.x / T);
-      const y0 = Math.floor(cam.y / T);
-      const x1 = Math.min(w - 1, x0 + Math.ceil(vw / T) + 1);
-      const y1 = Math.min(h - 1, y0 + Math.ceil(vh / T) + 1);
-
-      for (let y = y0; y <= y1; y++)
-        for (let x = x0; x <= x1; x++) {
-          const id = tiles[y * w + x];
-          const sx = Math.round(x * T - cam.x);
-          const sy = Math.round(y * T - cam.y);
-          if (id === AIR) {
-            // parede de fundo nas cavernas e buracos
-            if (y > surface[x] + 1) {
-              ctx.drawImage(tex[STONE], sx, sy, T, T);
-              ctx.fillStyle = "rgba(0,0,0,0.6)";
-              ctx.fillRect(sx, sy, T, T);
+    import("./engine").then(({ startEngine }) => {
+      if (!alive || !canvasRef.current || !boxRef.current) return;
+      engine = startEngine(
+        canvasRef.current,
+        boxRef.current,
+        { night: document.documentElement.dataset.theme === "dark", touch: isTouch },
+        {
+          selected: () => slots.current[selected.current]?.id ?? 0,
+          consumeSelected: () => {
+            const i = selected.current;
+            const it = slots.current[i];
+            if (!it) return;
+            slots.current[i] = it.n > 1 ? { id: it.id, n: it.n - 1 } : null;
+            if (it.id === TABLE) advance(3);
+            sfx.current.playPlace();
+            bump();
+          },
+          give: (id) => give(id),
+          broke: (id, drop, tool) => {
+            sfx.current.playBreak();
+            if (id === LOG) {
+              achieve("wood", "Pegando madeira", "todo mundo começa socando árvore", LOG);
+              advance(1);
             }
-            continue;
-          }
-          ctx.drawImage(tex[id], sx, sy, T, T);
-          // escurece com a profundidade
-          const depth = y - surface[x];
-          if (depth > 6) {
-            ctx.fillStyle = `rgba(0,0,0,${Math.min(0.45, (depth - 6) * 0.02)})`;
-            ctx.fillRect(sx, sy, T, T);
-          }
-        }
-
-      // rachaduras
-      ctx.strokeStyle = "rgba(0,0,0,0.75)";
-      ctx.lineWidth = Math.max(1, T / 12);
-      hits.forEach((n, key) => {
-        const tx = key % w;
-        const ty = Math.floor(key / w);
-        const frac = n / hardness(tiles[key]);
-        const sx = tx * T - cam.x;
-        const sy = ty * T - cam.y;
-        ctx.beginPath();
-        ctx.moveTo(sx + T * 0.5, sy + T * 0.5);
-        ctx.lineTo(sx + T * (0.5 - 0.4 * frac), sy + T * (0.5 - 0.3 * frac));
-        ctx.moveTo(sx + T * 0.5, sy + T * 0.5);
-        ctx.lineTo(sx + T * (0.5 + 0.35 * frac), sy + T * (0.5 + 0.4 * frac));
-        ctx.moveTo(sx + T * 0.5, sy + T * 0.5);
-        ctx.lineTo(sx + T * (0.5 + 0.4 * frac), sy + T * (0.5 - 0.35 * frac));
-        ctx.stroke();
-      });
-
-      drawPlayer(p.x * T - cam.x, p.y * T - cam.y);
-
-      // contorno do bloco mirado
-      if (pointer.inside) {
-        const { tx, ty } = tileAtPointer();
-        if (inReach(tx, ty)) {
-          ctx.lineWidth = 2;
-          ctx.strokeStyle = night ? "rgba(255,255,255,0.8)" : "rgba(0,0,0,0.7)";
-          ctx.strokeRect(tx * T - cam.x + 1, ty * T - cam.y + 1, T - 2, T - 2);
-        }
-      }
-    };
-
-    const loop = (now: number) => {
-      const dt = Math.min(0.05, (now - last) / 1000);
-      last = now;
-      // janela minimizada (display:none) não precisa rodar
-      if (canvas.offsetParent !== null) {
-        update(dt);
-        draw(now);
-      }
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-
-    // ── input ──
-    const setPointer = (e: PointerEvent) => {
-      const r = canvas.getBoundingClientRect();
-      // compensa escala (animação da janela) entre tela e canvas
-      pointer.x = ((e.clientX - r.left) * vw) / r.width;
-      pointer.y = ((e.clientY - r.top) * vh) / r.height;
-    };
-    const onDown = (e: PointerEvent) => {
-      box.focus();
-      setPointer(e);
-      pointer.down = true;
-      pointer.inside = true;
-      pointer.button = e.button;
-      hitTimer = 0;
-      canvas.setPointerCapture(e.pointerId);
-    };
-    const onMove = (e: PointerEvent) => {
-      setPointer(e);
-      pointer.inside = true;
-    };
-    const onUp = () => {
-      pointer.down = false;
-    };
-    const onLeave = (e: PointerEvent) => {
-      if (e.pointerType === "mouse") pointer.inside = false;
-    };
-    const onKey = (down: boolean) => (e: KeyboardEvent) => {
-      const k = keys.current;
-      switch (e.key.toLowerCase()) {
-        case "a":
-        case "arrowleft":
-          k.left = down;
-          break;
-        case "d":
-        case "arrowright":
-          k.right = down;
-          break;
-        case "w":
-        case " ":
-        case "arrowup":
-          k.jump = down;
-          break;
-        default:
-          if (down && /^[1-4]$/.test(e.key)) {
-            slotRef.current = Number(e.key) - 1;
-            setSlot(slotRef.current);
-          }
-          return;
-      }
-      e.preventDefault();
-    };
-    const keyDown = onKey(true);
-    const keyUp = onKey(false);
-    const noMenu = (e: Event) => e.preventDefault();
-
-    canvas.addEventListener("pointerdown", onDown);
-    canvas.addEventListener("pointermove", onMove);
-    canvas.addEventListener("pointerup", onUp);
-    canvas.addEventListener("pointercancel", onUp);
-    canvas.addEventListener("pointerleave", onLeave);
-    canvas.addEventListener("contextmenu", noMenu);
-    box.addEventListener("keydown", keyDown);
-    box.addEventListener("keyup", keyUp);
-    box.focus();
+            if (needsPick(id) && !isPick(tool)) {
+              achieve("nopick", "Precisa de uma picareta", "na mão, pedra não dropa nada", WOOD_PICK);
+            }
+            if (drop !== null && isOre(drop)) {
+              const i = drop - ORE_BASE;
+              setFound((f) => {
+                if (f[i]) return f;
+                const next = [...f];
+                next[i] = true;
+                return next;
+              });
+              achieve(`ore${i}`, `${ORES[i].nome} encontrado!`, ORES[i].lore, drop);
+            }
+          },
+          openTable: () => openUi("table"),
+          openInventory: () => (uiRef.current ? closeUi() : openUi("inv")),
+          select,
+          scroll: (d) => select(selected.current + d),
+          lockChange: setLocked,
+        },
+      );
+      engineRef.current = engine;
+      setReady(true);
+    });
 
     return () => {
-      cancelAnimationFrame(raf);
-      ro.disconnect();
-      canvas.removeEventListener("pointerdown", onDown);
-      canvas.removeEventListener("pointermove", onMove);
-      canvas.removeEventListener("pointerup", onUp);
-      canvas.removeEventListener("pointercancel", onUp);
-      canvas.removeEventListener("pointerleave", onLeave);
-      canvas.removeEventListener("contextmenu", noMenu);
-      box.removeEventListener("keydown", keyDown);
-      box.removeEventListener("keyup", keyUp);
+      alive = false;
+      engine?.dispose();
+      engineRef.current = null;
     };
-  }, []);
+  }, [give, select, achieve, advance, openUi, closeUi]);
 
-  const pick = (i: number) => {
-    slotRef.current = i;
-    setSlot(i);
+  // stack completa
+  useEffect(() => {
+    if (found.every(Boolean)) {
+      achieve("full", "Full stack!", "você achou a stack inteira do daniel", TROPHY);
+      advance(7);
+    }
+  }, [found, achieve, advance]);
+
+  useEffect(() => {
+    engineRef.current?.setNight(resolvedTheme === "dark");
+  }, [resolvedTheme, ready]);
+
+  useEffect(() => {
+    if (!nameTag) return;
+    const t = window.setTimeout(() => setNameTag(null), 1800);
+    return () => clearTimeout(t);
+  }, [nameTag]);
+
+  useEffect(() => {
+    if (!ui) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeUi();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [ui, closeUi]);
+
+  // ── crafting ──
+  const size = ui === "table" ? 3 : 2;
+  const gridIds = () => Array.from({ length: size * size }, (_, i) => grid.current[i]?.id ?? 0);
+  const recipe = ui ? matchRecipe(gridIds(), size) : null;
+
+  const onCrafted = (out: number) => {
+    if (out === PLANKS) advance(2);
+    if (out === TABLE) achieve("table", "Benchmarking", "fez uma bancada de trabalho", TABLE);
+    if (out === WOOD_PICK) {
+      achieve("wpick", "Hora de minerar!", "picareta de madeira na mão", WOOD_PICK);
+      advance(5);
+    }
+    if (out === STONE_PICK) {
+      achieve("spick", "Upgrade", "picareta de pedra: agora sim", STONE_PICK);
+      advance(6);
+    }
+    if (out === FURNACE) achieve("furnace", "Esquentando", "fez uma fornalha", FURNACE);
+    if (out === TROPHY) {
+      achieve("trophy", "Contratado!", "a stack inteira virou um full stack dev", TROPHY);
+      advance(8);
+    }
   };
 
-  const toggleMode = () => {
-    const next = modeRef.current === "mine" ? "place" : "mine";
-    modeRef.current = next;
-    setMode(next);
+  const consumeGrid = () => {
+    for (let i = 0; i < size * size; i++) {
+      const g = grid.current[i];
+      if (g) grid.current[i] = g.n > 1 ? { id: g.id, n: g.n - 1 } : null;
+    }
   };
 
-  const hold = (key: "left" | "right" | "jump") => ({
-    onPointerDown: (e: React.PointerEvent) => {
-      e.preventDefault();
-      keys.current[key] = true;
-    },
-    onPointerUp: () => (keys.current[key] = false),
-    onPointerLeave: () => (keys.current[key] = false),
-    onPointerCancel: () => (keys.current[key] = false),
-  });
+  const takeOutput = (shift: boolean) => {
+    const r = matchRecipe(gridIds(), size);
+    if (!r) return;
+    playClick();
+    if (shift) {
+      // shift: crafta o máximo direto pro inventário
+      let guard = 64;
+      while (guard-- > 0 && matchRecipe(gridIds(), size) === r) {
+        give(r.out, r.n);
+        consumeGrid();
+      }
+    } else {
+      const c = cursor.current;
+      if (c && (c.id !== r.out || c.n + r.n > maxStack(r.out))) return;
+      cursor.current = { id: r.out, n: (c?.n ?? 0) + r.n };
+      consumeGrid();
+    }
+    onCrafted(r.out);
+    bump();
+  };
 
-  const pad =
-    "flex size-14 items-center justify-center rounded-2xl border-[3px] border-black/70 bg-black/35 text-white backdrop-blur-sm active:bg-black/60 select-none touch-none";
-  const total = found.filter((c) => c > 0).length;
+  // clique em slot com a mecânica do jogo: esquerdo pega/solta/troca, direito divide/solta 1
+  const clickSlot = (arr: Slot[], i: number, right: boolean) => {
+    playClick();
+    const s = arr[i];
+    const c = cursor.current;
+    if (!c) {
+      if (!s) return;
+      if (right) {
+        const take = Math.ceil(s.n / 2);
+        cursor.current = { id: s.id, n: take };
+        arr[i] = s.n - take > 0 ? { id: s.id, n: s.n - take } : null;
+      } else {
+        cursor.current = s;
+        arr[i] = null;
+      }
+    } else if (!s) {
+      if (right) {
+        arr[i] = { id: c.id, n: 1 };
+        cursor.current = c.n > 1 ? { id: c.id, n: c.n - 1 } : null;
+      } else {
+        arr[i] = c;
+        cursor.current = null;
+      }
+    } else if (s.id === c.id) {
+      const add = Math.min(maxStack(s.id) - s.n, right ? 1 : c.n);
+      arr[i] = { id: s.id, n: s.n + add };
+      cursor.current = c.n - add > 0 ? { id: c.id, n: c.n - add } : null;
+    } else if (!right) {
+      arr[i] = c;
+      cursor.current = s;
+    }
+    bump();
+  };
+
+  // livro de receitas: preenche a grade com o que tem no inventário
+  const count = (id: number) => slots.current.reduce((a, s) => a + (s?.id === id ? s.n : 0), 0);
+  const takeOne = (id: number) => {
+    const s = slots.current;
+    for (let i = 35; i >= 0; i--) {
+      const it = s[i];
+      if (it?.id === id) {
+        s[i] = it.n > 1 ? { id, n: it.n - 1 } : null;
+        return true;
+      }
+    }
+    return false;
+  };
+  const layout = (r: Recipe): number[] | null => {
+    const cells: number[] = Array(size * size).fill(0);
+    if (r.shapeless) {
+      if (r.shapeless.length > size * size) return null;
+      r.shapeless.forEach((id, i) => (cells[i] = id));
+      return cells;
+    }
+    const shape = r.shape!;
+    if (shape.length > size || shape[0].length > size) return null;
+    shape.forEach((row, y) => [...row].forEach((ch, x) => (cells[y * size + x] = ch === " " ? 0 : r.key![ch])));
+    return cells;
+  };
+  const canMake = (r: Recipe) => {
+    const cells = layout(r);
+    if (!cells) return false;
+    const need = new Map<number, number>();
+    cells.forEach((id) => id && need.set(id, (need.get(id) ?? 0) + 1));
+    // conta também o que já está na grade (volta pro inventário antes de preencher)
+    const inGrid = (id: number) => grid.current.reduce((a, g) => a + (g?.id === id ? g.n : 0), 0);
+    return [...need].every(([id, n]) => count(id) + inGrid(id) >= n);
+  };
+  const autofill = (r: Recipe) => {
+    if (!canMake(r)) return;
+    returnGrid();
+    const cells = layout(r)!;
+    playClick();
+    cells.forEach((id, i) => {
+      if (id && takeOne(id)) grid.current[i] = { id, n: 1 };
+    });
+    bump();
+  };
+
+  // ── toque: joystick + arrastar pra olhar + segurar pra quebrar + tocar pra usar ──
+  const joy = useRef<{ id: number; x: number; y: number } | null>(null);
+  const [knob, setKnob] = useState({ x: 0, y: 0 });
+  const lookTouch = useRef<{ id: number; x: number; y: number; t: number; moved: boolean; timer: number } | null>(null);
+
+  const joyDown = (e: React.PointerEvent) => {
+    e.stopPropagation();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    joy.current = { id: e.pointerId, x: e.clientX, y: e.clientY };
+  };
+  const joyMove = (e: React.PointerEvent) => {
+    const j = joy.current;
+    if (!j || j.id !== e.pointerId) return;
+    let dx = e.clientX - j.x, dy = e.clientY - j.y;
+    const d = Math.hypot(dx, dy);
+    if (d > 44) {
+      dx = (dx / d) * 44;
+      dy = (dy / d) * 44;
+    }
+    setKnob({ x: dx, y: dy });
+    engineRef.current?.move(dx / 44, -dy / 44);
+  };
+  const joyUp = () => {
+    joy.current = null;
+    setKnob({ x: 0, y: 0 });
+    engineRef.current?.move(0, 0);
+  };
+
+  const lookDown = (e: React.PointerEvent) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    const timer = window.setTimeout(() => {
+      if (lookTouch.current && !lookTouch.current.moved) engineRef.current?.breaking(true);
+    }, 260);
+    lookTouch.current = { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now(), moved: false, timer };
+  };
+  const lookMove = (e: React.PointerEvent) => {
+    const l = lookTouch.current;
+    if (!l || l.id !== e.pointerId) return;
+    const dx = e.clientX - l.x, dy = e.clientY - l.y;
+    if (!l.moved && Math.hypot(dx, dy) > 8) {
+      l.moved = true;
+      engineRef.current?.breaking(false);
+    }
+    if (l.moved) {
+      engineRef.current?.look(dx, dy);
+      l.x = e.clientX;
+      l.y = e.clientY;
+    }
+  };
+  const lookUp = () => {
+    const l = lookTouch.current;
+    if (!l) return;
+    clearTimeout(l.timer);
+    engineRef.current?.breaking(false);
+    if (!l.moved && performance.now() - l.t < 250) engineRef.current?.interact();
+    lookTouch.current = null;
+  };
+
+  const hotbar = slots.current.slice(0, 9);
+  const total = found.filter(Boolean).length;
 
   return (
     <div
       ref={boxRef}
       tabIndex={0}
-      className="relative h-full w-full touch-none overflow-hidden bg-[#6fb7ff] font-mono outline-none select-none"
+      onPointerMove={(e) => {
+        if (!ui) return;
+        const r = boxRef.current!.getBoundingClientRect();
+        setMouse({ x: e.clientX - r.left, y: e.clientY - r.top });
+      }}
+      className={`${pixel.className} relative h-full w-full touch-none overflow-hidden bg-black text-white outline-none select-none`}
     >
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
 
-      {/* coleção da stack */}
-      <div className="absolute left-2 top-2 rounded-lg border-2 border-black/60 bg-black/45 p-1.5 text-white backdrop-blur-sm">
-        <p className="mb-1 text-[10px] font-bold uppercase tracking-wider">
-          stack {total}/{ORES.length}
-        </p>
-        <div className="grid grid-cols-9 gap-0.5">
-          {ORES.map((o, i) => (
-            <span
-              key={o.nome}
-              title={found[i] ? `${o.nome} — ${o.lore}` : "???"}
-              className={`relative flex size-4 items-center justify-center bg-[#7d7d7d] ${found[i] ? "" : "opacity-30"}`}
-            >
-              <span className="size-2" style={{ backgroundColor: o.cor }} />
-            </span>
-          ))}
+      {/* gerando mundo */}
+      {!ready && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#3b2a1d] text-2xl">
+          <p className="[text-shadow:2px_2px_0_#3f3f3f]">Gerando mundo...</p>
+          <p className="mt-2 text-lg opacity-70">escondendo a stack nas cavernas</p>
         </div>
-      </div>
-
-      {/* hotbar */}
-      <div
-        className={`absolute flex border-[3px] border-[#373737] bg-[#8b8b8b] p-0.5 ${
-          touch ? "right-2 top-2" : "bottom-3 left-1/2 -translate-x-1/2"
-        }`}
-      >
-        {PLACEABLE.map((b, i) => (
-          <button
-            key={b.id}
-            onClick={() => pick(i)}
-            aria-label={`${b.nome} (${counts[b.id] ?? 0})`}
-            className={`relative flex size-10 items-center justify-center border-2 ${
-              i === slot ? "z-10 border-white bg-[#a0a0a0]" : "border-t-[#373737] border-l-[#373737] border-b-white border-r-white"
-            }`}
-          >
-            <BlockSwatch id={b.id} />
-            <span className="absolute bottom-0 right-0.5 text-[11px] font-black leading-none text-white [text-shadow:1px_1px_0_#3f3f3f]">
-              {counts[b.id] ?? 0}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {!touch && (
-        <p className="pointer-events-none absolute bottom-3 left-3 max-w-[30%] text-[10px] leading-tight text-white [text-shadow:1px_1px_0_#000]">
-          A/D andar · W pular · clique quebra · botão direito coloca · 1-4 bloco
-        </p>
       )}
 
-      {/* conquistas, estilo toast do jogo */}
-      <div className="pointer-events-none absolute right-2 top-16 flex flex-col items-end gap-2">
-        <AnimatePresence>
-          {toasts.map((t) => (
-            <motion.div
-              key={t.id}
-              initial={{ opacity: 0, x: 60 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 60 }}
-              className="w-56 border-2 border-[#555] bg-[#212121]/95 px-3 py-2"
-            >
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[#ffe066]">
-                conquista desbloqueada!
-              </p>
-              <p className="text-sm font-bold text-white">{t.titulo}</p>
-              <p className="text-[11px] text-gray-400">{t.texto}</p>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
-
-      {touch && (
+      {ready && (
         <>
-          <div className="absolute bottom-3 left-3 flex gap-2">
-            <button aria-label="andar pra esquerda" className={pad} {...hold("left")}>
-              <HugeiconsIcon icon={ArrowLeft01Icon} size={28} strokeWidth={2.5} />
-            </button>
-            <button aria-label="andar pra direita" className={pad} {...hold("right")}>
-              <HugeiconsIcon icon={ArrowRight01Icon} size={28} strokeWidth={2.5} />
-            </button>
+          {/* mira */}
+          <div className="pointer-events-none absolute left-1/2 top-1/2 mix-blend-difference">
+            <div className="absolute h-[18px] w-[2px] -translate-x-1/2 -translate-y-1/2 bg-white" />
+            <div className="absolute h-[2px] w-[18px] -translate-x-1/2 -translate-y-1/2 bg-white" />
           </div>
-          <div className="absolute bottom-3 right-3 flex gap-2">
-            <button
-              aria-label={mode === "mine" ? "modo: quebrar" : "modo: colocar"}
-              onClick={toggleMode}
-              className={`${pad} ${mode === "place" ? "bg-[#c1440e]/80" : ""}`}
+
+          {/* celular: área de olhar fica embaixo do resto do hud */}
+          {touch && !ui && (
+            <div
+              className="absolute inset-0"
+              onPointerDown={lookDown}
+              onPointerMove={lookMove}
+              onPointerUp={lookUp}
+              onPointerCancel={lookUp}
+            />
+          )}
+
+          {/* stack encontrada */}
+          <div className="pointer-events-none absolute left-2 top-2 border-2 border-black/70 bg-black/50 px-1.5 py-1">
+            <p className="text-lg leading-none [text-shadow:2px_2px_0_#3f3f3f]">
+              stack {total}/{ORES.length}
+            </p>
+            <div className="mt-1 flex gap-0.5">
+              {ORES.map((o, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={o.nome}
+                  src={iconOf(ORE_BASE + i)}
+                  alt={o.nome}
+                  className={`size-[clamp(14px,4vw,20px)] [image-rendering:pixelated] ${found[i] ? "" : "opacity-25 grayscale"}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* dica do tutorial */}
+          {hint < HINTS.length && (locked || touch) && !ui && (
+            <motion.div
+              key={hint}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="pointer-events-none absolute left-1/2 top-[clamp(56px,14vw,64px)] w-max max-w-[80%] -translate-x-1/2 border-2 border-[#555] bg-[#212121]/90 px-3 py-1 text-center text-lg leading-tight"
             >
-              <HugeiconsIcon icon={mode === "mine" ? PickaxeIcon : CubeIcon} size={26} strokeWidth={2} />
-            </button>
-            <button aria-label="pular" className={pad} {...hold("jump")}>
-              <HugeiconsIcon icon={ArrowUp01Icon} size={28} strokeWidth={2.5} />
-            </button>
+              {hint === 1 && touch ? "Toque na mochila e transforme o tronco em tábuas" : HINTS[hint]}
+            </motion.div>
+          )}
+
+          {/* conquistas */}
+          <div className="pointer-events-none absolute right-2 top-2 flex flex-col items-end gap-2">
+            <AnimatePresence>
+              {toasts.map((t) => (
+                <motion.div
+                  key={t.key}
+                  initial={{ opacity: 0, x: 80 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 80 }}
+                  className="flex w-56 items-center gap-2 rounded-sm border-2 border-[#555] bg-[#212121]/95 px-2 py-1.5"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={iconOf(t.icon)} alt="" className="size-8 [image-rendering:pixelated]" />
+                  <div className="min-w-0 leading-tight">
+                    <p className="text-base text-[#ffe066]">Conquista feita!</p>
+                    <p className="text-lg">{t.title}</p>
+                    <p className="text-sm text-gray-400">{t.text}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
+
+          {/* hud inferior: nome do item, corações, xp e hotbar */}
+          <div className="pointer-events-none absolute bottom-2 left-1/2 flex -translate-x-1/2 flex-col items-center gap-1">
+            <AnimatePresence>
+              {nameTag && (
+                <motion.p
+                  key={nameTag.key}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-xl leading-none [text-shadow:2px_2px_0_#3f3f3f]"
+                >
+                  {nameTag.text}
+                </motion.p>
+              )}
+            </AnimatePresence>
+            <div className="flex w-full">
+              {Array.from({ length: 10 }, (_, i) => (
+                <Heart key={i} />
+              ))}
+            </div>
+            <div className="relative h-[6px] w-full border border-black bg-[#2a2a2a]">
+              <div className="h-full bg-[#80ff20]" style={{ width: `${(total / ORES.length) * 100}%` }} />
+              {total > 0 && (
+                <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-lg leading-none text-[#80ff20] [text-shadow:1px_1px_0_#000,-1px_-1px_0_#000]">
+                  {total}
+                </span>
+              )}
+            </div>
+            <div className="pointer-events-auto flex border-2 border-black/80 bg-black/40 p-[2px]">
+              {hotbar.map((s, i) => (
+                <button
+                  key={i}
+                  onClick={() => select(i)}
+                  aria-label={s ? `${NAMES[s.id]} (${s.n})` : `slot ${i + 1} vazio`}
+                  className={`relative flex size-[clamp(28px,8.6vw,40px)] items-center justify-center border-2 ${
+                    i === selected.current ? "z-10 scale-110 border-white bg-white/10" : "border-[#8b8b8b]/60 bg-black/20"
+                  }`}
+                >
+                  <ItemIcon slot={s} />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* desktop: clique pra jogar */}
+          {!touch && !locked && !ui && (
+            <button
+              onClick={() => engineRef.current?.lock()}
+              className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/55 px-6 text-center"
+            >
+              <span className="text-4xl [text-shadow:3px_3px_0_#3f3f3f]">Clique pra jogar</span>
+              <span className="max-w-md text-lg leading-tight opacity-80">
+                WASD andar · espaço pular · mouse olhar · segure o clique pra quebrar · botão direito coloca/usa · E inventário · 1-9 ou roda troca o item · Esc solta o mouse
+              </span>
+            </button>
+          )}
+
+          {/* celular: joystick, pulo e mochila */}
+          {touch && !ui && (
+            <>
+              <div
+                className="absolute bottom-[clamp(96px,26vw,112px)] left-4 size-28 rounded-full border-2 border-white/40 bg-black/25"
+                onPointerDown={joyDown}
+                onPointerMove={joyMove}
+                onPointerUp={joyUp}
+                onPointerCancel={joyUp}
+              >
+                <div
+                  className="absolute left-1/2 top-1/2 size-12 rounded-full border-2 border-white/60 bg-white/30"
+                  style={{ transform: `translate(calc(-50% + ${knob.x}px), calc(-50% + ${knob.y}px))` }}
+                />
+              </div>
+              <button
+                aria-label="pular"
+                className="absolute bottom-[clamp(104px,28vw,120px)] right-4 flex size-16 items-center justify-center rounded-full border-2 border-white/50 bg-black/30 text-3xl"
+                onPointerDown={(e) => {
+                  e.stopPropagation();
+                  engineRef.current?.jump(true);
+                }}
+                onPointerUp={() => engineRef.current?.jump(false)}
+                onPointerCancel={() => engineRef.current?.jump(false)}
+              >
+                ▲
+              </button>
+              <button
+                aria-label="abrir inventário"
+                onClick={() => openUi("inv")}
+                className={`absolute bottom-[clamp(180px,48vw,200px)] right-4 ${btnCls} text-[#3f3f3f]`}
+              >
+                mochila
+              </button>
+            </>
+          )}
+
+          {/* inventário / bancada */}
+          {ui && (
+            <div
+              className="absolute inset-0 flex items-center justify-center bg-black/60 p-2"
+              onPointerDown={(e) => e.target === e.currentTarget && closeUi()}
+            >
+              <div
+                className="relative max-h-full overflow-y-auto rounded-sm border-2 border-black bg-[#c6c6c6] p-2 text-[#3f3f3f] shadow-[inset_2px_2px_0_#fff,inset_-2px_-2px_0_#555]"
+                onContextMenu={(e) => e.preventDefault()}
+              >
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <p className="text-xl">{ui === "table" ? "Criação" : "Inventário"}</p>
+                  <div className="flex gap-1">
+                    <button onClick={() => setBook((b) => !b)} className={btnCls}>
+                      receitas
+                    </button>
+                    <button onClick={closeUi} aria-label="fechar" className={btnCls}>
+                      ✕
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3 md:flex-row md:items-start">
+                  {book && (
+                    <div className="grid grid-cols-2 gap-1 md:w-60 md:grid-cols-1">
+                      {RECIPES.map((r) => {
+                        const fits = layout(r) !== null;
+                        const ok = fits && canMake(r);
+                        return (
+                          <button
+                            key={r.out}
+                            onClick={() => autofill(r)}
+                            disabled={!ok}
+                            className={`flex items-center gap-1 border-2 px-1 py-0.5 text-left text-base leading-tight ${
+                              ok ? "border-[#3f3f3f] bg-[#a0e080]" : "border-[#8b8b8b] bg-[#b0b0b0] opacity-60"
+                            }`}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={iconOf(r.out)} alt="" className="size-6 shrink-0 [image-rendering:pixelated]" />
+                            <span className="min-w-0">
+                              {NAMES[r.out]}
+                              <span className="block text-sm opacity-70">{RECIPE_HINT[r.out]}</span>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <div>
+                  {/* grade + resultado */}
+                  <div className="mb-3 flex items-center justify-center gap-3">
+                    <div className="grid" style={{ gridTemplateColumns: `repeat(${size}, auto)` }}>
+                      {Array.from({ length: size * size }, (_, i) => (
+                        <button key={i} className={slotCls} onMouseDown={(e) => clickSlot(grid.current, i, e.button === 2)}>
+                          <ItemIcon slot={grid.current[i]} />
+                        </button>
+                      ))}
+                    </div>
+                    <span className="text-3xl text-[#8b8b8b]">➜</span>
+                    <button
+                      className={`${slotCls} !size-[clamp(36px,11vw,48px)]`}
+                      onMouseDown={(e) => takeOutput(e.shiftKey)}
+                      aria-label={recipe ? `criar ${NAMES[recipe.out]}` : "resultado vazio"}
+                    >
+                      <ItemIcon slot={recipe ? { id: recipe.out, n: recipe.n } : null} />
+                    </button>
+                  </div>
+
+                  {/* inventário 27 + hotbar 9 */}
+                  <div className="grid w-max grid-cols-[repeat(9,auto)]">
+                    {Array.from({ length: 27 }, (_, k) => k + 9).map((i) => (
+                      <button key={i} className={slotCls} onMouseDown={(e) => clickSlot(slots.current, i, e.button === 2)}>
+                        <ItemIcon slot={slots.current[i]} />
+                      </button>
+                    ))}
+                  </div>
+                  <div className="mt-2 grid w-max grid-cols-[repeat(9,auto)]">
+                    {Array.from({ length: 9 }, (_, i) => (
+                      <button key={i} className={slotCls} onMouseDown={(e) => clickSlot(slots.current, i, e.button === 2)}>
+                        <ItemIcon slot={slots.current[i]} />
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-1 max-w-[min(100%,360px)] text-base leading-tight opacity-70">
+                    {touch
+                      ? "toque pra pegar e soltar · use as receitas pra preencher a grade"
+                      : "esquerdo pega/solta · direito divide/solta 1 · shift no resultado crafta tudo"}
+                  </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* item preso no cursor */}
+              {cursor.current && (
+                <div
+                  className="pointer-events-none absolute flex size-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center"
+                  style={{ left: mouse.x, top: mouse.y }}
+                >
+                  <ItemIcon slot={cursor.current} />
+                </div>
+              )}
+            </div>
+          )}
         </>
       )}
     </div>
-  );
-};
-
-// miniatura do bloco na hotbar (cores lisas, leve)
-const SWATCH: Record<number, [string, string]> = {
-  2: ["#8b5a2b", "#6b4220"],
-  3: ["#8a8a8a", "#6e6e6e"],
-  4: ["#7c5733", "#4a321c"],
-  5: ["#3f8f2a", "#26651a"],
-};
-
-const BlockSwatch = ({ id }: { id: number }) => {
-  const [a, b] = SWATCH[id];
-  return (
-    <span
-      className="size-6 border border-black/40"
-      style={{ background: `repeating-linear-gradient(45deg, ${a} 0 4px, ${b} 4px 6px)` }}
-    />
   );
 };
 
