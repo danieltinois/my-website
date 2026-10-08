@@ -23,6 +23,7 @@ import useSound from "@/src/hooks/useSound";
 import Trash from "@/src/components/features/Trash";
 import RoadmapWidget from "@/src/components/ui/RoadmapWidget";
 import { useClock } from "@/src/hooks/useClock";
+import { useOpenAppListener } from "@/src/hooks/useOpenApp";
 import { PhoneProps } from "./interface";
 
 // cor do "squircle" de cada app — mesma paleta cartoon network do desktop
@@ -203,6 +204,17 @@ const Phone = ({ apps }: PhoneProps) => {
       origin: { x: r.left + r.width / 2, y: r.top + r.height / 2 },
     });
   };
+
+  // terminal pediu pra abrir um app (ex.: `play` → craft)
+  useOpenAppListener((title) => {
+    const app = apps.find((a) => a.title === title);
+    if (!app) return;
+    setOpen({
+      title: app.title,
+      content: app.windowContent,
+      origin: { x: window.innerWidth / 2, y: window.innerHeight / 2 },
+    });
+  }, "(max-width: 767.98px)");
 
   const close = () => {
     playClose();
