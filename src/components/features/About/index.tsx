@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -11,12 +11,15 @@ import {
   Mail01Icon,
 } from "@hugeicons/core-free-icons";
 import useSound from "@/src/hooks/useSound";
-import { FILES, SOCIALS } from "@/src/components/features/Terminal/commands";
+import { SOCIALS } from "@/src/components/features/Terminal/commands";
+import { TipoMarco, TRAJETORIA } from "@/src/data/trajetoria";
+import Sobre from "./Sobre";
 import "./retro.css";
 
 const PAGES = [
   { id: "inicio", label: "inicio" },
   { id: "sobre", label: "sobre" },
+  { id: "trajetoria", label: "trajetória" },
   { id: "stack", label: "stack" },
   { id: "contato", label: "contato" },
 ] as const;
@@ -26,11 +29,20 @@ type PageId = (typeof PAGES)[number]["id"];
 const chip =
   "border-[3px] border-(--color-cn-shadow) bg-(--color-bg-secondary) px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--color-text)]";
 const tabCls = (active: boolean) =>
-  `border-[3px] px-3 py-1 font-bold uppercase tracking-widest text-xs transition-transform active:translate-y-0.5 cursor-pointer ${
+  `inline-flex items-center border-[3px] px-3 py-1 font-bold uppercase tracking-widest text-xs transition-transform active:translate-y-0.5 cursor-pointer ${
     active
       ? "border-(--color-cn-border) bg-(--color-cn-highlight) text-[#1a120a] shadow-[2px_2px_0_var(--color-cn-shadow)]"
       : "border-(--color-cn-border) bg-[var(--color-bg)] text-[var(--color-text)] shadow-[2px_2px_0_var(--color-cn-shadow)] hover:bg-(--color-bg-secondary)"
   }`;
+
+// cor do selo de data por tipo de marco
+const TIPO: Record<TipoMarco, { cor: string; label: string }> = {
+  inicio: { cor: "var(--color-cn-green)", label: "início" },
+  trabalho: { cor: "var(--color-cn-highlight)", label: "trabalho" },
+  freela: { cor: "var(--color-cn-cyan)", label: "freela" },
+  estudo: { cor: "var(--color-cn-yellow)", label: "estudo" },
+  premio: { cor: "var(--color-cn-pink)", label: "prêmio" },
+};
 
 const About = () => {
   const [page, setPage] = useState<PageId>("inicio");
@@ -177,6 +189,18 @@ const About = () => {
                       />
                     </button>
                     <button
+                      onClick={() => go("trajetoria")}
+                      className={tabCls(false)}
+                    >
+                      ver trajetória&nbsp;
+                      <HugeiconsIcon
+                        icon={ArrowRight01Icon}
+                        size={14}
+                        color="color-text"
+                        strokeWidth={2}
+                      />
+                    </button>
+                    <button
                       onClick={() => go("stack")}
                       className={tabCls(false)}
                     >
@@ -192,48 +216,120 @@ const About = () => {
               </div>
             )}
 
-            {page === "sobre" && (
+            {page === "sobre" && <Sobre />}
+
+            {page === "trajetoria" && (
               <div className="space-y-5">
                 <h2 className="text-xl font-black uppercase tracking-widest text-(--color-cn-highlight) [text-shadow:2px_2px_0_var(--color-cn-shadow)]">
-                  // sobre
+                  {"// trajetória"}
                 </h2>
-                <p className="leading-relaxed text-[var(--color-text)] opacity-90">
-                  {FILES["bio.txt"]}
+                <p className="text-xs text-[var(--color-text)] opacity-70">
+                  git log --reverse --oneline daniel
                 </p>
-                <blockquote className="border-l-[3px] border-(--color-cn-highlight) pl-3 text-sm italic text-[var(--color-text)] opacity-75">
-                  {FILES["mindset.txt"]}
-                  <span className="retro-blink text-(--color-cn-highlight)">
-                    _
-                  </span>
-                </blockquote>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  <div className={chip}>user: daniel</div>
-                  <div className={chip}>role: full stack</div>
-                  <div className={chip}>loc: sp, br</div>
-                  <div className={chip}>cafés hoje: 4+</div>
-                </div>
+                <ol className="relative ml-2 space-y-6 border-l-[3px] border-dashed border-(--color-cn-shadow) pl-5">
+                  {TRAJETORIA.map((m, i) => (
+                    <motion.li
+                      key={m.titulo}
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.07 * i, duration: 0.2 }}
+                      className="relative"
+                    >
+                      <span
+                        aria-hidden
+                        className={`absolute -left-[31px] top-0.5 size-4 border-[3px] border-(--color-cn-border) ${
+                          i === TRAJETORIA.length - 1
+                            ? "retro-blink bg-(--color-cn-highlight)"
+                            : "bg-[var(--color-bg)]"
+                        }`}
+                      />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className="border-[3px] border-(--color-cn-border) px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#1a120a] shadow-[2px_2px_0_var(--color-cn-shadow)]"
+                          style={{ backgroundColor: TIPO[m.tipo].cor }}
+                        >
+                          {m.quando}
+                        </span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-text)] opacity-50">
+                          {TIPO[m.tipo].label}
+                        </span>
+                      </div>
+                      <h3 className="mt-2 font-black uppercase tracking-wide text-[var(--color-text)]">
+                        {m.titulo}
+                      </h3>
+                      {m.onde && (
+                        <p className="text-xs font-bold text-(--color-cn-highlight)">
+                          {m.onde}
+                        </p>
+                      )}
+                      <p className="mt-1 text-sm leading-relaxed text-[var(--color-text)] opacity-85">
+                        {m.texto}
+                      </p>
+                      {m.stack && (
+                        <p className="mt-2 text-[11px] text-[var(--color-text)] opacity-60">
+                          stack: {m.stack.join(" · ")}
+                        </p>
+                      )}
+                      {m.artefatos && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {m.artefatos.map((a) => (
+                            <a
+                              key={a.url}
+                              href={a.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={() => play()}
+                              className={`${chip} hover:bg-(--color-cn-highlight) hover:text-[#1a120a]`}
+                            >
+                              {a.label} ↗
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </motion.li>
+                  ))}
+                </ol>
+                <p className="text-xs text-[var(--color-text)] opacity-60">
+                  próximo commit: em andamento
+                  <span className="retro-blink text-(--color-cn-highlight)">_</span>
+                </p>
               </div>
             )}
 
             {page === "stack" && (
               <div className="space-y-5">
                 <h2 className="text-xl font-black uppercase tracking-widest text-(--color-cn-highlight) [text-shadow:2px_2px_0_var(--color-cn-shadow)]">
-                  // stack
+                  {"// stack"}
                 </h2>
                   <div className="flex flex-wrap gap-2">
                     {[
-                      "react",
-                      "next.js",
                       "typescript",
                       "javascript",
+                      "react",
+                      "next.js",
+                      "remix",
+                      "angular",
+                      "astro",
                       "tailwind",
                       "node.js",
+                      "nestjs",
+                      "java",
+                      "spring boot",
+                      "c#",
+                      "python",
                       "postgresql",
+                      "mysql",
+                      "sqlite",
+                      "supabase",
+                      "firebase",
+                      "aws",
                       "react native",
                       "dart",
                       "flutter",
-                      "git",
                       "docker",
+                      "github actions",
+                      "git",
+                      "neovim",
                       "linux (arch btw)",
                     ].map((t) => (
                       <span key={t} className={chip}>
@@ -250,7 +346,7 @@ const About = () => {
             {page === "contato" && (
               <div className="space-y-5">
                 <h2 className="text-xl font-black uppercase tracking-widest text-(--color-cn-highlight) [text-shadow:2px_2px_0_var(--color-cn-shadow)]">
-                  // contato
+                  {"// contato"}
                 </h2>
                   <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                     {SOCIALS.map((s) => (
