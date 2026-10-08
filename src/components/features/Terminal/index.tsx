@@ -6,6 +6,7 @@ import { useTheme } from "next-themes";
 import { runCommand, TerminalEntry } from "./commands";
 import { useGitHubRepos } from "@/src/hooks/useGitHubRepos";
 import useSound from "@/src/hooks/useSound";
+import { openApp } from "@/src/hooks/useOpenApp";
 import { TerminalPrompt } from "@/src/components/ui/TerminalElements";
 
 const outputVariants = {
@@ -58,6 +59,8 @@ const Terminal = () => {
     const entry = runCommand(raw, entries.map((en) => en.input), {
       setTheme,
       repos,
+      // deixa o output aparecer antes da janela do jogo abrir por cima
+      openApp: (title) => window.setTimeout(() => openApp(title), 450),
     });
     setEntries((prev) => [...prev, entry]);
     setInputValue("");
