@@ -5,6 +5,18 @@ import { PROJECTS, Project } from "@/src/data/projects";
 
 const USER = "danieltinois";
 
+// só os campos da api do github que a gente usa
+interface GitHubRepo {
+  name: string;
+  description: string | null;
+  fork: boolean;
+  archived: boolean;
+  language: string | null;
+  topics?: string[];
+  html_url: string;
+  homepage: string | null;
+}
+
 export const useGitHubRepos = (): { repos: Project[]; loading: boolean } => {
   const [repos, setRepos] = useState<Project[]>(PROJECTS);
   const [loading, setLoading] = useState(true);
@@ -16,15 +28,15 @@ export const useGitHubRepos = (): { repos: Project[]; loading: boolean } => {
         if (!res.ok) throw new Error(`github api: ${res.status}`);
         return res.json();
       })
-      .then((list: unknown[]) => {
+      .then((list: GitHubRepo[]) => {
         if (!alive) return;
-        const mapped: Project[] = (list as any[])
+        const mapped: Project[] = list
           .filter((r) => !r.fork)
           .map((r) => ({
             name: r.name,
             description: r.description ?? "sem descrição — abre o repo",
             stack: [r.language, ...(r.topics ?? [])]
-              .filter(Boolean)
+              .filter((s): s is string => Boolean(s))
               .slice(0, 4),
             status: r.archived ? "archived" : "live",
             links: {
