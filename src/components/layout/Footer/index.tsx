@@ -10,11 +10,15 @@ import {
 } from "@hugeicons/core-free-icons";
 import { motion, useMotionValue } from "framer-motion";
 import { useWindowManager } from "@/src/context/WindowManager";
+import { DesktopAppProps } from "@/src/components/features/DesktopApp/interface";
 
-const Footer = () => {
+const Footer = ({ apps }: { apps: DesktopAppProps[] }) => {
   const mouseX = useMotionValue(Infinity);
-  const { windows, restoreWindow } = useWindowManager();
-  const minimized = windows.filter((w) => w.minimized);
+  const { windows, launchApp, restoreWindow, focusWindow } = useWindowManager();
+  // janelas que não são apps fixos do dock (ex.: lixeira)
+  const extras = windows.filter(
+    (w) => w.icon && !apps.some((a) => a.title === w.title),
+  );
 
   return (
     <motion.div
@@ -27,20 +31,30 @@ const Footer = () => {
       shadow-bump
       overflow-visible"
     >
-      {minimized.map((w) => (
+      {apps.map((app) => (
+        <ButtonDockApp
+          key={app.title}
+          mouseX={mouseX}
+          title={app.title}
+          icon={app.icon}
+          open={windows.some((w) => w.title === app.title)}
+          onClick={() => launchApp(app.windowContent, app.title, app.icon)}
+        />
+      ))}
+      {extras.map((w) => (
         <ButtonDockApp
           key={w.id}
           mouseX={mouseX}
           title={w.title}
-          onRestore={() => restoreWindow(w.id)}
+          icon={w.icon!}
+          open
+          onClick={() => (w.minimized ? restoreWindow(w.id) : focusWindow(w.id))}
         />
       ))}
-      {minimized.length > 0 && (
-        <div
-          aria-hidden="true"
-          className="h-10 w-px bg-(--color-cn-border) opacity-50 self-center"
-        />
-      )}
+      <div
+        aria-hidden="true"
+        className="h-10 w-px bg-(--color-cn-border) opacity-50 self-center"
+      />
       <ButtonSocialMedia
         mouseX={mouseX}
         link="https://www.linkedin.com/in/danieltinois"

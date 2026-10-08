@@ -3,28 +3,15 @@
 import { useWindowManager } from "@/src/context/WindowManager";
 import useSound from "@/src/hooks/useSound";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useState } from "react";
 import { DesktopAppProps } from "./interface";
 
 const DesktopApp = ({ title, icon, windowContent }: DesktopAppProps) => {
   const { play } = useSound("/sounds/click.mp3", { speed: 1.5 });
-  const { openWindow, focusWindow, windows } = useWindowManager();
-  const [activeWindowId, setActiveWindowId] = useState<string | null>(null);
+  const { launchApp } = useWindowManager();
 
   const handleClick = () => {
     play();
-
-    if (windowContent) {
-      const isWindowOpen =
-        activeWindowId && windows.some((w) => w.id === activeWindowId);
-
-      if (isWindowOpen) {
-        focusWindow(activeWindowId);
-      } else {
-        const newWindowId = openWindow(windowContent, title);
-        setActiveWindowId(newWindowId);
-      }
-    }
+    if (windowContent) launchApp(windowContent, title, icon);
   };
 
   return (

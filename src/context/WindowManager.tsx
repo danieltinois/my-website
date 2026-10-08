@@ -9,11 +9,13 @@ import {
   useState,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { IconSvgElement } from "@hugeicons/react";
 
 interface WindowInstance {
   id: string;
   title: string;
   content: ReactNode;
+  icon?: IconSvgElement;
   defaultPosition?: { x: number; y: number };
   zIndex: number;
   minimized: boolean;
@@ -28,7 +30,8 @@ interface Bubble {
 
 interface WindowManagerContextProps {
   windows: WindowInstance[];
-  openWindow: (content: ReactNode, title: string) => string;
+  openWindow: (content: ReactNode, title: string, icon?: IconSvgElement) => string;
+  launchApp: (content: ReactNode, title: string, icon?: IconSvgElement) => void;
   closeWindow: (id: string) => void;
   minimizeWindow: (id: string) => void;
   restoreWindow: (id: string) => void;
@@ -80,13 +83,14 @@ export const WindowManagerProvider = ({
     );
   }, []);
 
-  const openWindow = useCallback((content: ReactNode, title: string) => {
+  const openWindow = useCallback((content: ReactNode, title: string, icon?: IconSvgElement) => {
     const id =
       typeof crypto !== "undefined" ? crypto.randomUUID() : `w-${Date.now()}`;
     const newWindow: WindowInstance = {
       id,
       title,
       content,
+      icon,
       defaultPosition: {
         x: Math.round(Math.random() * 40 - 20),
         y: Math.round(Math.random() * 40 - 20),
@@ -136,11 +140,26 @@ export const WindowManagerProvider = ({
     });
   }, []);
 
+  // um app = uma janela: se já existe, traz pra frente (restaurando se minimizada)
+  const launchApp = useCallback(
+    (content: ReactNode, title: string, icon?: IconSvgElement) => {
+      const existing = windows.find((w) => w.title === title);
+      if (!existing) {
+        openWindow(content, title, icon);
+        return;
+      }
+      if (existing.minimized) restoreWindow(existing.id);
+      else focusWindow(existing.id);
+    },
+    [windows, openWindow, restoreWindow, focusWindow],
+  );
+
   return (
     <WindowManagerContext.Provider
       value={{
         windows,
         openWindow,
+        launchApp,
         closeWindow,
         minimizeWindow,
         restoreWindow,
@@ -161,7 +180,7 @@ export const WindowManagerProvider = ({
               rotate: (bubble.id.charCodeAt(0) % 2 ? 1 : -1) * 5,
               transition: { type: "spring", stiffness: 300, damping: 12 },
             }}
-            className="fixed font-black text-5xl select-none pointer-events-none
+            className="fixed font-black text-5xl select-none pointer-events-none max-md:hidden
               text-[var(--color-cn-highlight)]"
             style={{
               left: bubble.x,
@@ -180,7 +199,7 @@ export const WindowManagerProvider = ({
         {windows.map((window) => (
             <div
               key={window.id}
-              className="fixed flex mx-auto w-screen h-screen items-center justify-center pointer-events-none"
+              className="fixed flex mx-auto w-screen h-screen items-center justify-center pointer-events-none max-md:hidden"
               style={{
                 zIndex: window.zIndex,
                 display: window.minimized ? "none" : undefined,
