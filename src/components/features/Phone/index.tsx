@@ -25,6 +25,7 @@ import RoadmapWidget from "@/src/components/ui/RoadmapWidget";
 import { useClock } from "@/src/hooks/useClock";
 import { useOpenAppListener } from "@/src/hooks/useOpenApp";
 import { PhoneProps } from "./interface";
+import LockScreen from "./LockScreen";
 
 // cor do "squircle" de cada app — mesma paleta cartoon network do desktop
 const TINTS: Record<string, string> = {
@@ -379,6 +380,8 @@ const Phone = ({ apps }: PhoneProps) => {
         </nav>
         </div>
       </motion.main>
+
+      <LockScreen />
 
       {/* ── app aberto em tela cheia ── */}
       <AnimatePresence>
