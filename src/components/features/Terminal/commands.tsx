@@ -170,7 +170,7 @@ export const runCommand = (
           <div className="space-y-1">
             <div>
               <span className="inline-block w-24 text-blue-400">email</span>
-              <span className="text-gray-100">danieltinois@gmail.com</span>
+              <span className="text-gray-100">me@danieltinois.dev</span>
             </div>
             {SOCIALS.map((s) => (
               <div key={s.label} className="flex gap-4">
