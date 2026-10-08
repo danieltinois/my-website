@@ -56,11 +56,16 @@ export const startEngine = (
   hooks: EngineHooks,
 ): Engine => {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, opts.touch ? 1.5 : 2));
+  // resolução dinâmica: começa limitada e se ajusta ao fps (ver loop)
+  const maxRatio = Math.min(window.devicePixelRatio, opts.touch ? 1.5 : 2);
+  const minRatio = 0.6;
+  let ratio = maxRatio;
+  renderer.setPixelRatio(ratio);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(75, 1, 0.05, 200);
+  // far logo depois do fim da neblina: o que ela esconde nem vai pra GPU
+  const camera = new THREE.PerspectiveCamera(75, 1, 0.05, 80);
   camera.rotation.order = "YXZ";
 
   // ── mundo ──
@@ -84,6 +89,8 @@ export const startEngine = (
       return;
     }
     const mesh = new THREE.Mesh(buildChunk(world, cx, cz), material);
+    mesh.matrixAutoUpdate = false; // chunk nunca se move
+    mesh.updateMatrix();
     chunks.set(key, mesh);
     scene.add(mesh);
   };
@@ -103,7 +110,7 @@ export const startEngine = (
   };
 
   // ── céu: cor, neblina, sol/lua quadrados e nuvens chapadas ──
-  scene.fog = new THREE.Fog(SKY_DAY, 24, 70);
+  scene.fog = new THREE.Fog(SKY_DAY, 24, 72);
   const sun = new THREE.Mesh(
     new THREE.PlaneGeometry(14, 14),
     new THREE.MeshBasicMaterial({ color: "#fff6c2", fog: false }),
@@ -182,7 +189,7 @@ export const startEngine = (
   let target: Hit | null = null;
   let progress = 0;
   let cooldown = 0;
-  let progressKey = "";
+  let progressKey = -1;
 
   const collides = (x: number, y: number, z: number) => {
     for (let by = Math.floor(y); by <= Math.floor(y + PH - 1e-4); by++)
@@ -245,8 +252,8 @@ export const startEngine = (
     if (p.y < -10) Object.assign(p, spawn(), { vy: 0 });
   };
 
+  const dir = new THREE.Vector3();
   const updateTarget = () => {
-    const dir = new THREE.Vector3();
     camera.getWorldDirection(dir);
     target = raycast(world, camera.position.x, camera.position.y, camera.position.z, dir.x, dir.y, dir.z, REACH);
     if (target) {
@@ -262,7 +269,7 @@ export const startEngine = (
       crack.visible = false;
       return;
     }
-    const key = `${target.x},${target.y},${target.z}`;
+    const key = (target.y * world.sz + target.z) * world.sx + target.x;
     if (key !== progressKey) {
       progressKey = key;
       progress = 0;
@@ -305,8 +312,11 @@ export const startEngine = (
   };
 
   // ── loop ──
+  let hidden = false;
   const resize = () => {
     const w = box.clientWidth, h = box.clientHeight;
+    hidden = w === 0 || h === 0;
+    if (hidden) return;
     renderer.setSize(w, h, false);
     camera.aspect = w / Math.max(1, h);
     camera.updateProjectionMatrix();
@@ -317,11 +327,35 @@ export const startEngine = (
 
   let raf = 0;
   let last = performance.now();
+  let lastRender = 0;
+  let frames = 0, acc = 0;
+  const adaptResolution = (dt: number) => {
+    acc += dt;
+    frames++;
+    if (acc < 1) return;
+    const avg = acc / frames;
+    acc = 0;
+    frames = 0;
+    // abaixo de ~45fps reduz a resolução; com folga (~58fps+) volta a subir
+    let next = ratio;
+    if (avg > 1 / 45) next = Math.max(minRatio, ratio * 0.85);
+    else if (avg < 1 / 58) next = Math.min(maxRatio, ratio * 1.1);
+    if (Math.abs(next - ratio) > 0.01) {
+      ratio = next;
+      renderer.setPixelRatio(ratio);
+      renderer.setSize(box.clientWidth, box.clientHeight, false);
+    }
+  };
+
   const loop = (now: number) => {
     raf = requestAnimationFrame(loop);
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
-    if (canvas.offsetParent === null) return; // janela minimizada
+    if (hidden) return; // janela minimizada
+    // inventário aberto: mundo parado atrás, ~10fps bastam (economiza bateria)
+    if (paused && now - lastRender < 100) return;
+    lastRender = now;
+    if (!paused) adaptResolution(dt);
 
     if (!paused) physics(dt);
     camera.position.set(p.x, p.y + EYE, p.z);
@@ -410,6 +444,14 @@ export const startEngine = (
       window.removeEventListener("keyup", onKeyUp);
       if (document.pointerLockElement === canvas) document.exitPointerLock();
       chunks.forEach((m) => m.geometry.dispose());
+      outline.geometry.dispose();
+      (outline.material as THREE.Material).dispose();
+      crack.geometry.dispose();
+      crackMat.dispose();
+      sun.geometry.dispose();
+      (sun.material as THREE.Material).dispose();
+      clouds.geometry.dispose();
+      (clouds.material as THREE.Material).dispose();
       crackTex.forEach((t) => t.dispose());
       tex.dispose();
       cloudTex.dispose();

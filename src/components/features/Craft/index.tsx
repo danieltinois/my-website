@@ -110,7 +110,8 @@ const Craft = () => {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [hint, setHint] = useState(0);
   const [nameTag, setNameTag] = useState<{ key: number; text: string } | null>(null);
-  const [mouse, setMouse] = useState({ x: 0, y: 0 });
+  const cursorEl = useRef<HTMLDivElement>(null);
+  const mouse = useRef({ x: 0, y: 0 });
   const [book, setBook] = useState(false);
   const done = useRef(new Set<string>());
 
@@ -419,7 +420,11 @@ const Craft = () => {
 
   // ── toque: joystick + arrastar pra olhar + segurar pra quebrar + tocar pra usar ──
   const joy = useRef<{ id: number; x: number; y: number } | null>(null);
-  const [knob, setKnob] = useState({ x: 0, y: 0 });
+  const knobEl = useRef<HTMLDivElement>(null);
+  const setKnob = (x: number, y: number) => {
+    // a centralização vem do `translate` do tailwind; aqui só o deslocamento do dedo
+    if (knobEl.current) knobEl.current.style.transform = `translate(${x}px, ${y}px)`;
+  };
   const lookTouch = useRef<{ id: number; x: number; y: number; t: number; moved: boolean; timer: number } | null>(null);
 
   const joyDown = (e: React.PointerEvent) => {
@@ -436,12 +441,12 @@ const Craft = () => {
       dx = (dx / d) * 44;
       dy = (dy / d) * 44;
     }
-    setKnob({ x: dx, y: dy });
+    setKnob(dx, dy);
     engineRef.current?.move(dx / 44, -dy / 44);
   };
   const joyUp = () => {
     joy.current = null;
-    setKnob({ x: 0, y: 0 });
+    setKnob(0, 0);
     engineRef.current?.move(0, 0);
   };
 
@@ -484,8 +489,10 @@ const Craft = () => {
       tabIndex={0}
       onPointerMove={(e) => {
         if (!ui) return;
+        // move o item do cursor direto no DOM: nada de re-render a cada pixel
         const r = boxRef.current!.getBoundingClientRect();
-        setMouse({ x: e.clientX - r.left, y: e.clientY - r.top });
+        mouse.current = { x: e.clientX - r.left, y: e.clientY - r.top };
+        if (cursorEl.current) cursorEl.current.style.transform = `translate(${mouse.current.x}px, ${mouse.current.y}px)`;
       }}
       className={`${pixel.className} relative h-full w-full touch-none overflow-hidden bg-black text-white outline-none select-none`}
     >
@@ -639,8 +646,8 @@ const Craft = () => {
                 onPointerCancel={joyUp}
               >
                 <div
-                  className="absolute left-1/2 top-1/2 size-12 rounded-full border-2 border-white/60 bg-white/30"
-                  style={{ transform: `translate(calc(-50% + ${knob.x}px), calc(-50% + ${knob.y}px))` }}
+                  ref={knobEl}
+                  className="absolute left-1/2 top-1/2 size-12 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/60 bg-white/30"
                 />
               </div>
               <button
@@ -760,8 +767,9 @@ const Craft = () => {
               {/* item preso no cursor */}
               {cursor.current && (
                 <div
-                  className="pointer-events-none absolute flex size-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center"
-                  style={{ left: mouse.x, top: mouse.y }}
+                  ref={cursorEl}
+                  className="pointer-events-none absolute -left-[18px] -top-[18px] flex size-9 items-center justify-center"
+                  style={{ transform: `translate(${mouse.current.x}px, ${mouse.current.y}px)` }}
                 >
                   <ItemIcon slot={cursor.current} />
                 </div>
