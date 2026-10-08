@@ -22,7 +22,7 @@
   --font-sans:
     ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
     "Segoe UI Symbol", "Noto Color Emoji";
-  --font-mono: "Roboto Mono Variable", "monospace";
+  --font-mono: "Roboto Mono Variable", monospace;
 
   --window-width: clamp(40rem, 90vw, 50rem); /* min 640px, max 800px */
   --window-height: clamp(25rem, 60vh, 35rem);
