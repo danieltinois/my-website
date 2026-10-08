@@ -362,7 +362,7 @@ const About = () => {
                       </a>
                     ))}
                     <a
-                      href="mailto:danieltinois@gmail.com"
+                      href="mailto:me@danieltinois.dev"
                       onClick={() => play()}
                       className="border-[3px] border-(--color-cn-border) bg-[var(--color-bg)] px-4 py-2 text-sm font-bold uppercase tracking-widest text-[var(--color-text)] shadow-[3px_3px_0_var(--color-cn-shadow)] transition-transform hover:bg-(--color-bg-secondary) active:translate-y-1 active:shadow-none"
                     >

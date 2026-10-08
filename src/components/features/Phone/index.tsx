@@ -54,7 +54,7 @@ const DOCK = [
   },
   {
     label: "e-mail",
-    href: "mailto:danieltinois@gmail.com",
+    href: "mailto:me@danieltinois.dev",
     icon: Mail01Icon,
     tint: "var(--color-cn-cyan)",
   },
