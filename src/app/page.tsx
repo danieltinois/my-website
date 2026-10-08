@@ -12,6 +12,7 @@ import NavBar from "@/src/components/layout/NavBar";
 import { WindowManagerProvider } from "../context/WindowManager";
 import Phone from "../components/features/Phone";
 import DesktopWidgets from "../components/layout/DesktopWidgets";
+import BootScreen from "../components/layout/BootScreen";
 
 // TODO - Legal adicionar cursor personalizado (pensando na tematica windows xp)
 
@@ -52,6 +53,7 @@ export default function Home() {
       </div>
 
       <div className="hidden md:block">
+        <BootScreen />
         <Decor />
         <DesktopWidgets />
         <nav className="p-3">
