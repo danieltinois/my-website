@@ -1,229 +1,189 @@
-// mundo do craft: blocos, geração procedural e texturas pixel-art (tudo em canvas)
+// mundo voxel 3D do craft: geração procedural e acesso aos blocos
 
-export const AIR = 0;
-export const GRASS = 1;
-export const DIRT = 2;
-export const STONE = 3;
-export const LOG = 4;
-export const LEAVES = 5;
-export const BEDROCK = 6;
-// minérios ocupam ORE_BASE + índice em ORES
-export const ORE_BASE = 10;
+import {
+  AIR,
+  BEDROCK,
+  DIRT,
+  GRASS,
+  LEAVES,
+  LOG,
+  ORES,
+  ORE_BASE,
+  STONE,
+  mulberry32,
+} from "./blocks";
 
-export interface Ore {
-  nome: string;
-  lore: string;
-  cor: string;
-  // profundidade mínima (em blocos abaixo da superfície)
-  fundo: number;
-  veios: number;
-}
-
-// a stack do daniel, enterrada no mundo
-export const ORES: Ore[] = [
-  { nome: "Java", lore: "o primeiro item, desde 2020", cor: "#f89820", fundo: 1, veios: 10 },
-  { nome: "Café", lore: "regenera +4 de foco", cor: "#d9a066", fundo: 1, veios: 10 },
-  { nome: "TypeScript", lore: "tipo é documentação que compila", cor: "#3178c6", fundo: 4, veios: 8 },
-  { nome: "React", lore: "encantado: re-render III", cor: "#61dafb", fundo: 4, veios: 8 },
-  { nome: "Node.js", lore: "o lado de trás do balcão", cor: "#3c873a", fundo: 7, veios: 7 },
-  { nome: "Next.js", lore: "este site roda nele", cor: "#ffffff", fundo: 9, veios: 6 },
-  { nome: "PostgreSQL", lore: "onde os dados dormem", cor: "#9db8e8", fundo: 11, veios: 6 },
-  { nome: "Flutter", lore: "web no bolso", cor: "#7c5cff", fundo: 12, veios: 6 },
-  { nome: "Neovim", lore: "sim, eu sou desse tipo", cor: "#b4f000", fundo: 16, veios: 4 },
-];
-
-export const isOre = (id: number) => id >= ORE_BASE;
-
-// golpes pra quebrar
-export const hardness = (id: number) => {
-  if (id === BEDROCK) return Infinity;
-  if (isOre(id)) return 3;
-  if (id === STONE || id === LOG) return 2;
-  return 1;
-};
-
-// blocos que dá pra colocar (hotbar)
-export const PLACEABLE = [
-  { id: DIRT, nome: "terra" },
-  { id: STONE, nome: "pedra" },
-  { id: LOG, nome: "tronco" },
-  { id: LEAVES, nome: "folhas" },
-];
-
-export const drop = (id: number) => (id === GRASS ? DIRT : id);
+export const CHUNK = 16;
 
 export interface World {
-  w: number;
-  h: number;
-  tiles: Uint8Array;
-  surface: Int16Array;
+  sx: number; // largura (x)
+  sy: number; // altura (y)
+  sz: number; // profundidade (z)
+  data: Uint8Array;
+  height: Int16Array; // altura da superfície em (x, z)
 }
 
-export const mulberry32 = (seed: number) => () => {
-  seed |= 0;
-  seed = (seed + 0x6d2b79f5) | 0;
-  let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+export const idx = (w: World, x: number, y: number, z: number) => (y * w.sz + z) * w.sx + x;
+
+export const get = (w: World, x: number, y: number, z: number) => {
+  if (x < 0 || z < 0 || x >= w.sx || z >= w.sz || y < 0) return BEDROCK; // borda do mundo é sólida
+  if (y >= w.sy) return AIR;
+  return w.data[idx(w, x, y, z)];
 };
 
-export const generate = (seed: number, w = 160, h = 64): World => {
-  const rand = mulberry32(seed);
-  const tiles = new Uint8Array(w * h);
-  const surface = new Int16Array(w);
-  const set = (x: number, y: number, id: number) => {
-    if (x >= 0 && x < w && y >= 0 && y < h) tiles[y * w + x] = id;
+export const set = (w: World, x: number, y: number, z: number, id: number) => {
+  if (x < 0 || z < 0 || y < 0 || x >= w.sx || y >= w.sy || z >= w.sz) return;
+  w.data[idx(w, x, y, z)] = id;
+};
+
+// ruído de valor 2D suave (interpolação cúbica) + oitavas
+const valueNoise = (seed: number) => {
+  const r = mulberry32(seed);
+  const N = 256;
+  const perm = new Uint8Array(N * 2);
+  const vals = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    perm[i] = i;
+    vals[i] = r();
+  }
+  for (let i = N - 1; i > 0; i--) {
+    const j = Math.floor(r() * (i + 1));
+    [perm[i], perm[j]] = [perm[j], perm[i]];
+  }
+  for (let i = 0; i < N; i++) perm[N + i] = perm[i];
+  const lat = (x: number, z: number) => vals[perm[(perm[x & 255] + z) & 255]];
+  const smooth = (t: number) => t * t * (3 - 2 * t);
+  const n = (x: number, z: number) => {
+    const x0 = Math.floor(x), z0 = Math.floor(z);
+    const tx = smooth(x - x0), tz = smooth(z - z0);
+    const a = lat(x0, z0), b = lat(x0 + 1, z0), c = lat(x0, z0 + 1), d = lat(x0 + 1, z0 + 1);
+    return (a + (b - a) * tx) + ((c + (d - c) * tx) - (a + (b - a) * tx)) * tz;
   };
-  const get = (x: number, y: number) =>
-    x >= 0 && x < w && y >= 0 && y < h ? tiles[y * w + x] : BEDROCK;
+  return (x: number, z: number) =>
+    n(x / 24, z / 24) * 0.6 + n(x / 10, z / 10) * 0.3 + n(x / 4, z / 4) * 0.1;
+};
 
-  // relevo: soma de senoides com fase aleatória
-  const p = [rand() * 10, rand() * 10, rand() * 10];
-  for (let x = 0; x < w; x++) {
-    surface[x] = Math.round(
-      20 + Math.sin(x * 0.05 + p[0]) * 4 + Math.sin(x * 0.13 + p[1]) * 2.2 + Math.sin(x * 0.31 + p[2]) * 0.9,
-    );
-    const s = surface[x];
-    const dirt = s + 3 + Math.floor(rand() * 2);
-    for (let y = s; y < h; y++) {
-      set(x, y, y === s ? GRASS : y <= dirt ? DIRT : STONE);
+export const generate = (seed: number, sx = 80, sy = 48, sz = 80): World => {
+  const w: World = { sx, sy, sz, data: new Uint8Array(sx * sy * sz), height: new Int16Array(sx * sz) };
+  const r = mulberry32(seed);
+  const noise = valueNoise(seed);
+
+  // relevo: colinas suaves, mais baixas perto das bordas
+  for (let z = 0; z < sz; z++)
+    for (let x = 0; x < sx; x++) {
+      const h = Math.floor(18 + noise(x, z) * 14);
+      w.height[z * sx + x] = h;
+      const dirtDepth = 3 + (r() < 0.5 ? 1 : 0);
+      for (let y = 0; y <= h; y++) {
+        let id = STONE;
+        if (y === h) id = GRASS;
+        else if (y > h - dirtDepth) id = DIRT;
+        if (y === 0 || (y === 1 && r() < 0.5)) id = BEDROCK;
+        set(w, x, y, z, id);
+      }
     }
-    set(x, h - 1, BEDROCK);
-    if (rand() < 0.5) set(x, h - 2, BEDROCK);
-  }
 
-  // cavernas: minhocas aleatórias
-  for (let c = 0; c < 9; c++) {
-    let cx = rand() * w;
-    let cy = 30 + rand() * (h - 38);
-    let ang = rand() * Math.PI * 2;
-    const len = 40 + rand() * 60;
+  // cavernas: minhocas 3D
+  for (let c = 0; c < 14; c++) {
+    let cx = r() * sx, cy = 6 + r() * 12, cz = r() * sz;
+    let yaw = r() * Math.PI * 2, pitch = 0;
+    const len = 50 + r() * 70;
     for (let i = 0; i < len; i++) {
-      ang += (rand() - 0.5) * 0.6;
-      cx += Math.cos(ang);
-      cy += Math.sin(ang) * 0.5;
-      const r = rand() < 0.3 ? 2 : 1;
-      for (let dy = -r; dy <= r; dy++)
-        for (let dx = -r; dx <= r; dx++) {
-          const tx = Math.round(cx + dx);
-          const ty = Math.round(cy + dy);
-          if (tx < 0 || tx >= w) continue;
-          if (ty <= surface[tx] + 3 || ty >= h - 2) continue;
-          set(tx, ty, AIR);
-        }
+      yaw += (r() - 0.5) * 0.5;
+      pitch = Math.max(-0.4, Math.min(0.4, pitch + (r() - 0.5) * 0.2));
+      cx += Math.cos(yaw) * Math.cos(pitch);
+      cz += Math.sin(yaw) * Math.cos(pitch);
+      cy += Math.sin(pitch);
+      const rad = 1.2 + r() * 1.3;
+      for (let dy = -2; dy <= 2; dy++)
+        for (let dz = -3; dz <= 3; dz++)
+          for (let dx = -3; dx <= 3; dx++) {
+            if (dx * dx + dy * dy * 2 + dz * dz > rad * rad) continue;
+            const x = Math.round(cx + dx), y = Math.round(cy + dy), z = Math.round(cz + dz);
+            if (y <= 1 || x < 0 || z < 0 || x >= sx || z >= sz) continue;
+            if (y >= w.height[z * sx + x] - 2) continue; // não fura a superfície
+            set(w, x, y, z, AIR);
+          }
     }
   }
 
-  // minérios: veios em random walk, só substituem pedra
+  // minérios da stack em veios, só onde é pedra
   ORES.forEach((ore, i) => {
     for (let v = 0; v < ore.veios; v++) {
-      let x = Math.floor(rand() * w);
-      const top = surface[x] + 4 + ore.fundo;
-      if (top >= h - 3) continue;
-      let y = top + Math.floor(rand() * (h - 3 - top));
-      const size = 2 + Math.floor(rand() * 4);
+      let x = Math.floor(r() * sx), z = Math.floor(r() * sz);
+      const top = w.height[z * sx + x] - 4 - ore.fundo;
+      if (top < 3) continue;
+      let y = 2 + Math.floor(r() * (top - 2));
+      const size = 3 + Math.floor(r() * 4);
       for (let k = 0; k < size; k++) {
-        if (get(x, y) === STONE) set(x, y, ORE_BASE + i);
-        x += Math.floor(rand() * 3) - 1;
-        y += Math.floor(rand() * 3) - 1;
+        if (get(w, x, y, z) === STONE) set(w, x, y, z, ORE_BASE + i);
+        const axis = Math.floor(r() * 3), dir = r() < 0.5 ? -1 : 1;
+        if (axis === 0) x += dir;
+        else if (axis === 1) y += dir;
+        else z += dir;
       }
     }
   });
 
-  // árvores
-  for (let x = 3; x < w - 3; x += 4 + Math.floor(rand() * 6)) {
-    if (rand() < 0.35 || Math.abs(x - w / 2) < 3) continue;
-    const s = surface[x];
-    const tall = 4 + Math.floor(rand() * 2);
-    for (let t = 1; t <= tall; t++) set(x, s - t, LOG);
-    const top = s - tall;
-    for (let dy = -2; dy <= 1; dy++)
-      for (let dx = -2; dx <= 2; dx++) {
-        const corner = Math.abs(dx) === 2 && (dy === -2 || dy === 1);
-        if (corner && rand() < 0.7) continue;
-        if (dy === -2 && Math.abs(dx) === 2) continue;
-        if (get(x + dx, top + dy) === AIR) set(x + dx, top + dy, LEAVES);
-      }
+  // carvalhos (copa no formato do jogo: 5x5 em duas camadas + 3x3 + cruz no topo)
+  const cxm = sx / 2, czm = sz / 2;
+  for (let t = 0; t < 70; t++) {
+    const x = 3 + Math.floor(r() * (sx - 6)), z = 3 + Math.floor(r() * (sz - 6));
+    if (Math.abs(x - cxm) < 3 && Math.abs(z - czm) < 3) continue; // spawn livre
+    const h = w.height[z * sx + x];
+    if (get(w, x, h, z) !== GRASS || get(w, x, h + 1, z) !== AIR) continue;
+    const tall = 4 + Math.floor(r() * 3);
+    for (let k = 1; k <= tall; k++) set(w, x, h + k, z, LOG);
+    const top = h + tall;
+    for (let dy = -2; dy <= 1; dy++) {
+      const rad = dy <= -1 ? 2 : 1;
+      for (let dz = -rad; dz <= rad; dz++)
+        for (let dx = -rad; dx <= rad; dx++) {
+          const corner = Math.abs(dx) === rad && Math.abs(dz) === rad;
+          if (corner && (dy === 1 || r() < 0.5)) continue;
+          if (get(w, x + dx, top + dy, z + dz) === AIR) set(w, x + dx, top + dy, z + dz, LEAVES);
+        }
+    }
+    set(w, x, top + 1, z, LEAVES);
   }
 
-  return { w, h, tiles, surface };
+  return w;
 };
 
-// ── texturas 16x16 geradas proceduralmente ──
+// ── raycast voxel (Amanatides & Woo) ──
+export interface Hit {
+  x: number;
+  y: number;
+  z: number;
+  nx: number;
+  ny: number;
+  nz: number;
+}
 
-const PAL: Record<number, string[]> = {
-  [DIRT]: ["#8b5a2b", "#7a4e24", "#9b6a38", "#6b4220"],
-  [STONE]: ["#8a8a8a", "#7d7d7d", "#999999", "#6e6e6e"],
-  [LEAVES]: ["#3f8f2a", "#2f7a20", "#4fa33a", "#26651a"],
-  [BEDROCK]: ["#333333", "#555555", "#222222", "#444444"],
-};
-
-const noise = (
-  ctx: CanvasRenderingContext2D,
-  rand: () => number,
-  pal: string[],
-  y0 = 0,
-  y1 = 16,
-) => {
-  for (let y = y0; y < y1; y++)
-    for (let x = 0; x < 16; x++) {
-      ctx.fillStyle = pal[Math.floor(rand() * pal.length)];
-      ctx.fillRect(x, y, 1, 1);
+export const raycast = (
+  w: World,
+  ox: number, oy: number, oz: number,
+  dx: number, dy: number, dz: number,
+  maxDist: number,
+): Hit | null => {
+  let x = Math.floor(ox), y = Math.floor(oy), z = Math.floor(oz);
+  const stepX = Math.sign(dx), stepY = Math.sign(dy), stepZ = Math.sign(dz);
+  const tdx = Math.abs(1 / dx), tdy = Math.abs(1 / dy), tdz = Math.abs(1 / dz);
+  let tmx = dx > 0 ? (x + 1 - ox) * tdx : (ox - x) * tdx;
+  let tmy = dy > 0 ? (y + 1 - oy) * tdy : (oy - y) * tdy;
+  let tmz = dz > 0 ? (z + 1 - oz) * tdz : (oz - z) * tdz;
+  let nx = 0, ny = 0, nz = 0;
+  let t = 0;
+  while (t <= maxDist) {
+    const id = y >= 0 && y < w.sy && x >= 0 && z >= 0 && x < w.sx && z < w.sz ? w.data[idx(w, x, y, z)] : AIR;
+    if (id !== AIR) return { x, y, z, nx, ny, nz };
+    if (tmx < tmy && tmx < tmz) {
+      x += stepX; t = tmx; tmx += tdx; nx = -stepX; ny = 0; nz = 0;
+    } else if (tmy < tmz) {
+      y += stepY; t = tmy; tmy += tdy; nx = 0; ny = -stepY; nz = 0;
+    } else {
+      z += stepZ; t = tmz; tmz += tdz; nx = 0; ny = 0; nz = -stepZ;
     }
-};
-
-const shade = (hex: string, k: number) => {
-  const n = parseInt(hex.slice(1), 16);
-  const f = (c: number) => Math.max(0, Math.min(255, Math.round(c * k)));
-  return `rgb(${f(n >> 16)},${f((n >> 8) & 255)},${f(n & 255)})`;
-};
-
-export const makeTextures = () => {
-  const rand = mulberry32(42);
-  const tex: Record<number, HTMLCanvasElement> = {};
-  const make = (id: number, paint: (ctx: CanvasRenderingContext2D) => void) => {
-    const c = document.createElement("canvas");
-    c.width = c.height = 16;
-    paint(c.getContext("2d")!);
-    tex[id] = c;
-  };
-
-  make(DIRT, (ctx) => noise(ctx, rand, PAL[DIRT]));
-  make(STONE, (ctx) => noise(ctx, rand, PAL[STONE]));
-  make(LEAVES, (ctx) => noise(ctx, rand, PAL[LEAVES]));
-  make(BEDROCK, (ctx) => noise(ctx, rand, PAL[BEDROCK]));
-  make(GRASS, (ctx) => {
-    noise(ctx, rand, PAL[DIRT]);
-    const greens = ["#5fbf3a", "#4ea52f", "#6fd04a"];
-    for (let x = 0; x < 16; x++) {
-      const drip = 3 + Math.floor(rand() * 3);
-      for (let y = 0; y < drip; y++) {
-        ctx.fillStyle = greens[Math.floor(rand() * 3)];
-        ctx.fillRect(x, y, 1, 1);
-      }
-    }
-  });
-  make(LOG, (ctx) => {
-    const browns = ["#6b4a2b", "#5a3d22", "#7c5733"];
-    for (let y = 0; y < 16; y++)
-      for (let x = 0; x < 16; x++) {
-        ctx.fillStyle = x % 4 === 0 ? "#4a321c" : browns[Math.floor(rand() * 3)];
-        ctx.fillRect(x, y, 1, 1);
-      }
-  });
-  ORES.forEach((ore, i) =>
-    make(ORE_BASE + i, (ctx) => {
-      noise(ctx, rand, PAL[STONE]);
-      for (let b = 0; b < 5; b++) {
-        const x = 1 + Math.floor(rand() * 12);
-        const y = 1 + Math.floor(rand() * 12);
-        ctx.fillStyle = shade(ore.cor, 0.6);
-        ctx.fillRect(x, y + 1, 3, 2);
-        ctx.fillStyle = ore.cor;
-        ctx.fillRect(x, y, 2, 2);
-      }
-    }),
-  );
-
-  return tex;
+  }
+  return null;
 };
