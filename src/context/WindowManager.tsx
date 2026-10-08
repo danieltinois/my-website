@@ -199,7 +199,7 @@ export const WindowManagerProvider = ({
         {windows.map((window) => (
             <div
               key={window.id}
-              className="fixed flex mx-auto w-screen h-screen items-center justify-center pointer-events-none max-md:hidden"
+              className="fixed flex mx-auto w-screen h-screen items-center justify-center pb-24 pointer-events-none max-md:hidden"
               style={{
                 zIndex: window.zIndex,
                 display: window.minimized ? "none" : undefined,
