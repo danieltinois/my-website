@@ -9,6 +9,7 @@ export interface TerminalEntry {
 export interface CommandHelpers {
   setTheme?: (theme: "dark" | "light") => void;
   repos?: typeof PROJECTS;
+  openApp?: (title: string) => void;
 }
 
 export const FILES: Record<string, string> = {
@@ -43,6 +44,7 @@ const helpText = `Comandos disponíveis:
   neofetch          specs do sistema
   projects          meus projetos
   contact           como me achar
+  play              abre o craft (mini minecraft)
   coffee            pausa pro café
   theme <dark/light> troca o tema
   social            meus links
@@ -307,6 +309,19 @@ export const runCommand = (
     case "clear":
     case "cls":
       return { input };
+
+    case "play":
+    case "craft":
+    case "minecraft":
+      helpers?.openApp?.("craft");
+      return {
+        input,
+        output: (
+          <pre className="whitespace-pre-wrap text-green-400">{`[server] gerando mundo...
+[server] escondendo a stack nas cavernas...
+[server] daniel joined the game`}</pre>
+        ),
+      };
 
     default:
       return {

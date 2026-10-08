@@ -23,7 +23,9 @@ import useSound from "@/src/hooks/useSound";
 import Trash from "@/src/components/features/Trash";
 import RoadmapWidget from "@/src/components/ui/RoadmapWidget";
 import { useClock } from "@/src/hooks/useClock";
+import { useOpenAppListener } from "@/src/hooks/useOpenApp";
 import { PhoneProps } from "./interface";
+import LockScreen from "./LockScreen";
 
 // cor do "squircle" de cada app — mesma paleta cartoon network do desktop
 const TINTS: Record<string, string> = {
@@ -31,6 +33,7 @@ const TINTS: Record<string, string> = {
   terminal: "#1a1a1a",
   projects: "var(--color-cn-orange)",
   monitor: "var(--color-cn-green)",
+  craft: "#5fbf3a",
 };
 
 const DOCK = [
@@ -203,6 +206,17 @@ const Phone = ({ apps }: PhoneProps) => {
     });
   };
 
+  // terminal pediu pra abrir um app (ex.: `play` → craft)
+  useOpenAppListener((title) => {
+    const app = apps.find((a) => a.title === title);
+    if (!app) return;
+    setOpen({
+      title: app.title,
+      content: app.windowContent,
+      origin: { x: window.innerWidth / 2, y: window.innerHeight / 2 },
+    });
+  }, "(max-width: 767.98px)");
+
   const close = () => {
     playClose();
     buzz();
@@ -366,6 +380,8 @@ const Phone = ({ apps }: PhoneProps) => {
         </nav>
         </div>
       </motion.main>
+
+      <LockScreen />
 
       {/* ── app aberto em tela cheia ── */}
       <AnimatePresence>

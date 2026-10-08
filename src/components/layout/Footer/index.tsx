@@ -11,10 +11,16 @@ import {
 import { motion, useMotionValue } from "framer-motion";
 import { useWindowManager } from "@/src/context/WindowManager";
 import { DesktopAppProps } from "@/src/components/features/DesktopApp/interface";
+import { useOpenAppListener } from "@/src/hooks/useOpenApp";
 
 const Footer = ({ apps }: { apps: DesktopAppProps[] }) => {
   const mouseX = useMotionValue(Infinity);
   const { windows, launchApp, restoreWindow, focusWindow } = useWindowManager();
+  useOpenAppListener((title) => {
+    const app = apps.find((a) => a.title === title);
+    if (app) launchApp(app.windowContent, app.title, app.icon);
+  }, "(min-width: 768px)");
+
   // janelas que não são apps fixos do dock (ex.: lixeira)
   const extras = windows.filter(
     (w) => w.icon && !apps.some((a) => a.title === w.title),
