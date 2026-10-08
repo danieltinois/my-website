@@ -86,7 +86,8 @@ export const runCommand = (
         output: (
           <span>
             danieltinois — Full Stack Developer (São Paulo, BR). Transforma
-            café em código desde sempre.
+            café em código desde 2020, quando escrevia plugin de Minecraft em
+            Java.
           </span>
         ),
       };
