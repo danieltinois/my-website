@@ -9,6 +9,7 @@ import Window from "../components/features/Window";
 import Footer from "@/src/components/layout/Footer";
 import NavBar from "@/src/components/layout/NavBar";
 import { WindowManagerProvider } from "../context/WindowManager";
+import Phone from "../components/features/Phone";
 
 // TODO - Legal adicionar cursor personalizado (pensando na tematica windows xp)
 
@@ -38,7 +39,12 @@ const desktopApps = [
 export default function Home() {
   return (
     <WindowManagerProvider>
-      <div>
+      {/* mobile: vira um celular, com ícones de app no lugar das janelas */}
+      <div className="md:hidden">
+        <Phone apps={desktopApps} />
+      </div>
+
+      <div className="hidden md:block">
         <Decor />
         <nav className="p-3">
           <NavBar />
