@@ -11,5 +11,8 @@
   "assets": {
     "directory": "./out",
     "binding": "ASSETS"
-  }
+  },
+  // Exigido pelo `wrangler preview` que o Workers Builds roda nas branches de
+  // PR. Vazio: o Preview usa so as configs de topo (assets + main).
+  "previews": {}
 }
