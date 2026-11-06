@@ -21,7 +21,7 @@ const DesktopApp = ({ title, icon, windowContent }: DesktopAppProps) => {
     >
       <HugeiconsIcon
         icon={icon}
-        size={70}
+        size={52}
         color="color-text"
         strokeWidth={1.5}
       />

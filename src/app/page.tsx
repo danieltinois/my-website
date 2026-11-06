@@ -13,6 +13,7 @@ import { WindowManagerProvider } from "../context/WindowManager";
 import Phone from "../components/features/Phone";
 import DesktopWidgets from "../components/layout/DesktopWidgets";
 import BootScreen from "../components/layout/BootScreen";
+import HomeHero from "../components/layout/HomeHero";
 
 // TODO - Legal adicionar cursor personalizado (pensando na tematica windows xp)
 
@@ -61,10 +62,15 @@ export default function Home() {
         </nav>
         <div className="fixed flex mx-auto w-screen h-screen items-center justify-center -translate-y-16 z-0">
           <Window title="home" disabled={true}>
-            <div className="flex flex-row flex-wrap justify-center content-center h-full gap-6 p-8">
-              {desktopApps.map((app) => (
-                <DesktopApp key={app.title} {...app} />
-              ))}
+            <div className="flex h-full flex-col gap-6 overflow-y-auto p-8">
+              <div className="flex flex-1 items-center">
+                <HomeHero />
+              </div>
+              <div className="flex flex-row flex-wrap justify-center gap-6 border-t-4 border-dashed border-(--color-cn-border)/30 pt-6">
+                {desktopApps.map((app) => (
+                  <DesktopApp key={app.title} {...app} />
+                ))}
+              </div>
             </div>
           </Window>
         </div>

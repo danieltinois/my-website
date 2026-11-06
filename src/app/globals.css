@@ -218,3 +218,57 @@ body.cn-party .desktop-icon:nth-child(2n) {
 .decor-bob {
   animation: decor-bob 4s ease-in-out infinite;
 }
+
+/* ondas do fundo (ver components/layout/Waves) */
+@keyframes wave-slide {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes wave-bob {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(10px);
+  }
+}
+
+.wave-slide {
+  animation: wave-slide 40s linear infinite;
+  will-change: transform;
+}
+
+.wave-b .wave-slide {
+  animation-duration: 26s;
+  animation-direction: reverse;
+}
+
+.wave-bob {
+  animation: wave-bob 6s ease-in-out infinite alternate;
+}
+
+.wave-b {
+  animation-duration: 4.5s;
+  animation-delay: -2s;
+}
+
+/* jogando o craft: o fundo congela pra GPU e main thread ficarem só pro jogo */
+body.is-gaming .wave-slide,
+body.is-gaming .wave-bob,
+body.is-gaming .decor-wobble,
+body.is-gaming .decor-bob {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wave-slide,
+  .wave-bob,
+  .decor-wobble,
+  .decor-bob,
+  body.cn-party,
+  body.cn-party .desktop-icon {
+    animation: none;
+  }
+}

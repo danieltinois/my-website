@@ -273,6 +273,13 @@ const Craft = () => {
     engineRef.current?.setNight(resolvedTheme === "dark");
   }, [resolvedTheme, ready]);
 
+  // enquanto joga, congela as animações do fundo do desktop (ver globals.css)
+  const playing = ready && !ui && (locked || touch);
+  useEffect(() => {
+    document.body.classList.toggle("is-gaming", playing);
+    return () => document.body.classList.remove("is-gaming");
+  }, [playing]);
+
   useEffect(() => {
     if (!nameTag) return;
     const t = window.setTimeout(() => setNameTag(null), 1800);

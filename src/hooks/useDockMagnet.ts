@@ -12,7 +12,8 @@ export const useDockMagnet = (
     return val - bounds.x - bounds.width / 2;
   });
 
-  const sizeSync = useTransform(distance, [-100, 0, 100], [55, 100, 40]);
+  // simétrico: os vizinhos dos dois lados do cursor crescem igual
+  const sizeSync = useTransform(distance, [-100, 0, 100], [40, 100, 40]);
 
   const size = useSpring(sizeSync, {
     mass: 0.1,

@@ -20,6 +20,19 @@ const SPEED = 4.3;
 const GRAVITY = 28;
 const JUMP = 8.4;
 const REACH = 5;
+// quão rápido a velocidade chega no alvo (1/s): no chão responde rápido, no ar mantém o embalo
+const ACCEL_GROUND = 12;
+const ACCEL_AIR = 4;
+const FOV = 75;
+const FOV_SPRINT = 81;
+const MOUSE = 0.0025;
+const TOUCH_LOOK = 0.0045;
+// eventos de mouse com salto absurdo (bug conhecido do pointer lock) são descartados
+const MOUSE_SPIKE = 600;
+
+// aproximação exponencial independente do fps
+const approach = (from: number, to: number, rate: number, dt: number) =>
+  from + (to - from) * (1 - Math.exp(-rate * dt));
 
 export interface EngineHooks {
   selected: () => number; // id do item na mão
@@ -65,7 +78,7 @@ export const startEngine = (
 
   const scene = new THREE.Scene();
   // far logo depois do fim da neblina: o que ela esconde nem vai pra GPU
-  const camera = new THREE.PerspectiveCamera(75, 1, 0.05, 80);
+  const camera = new THREE.PerspectiveCamera(FOV, 1, 0.05, 80);
   camera.rotation.order = "YXZ";
 
   // ── mundo ──
@@ -181,6 +194,9 @@ export const startEngine = (
   };
   const p = { ...spawn(), vx: 0, vy: 0, vz: 0, ground: false };
   let yaw = Math.PI / 4, pitch = -0.2;
+  // ao subir um degrau o corpo sobe na hora, mas a câmera desliza até lá
+  let eyeLag = 0;
+  let sprinting = false;
 
   const input = { f: 0, s: 0, jump: false, breaking: false };
   const keys = new Set<string>();
@@ -199,7 +215,16 @@ export const startEngine = (
     return false;
   };
 
-  const moveAxis = (axis: "x" | "y" | "z", d: number) => {
+  // degrau de 1 bloco: sobe sozinho se tiver espaço pra cabeça em cima
+  const stepUp = (nx: number, nz: number) => {
+    const up = Math.floor(p.y + 1e-3) + 1;
+    if (up - p.y > 1.01 || collides(p.x, up, p.z) || collides(nx, up, nz)) return false;
+    eyeLag -= up - p.y;
+    p.y = up;
+    return true;
+  };
+
+  const moveAxis = (axis: "x" | "y" | "z", d: number, canStep = false) => {
     if (!d) return false;
     const steps = Math.ceil(Math.abs(d) / 0.25);
     const inc = d / steps;
@@ -207,6 +232,10 @@ export const startEngine = (
       const n = { x: p.x, y: p.y, z: p.z };
       n[axis] += inc;
       if (collides(n.x, n.y, n.z)) {
+        if (canStep && axis !== "y" && stepUp(n.x, n.z)) {
+          p[axis] = n[axis];
+          continue;
+        }
         // encosta exatamente na face do bloco em vez de parar no meio do passo
         const half = axis === "y" ? 0 : PW;
         const size = axis === "y" ? PH : PW;
@@ -231,25 +260,32 @@ export const startEngine = (
     const len = Math.hypot(f, s);
     if (len > 1) { f /= len; s /= len; }
     const sin = Math.sin(yaw), cos = Math.cos(yaw);
-    const sprint = keys.has("shift") ? 1.3 : 1;
-    p.vx = (-sin * f + cos * s) * SPEED * sprint;
-    p.vz = (-cos * f - sin * s) * SPEED * sprint;
+    sprinting = keys.has("shift") && f > 0;
+    const speed = SPEED * (sprinting ? 1.3 : 1);
+    // acelera e freia suave em vez de ir de 0 a 100% num frame
+    const rate = p.ground ? ACCEL_GROUND : ACCEL_AIR;
+    p.vx = approach(p.vx, (-sin * f + cos * s) * speed, rate, dt);
+    p.vz = approach(p.vz, (-cos * f - sin * s) * speed, rate, dt);
+    if (Math.abs(p.vx) < 1e-3) p.vx = 0;
+    if (Math.abs(p.vz) < 1e-3) p.vz = 0;
 
     if ((input.jump || keys.has(" ")) && p.ground) p.vy = JUMP;
     p.vy = Math.max(p.vy - GRAVITY * dt, -40);
 
-    const bx = moveAxis("x", p.vx * dt);
-    const bz = moveAxis("z", p.vz * dt);
-    // auto-pulo de 1 bloco no celular, como no bedrock
-    if (opts.touch && (bx || bz) && p.ground && !collides(p.x + Math.sign(p.vx) * 0.4, p.y + 1.05, p.z + Math.sign(p.vz) * 0.4)) {
-      p.vy = JUMP;
-    }
+    // bateu na parede: zera só esse eixo, então dá pra deslizar encostado nela.
+    // degrau só com o pé no chão e sem estar pulando (senão degrau + pulo sobe muro de 2)
+    const canStep = p.ground && p.vy <= 0;
+    if (moveAxis("x", p.vx * dt, canStep)) p.vx = 0;
+    if (moveAxis("z", p.vz * dt, canStep)) p.vz = 0;
     p.ground = false;
     if (moveAxis("y", p.vy * dt)) {
       if (p.vy < 0) p.ground = true;
       p.vy = 0;
     }
-    if (p.y < -10) Object.assign(p, spawn(), { vy: 0 });
+    if (p.y < -10) {
+      Object.assign(p, spawn(), { vx: 0, vy: 0, vz: 0 });
+      eyeLag = 0;
+    }
   };
 
   const dir = new THREE.Vector3();
@@ -328,20 +364,40 @@ export const startEngine = (
   let raf = 0;
   let last = performance.now();
   let lastRender = 0;
-  let frames = 0, acc = 0;
+  // resolução dinâmica com histerese: usa a mediana de cada segundo (um engasgo isolado
+  // não conta), só baixa depois de 2s ruins seguidos e só sobe depois de 4s com folga.
+  // Assim a imagem não fica "pulsando" entre nítida e borrada.
+  const frameTimes: number[] = [];
+  let windowTime = 0;
+  let warmup = 2; // primeiros segundos: shaders compilando, não mede
+  let badSeconds = 0, goodSeconds = 0;
   const adaptResolution = (dt: number) => {
-    acc += dt;
-    frames++;
-    if (acc < 1) return;
-    const avg = acc / frames;
-    acc = 0;
-    frames = 0;
-    // abaixo de ~45fps reduz a resolução; com folga (~58fps+) volta a subir
+    if (warmup > 0) {
+      warmup -= dt;
+      return;
+    }
+    frameTimes.push(dt);
+    windowTime += dt;
+    if (windowTime < 1) return;
+    frameTimes.sort((a, b) => a - b);
+    const median = frameTimes[frameTimes.length >> 1];
+    frameTimes.length = 0;
+    windowTime = 0;
+    if (median > 1 / 45) {
+      badSeconds++;
+      goodSeconds = 0;
+    } else if (median < 1 / 58) {
+      goodSeconds++;
+      badSeconds = 0;
+    } else {
+      badSeconds = goodSeconds = 0;
+    }
     let next = ratio;
-    if (avg > 1 / 45) next = Math.max(minRatio, ratio * 0.85);
-    else if (avg < 1 / 58) next = Math.min(maxRatio, ratio * 1.1);
+    if (badSeconds >= 2) next = Math.max(minRatio, ratio * 0.85);
+    else if (goodSeconds >= 4) next = Math.min(maxRatio, ratio * 1.08);
     if (Math.abs(next - ratio) > 0.01) {
       ratio = next;
+      badSeconds = goodSeconds = 0;
       renderer.setPixelRatio(ratio);
       renderer.setSize(box.clientWidth, box.clientHeight, false);
     }
@@ -358,8 +414,17 @@ export const startEngine = (
     if (!paused) adaptResolution(dt);
 
     if (!paused) physics(dt);
-    camera.position.set(p.x, p.y + EYE, p.z);
+    eyeLag = Math.abs(eyeLag) < 1e-3 ? 0 : approach(eyeLag, 0, 14, dt);
+    camera.position.set(p.x, p.y + EYE + eyeLag, p.z);
     camera.rotation.set(pitch, yaw, 0);
+    // correndo de verdade: o campo de visão abre um pouco
+    const fov = approach(camera.fov, sprinting && Math.hypot(p.vx, p.vz) > SPEED ? FOV_SPRINT : FOV, 8, dt);
+    if (Math.abs(fov - camera.fov) > 0.01) {
+      camera.fov = fov;
+      camera.updateProjectionMatrix();
+    }
+    // mira usa a rotação deste frame, não a do anterior (contorno não "arrasta")
+    camera.updateMatrixWorld();
     updateTarget();
     doBreak(dt);
 
@@ -373,15 +438,20 @@ export const startEngine = (
   raf = requestAnimationFrame(loop);
 
   // ── input desktop ──
+  // o Chrome rejeita se o pedido vier logo depois de um Esc: só ignora, o próximo clique tenta de novo
+  const requestLock = () => {
+    Promise.resolve(canvas.requestPointerLock()).catch(() => {});
+  };
   const onMouseMove = (e: MouseEvent) => {
     if (!locked) return;
-    yaw -= e.movementX * 0.0025;
-    pitch = Math.max(-1.55, Math.min(1.55, pitch - e.movementY * 0.0025));
+    if (Math.abs(e.movementX) > MOUSE_SPIKE || Math.abs(e.movementY) > MOUSE_SPIKE) return;
+    yaw -= e.movementX * MOUSE;
+    pitch = Math.max(-1.55, Math.min(1.55, pitch - e.movementY * MOUSE));
   };
   const onMouseDown = (e: MouseEvent) => {
     if (opts.touch || paused) return;
     if (!locked) {
-      canvas.requestPointerLock();
+      requestLock();
       return;
     }
     if (e.button === 0) input.breaking = true;
@@ -420,6 +490,11 @@ export const startEngine = (
   };
   const onKeyUp = (e: KeyboardEvent) => keys.delete(e.key.toLowerCase());
   const noMenu = (e: Event) => e.preventDefault();
+  // trocou de aba ou de app com a tecla apertada: não fica andando sozinho
+  const onBlur = () => {
+    keys.clear();
+    input.breaking = false;
+  };
 
   canvas.addEventListener("mousedown", onMouseDown);
   window.addEventListener("mouseup", onMouseUp);
@@ -429,6 +504,7 @@ export const startEngine = (
   document.addEventListener("pointerlockchange", onLockChange);
   window.addEventListener("keydown", onKeyDown);
   window.addEventListener("keyup", onKeyUp);
+  window.addEventListener("blur", onBlur);
 
   return {
     dispose: () => {
@@ -442,6 +518,7 @@ export const startEngine = (
       document.removeEventListener("pointerlockchange", onLockChange);
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("blur", onBlur);
       if (document.pointerLockElement === canvas) document.exitPointerLock();
       chunks.forEach((m) => m.geometry.dispose());
       outline.geometry.dispose();
@@ -466,18 +543,24 @@ export const startEngine = (
       paused = v;
       keys.clear();
       input.breaking = false;
+      // volta do inventário parado, sem escorregar com o embalo de antes
+      sprinting = false;
+      p.vx = p.vz = 0;
+      // medição de fps recomeça do zero na volta
+      frameTimes.length = 0;
+      windowTime = 0;
       if (v && document.pointerLockElement === canvas) document.exitPointerLock();
     },
     lock: () => {
-      if (!opts.touch) canvas.requestPointerLock();
+      if (!opts.touch) requestLock();
     },
     move: (x, z) => {
       input.s = x;
       input.f = z;
     },
     look: (dx, dy) => {
-      yaw -= dx * 0.006;
-      pitch = Math.max(-1.55, Math.min(1.55, pitch - dy * 0.006));
+      yaw -= dx * TOUCH_LOOK;
+      pitch = Math.max(-1.55, Math.min(1.55, pitch - dy * TOUCH_LOOK));
     },
     jump: (down) => (input.jump = down),
     breaking: (down) => (input.breaking = down),
