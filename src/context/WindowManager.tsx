@@ -8,7 +8,7 @@ import {
   useContext,
   useState,
 } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import { IconSvgElement } from "@hugeicons/react";
 
 interface WindowInstance {
@@ -166,59 +166,62 @@ export const WindowManagerProvider = ({
         focusWindow,
       }}
     >
-      {children}
+      {/* respeita "reduzir movimento" do sistema em todas as animações do framer */}
+      <MotionConfig reducedMotion="user">
+        {children}
 
-      <AnimatePresence>
-        {bubbles.map((bubble) => (
-          <motion.div
-            key={bubble.id}
-            initial={{ opacity: 0, scale: 0.2, y: 16, rotate: -8 }}
-            animate={{
-              opacity: 1,
-              scale: 1.15,
-              y: -4,
-              rotate: (bubble.id.charCodeAt(0) % 2 ? 1 : -1) * 5,
-              transition: { type: "spring", stiffness: 300, damping: 12 },
-            }}
-            className="fixed font-black text-5xl select-none pointer-events-none max-md:hidden
-              text-[var(--color-cn-highlight)]"
-            style={{
-              left: bubble.x,
-              top: bubble.y,
-              zIndex: 9999,
-              textShadow:
-                "0 4px 0 var(--color-cn-shadow), 0 0 18px rgba(255,255,255,0.25)",
-            }}
-          >
-            {bubble.text}
-          </motion.div>
-        ))}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {windows.map((window) => (
-            <div
-              key={window.id}
-              className="fixed flex mx-auto w-screen h-screen items-center justify-center pb-24 pointer-events-none max-md:hidden"
+        <AnimatePresence>
+          {bubbles.map((bubble) => (
+            <motion.div
+              key={bubble.id}
+              initial={{ opacity: 0, scale: 0.2, y: 16, rotate: -8 }}
+              animate={{
+                opacity: 1,
+                scale: 1.15,
+                y: -4,
+                rotate: (bubble.id.charCodeAt(0) % 2 ? 1 : -1) * 5,
+                transition: { type: "spring", stiffness: 300, damping: 12 },
+              }}
+              className="fixed font-black text-5xl select-none pointer-events-none max-md:hidden
+                text-[var(--color-cn-highlight)]"
               style={{
-                zIndex: window.zIndex,
-                display: window.minimized ? "none" : undefined,
+                left: bubble.x,
+                top: bubble.y,
+                zIndex: 9999,
+                textShadow:
+                  "0 4px 0 var(--color-cn-shadow), 0 0 18px rgba(255,255,255,0.25)",
               }}
             >
-              <div className="pointer-events-auto">
-                <Window
-                  title={window.title}
-                  onClose={() => closeWindow(window.id)}
-                  onMinimize={() => minimizeWindow(window.id)}
-                  onFocus={() => focusWindow(window.id)}
-                  defaultPosition={window.defaultPosition}
-                >
-                  {window.content}
-                </Window>
-              </div>
-            </div>
+              {bubble.text}
+            </motion.div>
           ))}
-      </AnimatePresence>
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {windows.map((window) => (
+              <div
+                key={window.id}
+                className="fixed flex mx-auto w-screen h-screen items-center justify-center pb-24 pointer-events-none max-md:hidden"
+                style={{
+                  zIndex: window.zIndex,
+                  display: window.minimized ? "none" : undefined,
+                }}
+              >
+                <div className="pointer-events-auto">
+                  <Window
+                    title={window.title}
+                    onClose={() => closeWindow(window.id)}
+                    onMinimize={() => minimizeWindow(window.id)}
+                    onFocus={() => focusWindow(window.id)}
+                    defaultPosition={window.defaultPosition}
+                  >
+                    {window.content}
+                  </Window>
+                </div>
+              </div>
+            ))}
+        </AnimatePresence>
+      </MotionConfig>
     </WindowManagerContext.Provider>
   );
 };

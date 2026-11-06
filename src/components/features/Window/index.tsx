@@ -86,7 +86,7 @@ const Window = ({
         style={style}
       >
         <motion.div
-          className={maximized ? "shadow-bump rounded-[22px] relative w-full h-full" : "shadow-bump rounded-[22px] relative w-[var(--window-width)]"}
+          className={maximized ? "shadow-bump rounded-[22px] relative w-full h-full flex flex-col" :"shadow-bump rounded-[22px] relative w-[var(--window-width)]"}
           style={
             size
               ? ({ "--window-width": `${size.w}px`, "--window-height": `${size.h}px` } as React.CSSProperties)
@@ -152,7 +152,7 @@ const Window = ({
               </div>
               <div className="flex flex-col text-center">
                 <span className="font-bold leading-tight">{title}</span>
-                <span className="text-xs opacity-70 font-mono">
+                <span className="text-xs opacity-90 font-mono">
                   C:\daniel\portfolio\{title}
                 </span>
               </div>
@@ -166,7 +166,7 @@ const Window = ({
         bg-[var(--color-bg-secondary)]
         border-6 border-[var(--color-cn-border)]
         rounded-b-[22px] m-0 overflow-hidden
-        w-full ${maximized ? "h-full" : "h-[var(--window-height)]"}
+        w-full ${maximized ? "min-h-0 flex-1" : "h-[var(--window-height)]"}
         `}
           >
             {children}
