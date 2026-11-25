@@ -1,133 +1,158 @@
 @import "tailwindcss";
 
+/*
+ * Sistema de design: ficha técnica. Regras e motivos em docs/design.md.
+ * Os namespaces padrão do Tailwind são zerados: só existe o que está aqui.
+ */
+
 @theme {
-  --shadow-bump: 0 8px 0 0 var(--color-cn-shadow);
-  --shadow-bump-sm: 0 5px 0 0 var(--color-cn-shadow);
-  --shadow-flat: 0px 8px 0px 0px rgba(0, 0, 0, 0.1);
+  /* tipografia: uma família, a largura faz o trabalho */
+  --font-*: initial;
+  --font-sans: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
 
-  /* social media colors */
-  --color-instagram: #e1306c;
-  --color-linkdin: #0a66c2;
-  --color-github: #6e5494;
+  --font-weight-*: initial;
+  --font-weight-regular: 400;
+  --font-weight-semibold: 600;
 
-  /* cartoon network accents */
-  --color-cn-yellow: #ffe066;
-  --color-cn-cyan: #7df9ff;
-  --color-cn-pink: #ff7ba9;
-  --color-cn-green: #a6ff8b;
-  --color-cn-orange: #ffa657;
+  --tracking-*: initial;
+  --leading-*: initial;
+
+  --text-*: initial;
+  --text-caption: 0.875rem;
+  --text-caption--line-height: 1.25rem;
+  --text-caption--letter-spacing: 0.005em;
+  --text-body: 1rem;
+  --text-body--line-height: 1.625rem;
+  --text-lead: 1.125rem;
+  --text-lead--line-height: 1.75rem;
+  --text-h3: 1.5rem;
+  --text-h3--line-height: 1.875rem;
+  --text-h3--letter-spacing: -0.01em;
+  --text-h3--font-weight: 600;
+  --text-h2: 2.25rem;
+  --text-h2--line-height: 2.5rem;
+  --text-h2--letter-spacing: -0.015em;
+  --text-h2--font-weight: 600;
+  --text-display-sm: 3.75rem;
+  --text-display-sm--line-height: 3.5rem;
+  --text-display-sm--letter-spacing: -0.02em;
+  --text-display-sm--font-weight: 600;
+  --text-display: 6rem;
+  --text-display--line-height: 5.5rem;
+  --text-display--letter-spacing: -0.025em;
+  --text-display--font-weight: 600;
+
+  /* cor: quatro neutros e um destaque (valores do tema claro; o escuro sobrescreve abaixo) */
+  --color-*: initial;
+  --color-paper: #ffffff;
+  --color-plate: #f1f2f3;
+  --color-rule: #c9cdd2;
+  --color-muted: #575d66;
+  --color-ink: #15181c;
+  --color-signal: #f25400;
+  --color-on-signal: #15181c;
+
+  /* espaço: só estes passos */
+  --spacing: initial;
+  --spacing-*: initial;
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-12: 3rem;
+  --spacing-16: 4rem;
+  --spacing-24: 6rem;
+  --spacing-32: 8rem;
+
+  --container-*: initial;
+  --container-measure: 42rem;
+  --container-page: 75rem;
+
+  /* sem raio, sem sombra */
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --text-shadow-*: initial;
+
+  --animate-*: initial;
+  --ease-*: initial;
+  --ease-draw: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
-
-:root {
-  --font-sans:
-    ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
-    "Segoe UI Symbol", "Noto Color Emoji";
-  --font-mono: "Roboto Mono Variable", monospace;
-
-  --window-width: clamp(40rem, 90vw, 50rem); /* min 640px, max 800px */
-  --window-height: clamp(25rem, 60vh, 35rem);
-}
-
-/* Colors */
 
 :root[data-theme="dark"] {
-  --color-bg: #16100a;
-  --color-bg-secondary: #20170e;
-  --color-bg-header: #c1440e;
-  --color-border: #e8d5b5;
-  --color-border-secondary: #fe8019;
-  --color-text: #f0e2c8;
-  --color-text-secondary: #1a120a;
-  --color-bg-wave-first: #c1440e;
-  --color-bg-wave-second: #9c3a12;
-  --color-docker-bg: rgba(26, 18, 10, 0.6);
-  --color-docker-border: rgba(214, 93, 14, 0.18);
-  --color-docker-icon: #f0e2c8;
-
-  /* cartoon network */
-  --color-cn-border: #e8d5b5;
-  --color-cn-shadow: #8a3a0f;
-  --color-cn-highlight: #fe8019;
-
-  /* Cursors */
-  --cursor-default: url("../../public/cursors/dark/default-dark.png"), auto;
-  --cursor-pointer: url("../../public/cursors/dark/select-dark.png"), pointer;
-  --cursor-text: url("../../public/cursors/dark/text-select-dark.png"), text;
-  --cursor-grab: url("../../public/cursors/dark/move-dark.png"), grab;
-  --cursor-grabbing: url("../../public/cursors/dark/move-dark.png"), grabbing;
+  --color-paper: #1b1e22;
+  --color-plate: #24282d;
+  --color-rule: #454b53;
+  --color-muted: #a2a8b0;
+  --color-ink: #eceef0;
+  --color-signal: #ff6a13;
+  color-scheme: dark;
 }
 
 :root[data-theme="light"] {
-  --color-bg: #f7ecd3;
-  --color-bg-secondary: #f2e5bc;
-  --color-bg-header: #c1440e;
-  --color-border: #3c3836;
-  --color-border-secondary: #c1440e;
-  --color-text: #3c3836;
-  --color-text-secondary: #f7ecd3;
-  --color-bg-wave-first: #c1440e;
-  --color-bg-wave-second: #9c3a12;
-  --color-docker-bg: rgba(247, 236, 211, 0.4);
-  --color-docker-border: rgba(193, 68, 14, 0.18);
-  --color-docker-icon: #3c3836;
-
-  /* cartoon network */
-  --color-cn-border: #3c3836;
-  --color-cn-shadow: #af3a03;
-  --color-cn-highlight: #d65d0e;
-
-  /* Cursors */
-  --cursor-default: url("../../public/cursors/light/default-light.png"), auto;
-  --cursor-pointer: url("../../public/cursors/light/select-light.png"), pointer;
-  --cursor-text: url("../../public/cursors/light/text-select-light.png"), text;
-  --cursor-grab: url("../../public/cursors/light/move-light.png"), grab;
-  --cursor-grabbing: url("../../public/cursors/light/move-light.png"), grabbing;
+  color-scheme: light;
 }
 
-html,
-body {
-  cursor: var(--cursor-default);
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-rule);
+  }
+
+  html {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 100%;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+  }
+
+  a {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  a:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+  }
 }
 
-a,
-button,
-[role="button"],
-select,
-summary,
-.pointer,
-input[type="submit"],
-input[type="button"] {
-  cursor: var(--cursor-pointer) !important;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
-input,
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="search"],
-input[type="number"],
-textarea,
-[contenteditable="true"] {
-  cursor: var(--cursor-text);
-}
-
-body {
-  font-family: var(--font-sans), serif;
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease;
-}
-
-.handle {
-  cursor: var(--cursor-grab), grab;
-}
-
-.react-draggable-dragging,
-.react-draggable-dragging .handle {
-  cursor: var(--cursor-grabbing) !important;
-}
+/* ---------------------------------------------------------------------------
+ * Legado: animações dos componentes do desktop antigo. Saem na Fase 5 junto
+ * com os componentes; não fazem parte do sistema.
+ * ------------------------------------------------------------------------- */
 
 @keyframes popIn {
   0% {
