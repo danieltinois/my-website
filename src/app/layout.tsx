@@ -1,23 +1,32 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import "@fontsource-variable/roboto-mono";
-import { ThemeProvider } from "next-themes";
-import Waves from "../components/layout/Waves";
-import { SoundProvider } from "../context/SoundContext";
-import PartyMode from "../components/layout/PartyMode";
+import { SITE_URL } from "@/src/data/site";
+import { THEME_SCRIPT } from "@/src/lib/theme";
+import { mono } from "./fonts";
 
+const title = "Daniel Tinois, dev full stack";
 const description =
-  "Portfólio do Daniel Tinois — Full Stack Developer que transforma café em código e ideias em interfaces.";
+  "Dev full stack pleno na Verzel, em São Paulo. React, Next, Flutter, Node e Spring. Projetos, trajetória e contato.";
 
 export const metadata: Metadata = {
-  title: "Daniel Tinois · full stack dev",
+  metadataBase: new URL(SITE_URL),
+  title,
   description,
+  alternates: { canonical: "/" },
   openGraph: {
-    title: "Daniel Tinois · full stack dev",
+    title,
     description,
+    url: "/",
+    siteName: "Daniel Tinois",
     locale: "pt_BR",
     type: "website",
   },
+  twitter: { card: "summary_large_image", title, description },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0b0c0e",
+  colorScheme: "dark light",
 };
 
 export default function RootLayout({
@@ -26,23 +35,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
+    // escuro é o padrão; o script troca para o claro antes da pintura se a pessoa escolheu
+    <html lang="pt-BR" data-theme="dark" className={mono.variable} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body>
-        <ThemeProvider
-          attribute="data-theme"
-          defaultTheme="system"
-          enableSystem={true}
-          value={{
-            dark: "dark",
-            light: "light",
-          }}
+        <a
+          href="#conteudo"
+          className="sr-only bg-ink px-4 py-2 text-paper focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-20"
         >
-          <SoundProvider>
-            {children}
-            <PartyMode />
-          </SoundProvider>
-          <Waves />
-        </ThemeProvider>
+          Pular para o conteúdo
+        </a>
+        {children}
       </body>
     </html>
   );

@@ -1,18 +1,17 @@
 // Config explicita do Worker — sem ela o wrangler auto-detecta "Next.js" e
 // tenta migrar pra OpenNext (SSR), que nao se aplica a este projeto (export
-// estatico). Modelo: Static Assets — serve out/ e usa o Worker main so para
-// /api/github/contributions. O Cloudflare serve os assets direto sem passar
-// pelo Worker; o Worker roda apenas para paths que nao batem com nenhum asset.
+// estatico). Modelo: so Static Assets, sem codigo de Worker. O Cloudflare serve
+// out/ direto; um path que nao bate com nenhum arquivo recebe o out/404.html
+// gerado pelo Next (src/app/not-found.tsx).
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "my-website",
-  "main": "worker.ts",
   "compatibility_date": "2026-09-24",
   "assets": {
     "directory": "./out",
-    "binding": "ASSETS"
+    "not_found_handling": "404-page"
   },
   // Exigido pelo `wrangler preview` que o Workers Builds roda nas branches de
-  // PR. Vazio: o Preview usa so as configs de topo (assets + main).
+  // PR. Vazio: o Preview usa so as configs de topo (assets).
   "previews": {}
 }
