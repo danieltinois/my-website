@@ -107,19 +107,28 @@ uma borda e não conta como segunda espessura.
 - Grid de 12 colunas a partir de 1024px: **coluna de margem** (colunas 1–3) para número de seção e
   rótulos, **coluna de conteúdo** (4–12). Abaixo de 1024px a margem vira uma linha acima do conteúdo.
 - Tudo alinhado à esquerda. Nada centralizado.
-- Cabeçalho corrido como o de uma ficha técnica: nome à esquerda, revisão à direita
-  ("Rev. nov 2026", gerada na build).
+- Cabeçalho corrido como o de uma ficha técnica: nome à esquerda, índice das seções e botão de
+  tema à direita. A revisão ("Rev. 25 nov 2026", data do snapshot) fica no rodapé.
+- Rótulo e valor de tabelas e listas se alinham pela linha de base, nunca pelo topo.
+- No celular o CTA de e-mail ocupa a largura toda.
+
+**Tema:** um script inline no `<head>` (`src/lib/theme.ts`) aplica `data-theme` antes da pintura,
+a partir da escolha salva ou da preferência do sistema. O botão do cabeçalho só troca o atributo
+e grava a escolha. Sem JavaScript, vale o tema claro.
 
 ## 5. Motivos recorrentes
 
-1. **Numeração de documento.** As seções são numeradas porque a página é um documento com índice:
-   `1 Visão geral`, `2 Projetos` (`2.1 DevClean`, `2.2 Pato Commit`, `2.3 resume-tailor`),
-   `3 Trajetória`, `4 Contato`. O número fica na coluna de margem, em `condensed` + `muted`.
+1. **Numeração de documento.** O hero é a capa, sem número. As seções são numeradas porque a
+   página é um documento com índice (o mesmo do cabeçalho): `1 Projetos` (`1.1 DevClean`,
+   `1.2 Pato Commit`, `1.3 resume-tailor`), `2 Trajetória`, `3 Contato`. O número fica na coluna
+   de margem, no tamanho do título, em `condensed` + `muted`, alinhado pela linha de base; abaixo
+   de 1024px ele vai junto do título.
 2. **Tabela de parâmetros.** Todo projeto tem uma tabela de duas colunas (parâmetro / valor) com
    linhas de 1px: Problema, Papel, Estado, Stack, Código. É o "datasheet" de cada peça.
 3. **Figura com legenda.** Todo visual é uma figura numerada sobre `plate`, com grade em `rule` e
    legenda embaixo: "Figura 1. Contribuições por semana nos últimos 12 meses." Prints e diagramas
-   seguem a mesma regra.
+   seguem a mesma regra. **Tracejado quer dizer incompleto**: a semana em curso na Figura 1 e o
+   bloco ainda não construído no diagrama do Pato Commit (Figura 2).
 
 ## 6. Peça-assinatura: a curva característica
 
@@ -157,7 +166,7 @@ O que mudou em relação ao esboço da Fase 2, e por quê:
 | Fundo creme `#F4F3EF` | Branco `#FFFFFF` | Creme é o padrão genérico; ficha técnica é papel branco. |
 | Escuro `#111110` | Grafite `#1B1E22` | Quase-preto tingido é tique; grafite lê como tela, não como tinta. |
 | "DT-2026 · FICHA TÉCNICA" em caixa alta com ponto médio | "Rev. nov 2026" em sentence case | Rótulo decorativo em caixa alta é marca de template. |
-| `01 / 02 / 03` nos projetos | `2.1 / 2.2 / 2.3` | Os projetos não são sequência; a numeração é a do documento. |
+| `01 / 02 / 03` nos projetos | `1.1 / 1.2 / 1.3` | Os projetos não são sequência; a numeração é a do documento. |
 | Rótulos em monospace | Archivo condensada + `tabular-nums` | Mono puxa para terminal, que o brief exclui. |
 | Links com `→` | Sublinhado | Seta no fim do link é tique. |
 | Laranja como texto em números | Laranja só como marca gráfica | Laranja em texto não passa AA no claro; e reforça a regra. |
@@ -166,4 +175,5 @@ O que mudou em relação ao esboço da Fase 2, e por quê:
 
 Tokens apagados do `globals.css`: `cn-*`, cores de redes sociais (`instagram`, `linkdin`, `github`),
 sombras `bump`/`flat`, `docker-*`, `wave-*`, `bg-header`, cursores customizados e Roboto Mono.
-Os componentes antigos que ainda os usam saem na Fase 5.
+Junto saíram o desktop, as janelas, o terminal, o celular, o Craft, o Konami, os sons e as
+dependências `framer-motion`, `react-draggable`, `use-sound`, `three`, `@hugeicons/*` e `next-themes`.

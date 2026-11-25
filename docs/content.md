@@ -17,23 +17,36 @@ Regras de escrita:
 
 ---
 
-## 1. Hero
+## Hero (capa, sem número)
 
 **Daniel Tinois**
 
 Dev full stack pleno na Verzel, em São Paulo.
-Faço web com React e Next, mobile com Flutter e APIs em Node e Spring.
 
-> Escrevo software que não perde evento, não inventa dado e não apaga o que não deve.
+Faço web com React e Next, mobile com Flutter e APIs em Node e Spring. Escrevo software que não
+perde evento, não inventa dado e não apaga o que não deve.
 
 - CTA principal: **me@danieltinois.dev** (mailto)
-- Secundário: Ver projetos ↓ · GitHub · LinkedIn
+- Secundários: GitHub, LinkedIn
+
+Especificações (tabela ao lado):
+
+| Parâmetro | Valor |
+|---|---|
+| Local | São Paulo |
+| Web | React, Next.js, TypeScript |
+| Mobile | Flutter |
+| Back-end | Node, Spring, PostgreSQL |
+| Programando desde | 2020 |
+| Formação | Engenharia de Software, FIAP (2027) |
+
+Abaixo: Figura 1, a curva de contribuições (ver `docs/design.md`, seção 6).
 
 ---
 
-## 2. Projetos
+## 1. Projetos
 
-### 01 — DevClean
+### 1.1 DevClean
 
 **Descobre quais ferramentas de dev estão enchendo o disco do Mac — e limpa só o que é seguro.**
 
@@ -46,7 +59,7 @@ Faço web com React e Next, mobile com Flutter e APIs em Node e Spring.
 - **Links:** github.com/danieltinois/dev-macos-clean
 - **Imagem:** print do app no Mac + saída da CLI (gero rodando localmente)
 
-### 02 — Pato Commit
+### 1.2 Pato Commit
 
 **Uma caixa de entrada do que espera decisão sua no GitHub, rodando na sua máquina.**
 
@@ -57,23 +70,24 @@ Faço web com React e Next, mobile com Flutter e APIs em Node e Spring.
 - **Papel:** projeto solo, do ADR ao CI.
 - **Stack:** Java 25 · Spring Boot 4 · PostgreSQL 18 · Flyway · Next.js 16
 - **Links:** github.com/danieltinois/pato-commit
-- **Imagem:** diagrama do fluxo do webhook (sem UI pronta ainda)
+- **Imagem:** Figura 2, diagrama de blocos do caminho de um evento (sem UI pronta ainda)
 
-### 03 — resume-tailor
+### 1.3 resume-tailor
 
 **Um perfil, um currículo sob medida para cada vaga — sem inventar nada.**
 
 - **Problema:** adaptar o currículo pra cada vaga é manual, e ferramentas que reescrevem com IA inventam fatos.
 - **O que faz:** você cola a vaga; o app acha as skills pedidas, sugere quais experiências mostrar e em que ordem, e gera um PDF A4 legível por ATS. Perfil em português e inglês.
 - **O difícil:** o texto sempre vem do perfil. O montador copia por ID e rejeita ID desconhecido, então nem uma IA plugada depois consegue inventar empresa, cargo ou métrica. O contrato OpenAPI é checado por teste e gera os tipos do front; um E2E com Playwright vai do cadastro ao PDF.
+- **Estado:** funcional, roda com Docker Compose.
 - **Papel:** projeto solo.
-- **Stack:** Java 21 · Spring Boot · Angular [? confirmar] · PostgreSQL · Typst · Playwright
+- **Stack:** Java 21 · Spring Boot · Angular · PostgreSQL · Typst · Playwright
 - **Links:** github.com/danieltinois/job-resume-generator
 - **Imagem:** tela de revisão com preview do PDF (gero rodando localmente)
 
 ---
 
-## 3. Trajetória
+## 2. Trajetória
 
 - **2026 — Verzel.** Dev full stack pleno.
 - **2026 — LBA Capital, freela.** Filas e webhook para destravar o processamento e a atualização de boletos. Node, Supabase, PostgreSQL.
@@ -86,7 +100,7 @@ Faço web com React e Next, mobile com Flutter e APIs em Node e Spring.
 
 ---
 
-## 4. Contato
+## 3. Contato
 
 **Vamos conversar.**
 O caminho mais rápido é o e-mail.
