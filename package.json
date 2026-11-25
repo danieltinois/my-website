@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "data:contributions": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/update-contributions.mts",
+    "prebuild": "npm run data:contributions",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
