@@ -8,7 +8,7 @@ import { useEffect, useRef } from "react";
 // então a largura não muda (CLS 0). Com reduced motion, nada acontece.
 
 const SINAIS = ".,:;i1?7tPO09#@";
-const DURACAO = 900;
+const DURACAO = 600;
 
 const Decifrar = ({ texto, atraso = 0 }: { texto: string; atraso?: number }) => {
   const ref = useRef<HTMLSpanElement>(null);
@@ -33,17 +33,24 @@ const Decifrar = ({ texto, atraso = 0 }: { texto: string; atraso?: number }) => 
       };
       raf = requestAnimationFrame(quadro);
     };
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (!e.isIntersecting) return;
-        io.disconnect();
-        rodar();
-      },
-      { rootMargin: "0px 0px -15% 0px" },
-    );
-    io.observe(el);
+    // só observa depois que as fontes carregaram: antes disso a medida e o quadro inicial mudam
+    let io: IntersectionObserver | undefined;
+    let ativo = true;
+    document.fonts.ready.then(() => {
+      if (!ativo) return;
+      io = new IntersectionObserver(
+        ([e]) => {
+          if (!e.isIntersecting) return;
+          io?.disconnect();
+          rodar();
+        },
+        { rootMargin: "0px 0px -15% 0px" },
+      );
+      io.observe(el);
+    });
     return () => {
-      io.disconnect();
+      ativo = false;
+      io?.disconnect();
       cancelAnimationFrame(raf);
     };
   }, [texto, atraso]);

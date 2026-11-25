@@ -25,9 +25,11 @@ const Hero = () => {
 
   return (
     <section aria-labelledby="hero-nome" className="noite -mx-6 px-6 pb-16 lg:-mx-12 lg:px-12 lg:pb-24">
-      <div className="relative">
-        {/* no desktop o texto fica preso sobre o céu (altura zero, para não empurrar a cena) */}
-        <div className="relative z-10 pt-8 lg:pointer-events-none lg:sticky lg:top-32 lg:h-0">
+      <div className="relative lg:grid lg:grid-cols-[minmax(0,1fr)]">
+        {/* no desktop texto e cena dividem a mesma célula da grade: o texto fica preso sobre o céu
+            dentro da altura do bloco da cena, então os dois saem juntos (abaixo de lg o texto é
+            só o primeiro item do fluxo) */}
+        <div className="relative z-10 pt-8 lg:pointer-events-none lg:col-start-1 lg:row-start-1 lg:sticky lg:top-32 lg:self-start">
           <div className="max-w-measure lg:pointer-events-auto lg:max-w-[34rem]">
             <h1 id="hero-nome" className="text-display-sm md:text-display">
               <span className="block">
@@ -49,7 +51,7 @@ const Hero = () => {
           </div>
         </div>
 
-        <div data-revelar className="mt-8 h-[200svh] motion-reduce:h-auto lg:mt-0 lg:h-[260svh]">
+        <div data-revelar className="mt-8 h-[200svh] motion-reduce:h-auto lg:col-start-1 lg:row-start-1 lg:mt-0 lg:h-[260svh]">
           <div
             className="sticky top-24 -mx-6 h-[calc(100svh-6rem)] lg:-mx-12"
             role="img"
