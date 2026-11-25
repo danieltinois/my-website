@@ -1,51 +1,63 @@
-import Params from "@/src/components/Params";
+import { ProjectArt } from "@/src/components/ProjectArt";
 import type { Projeto } from "@/src/data/site";
 
-// mini estudo de caso: o problema, como funciona, o que tem de difícil e a tabela da peça
-const Project = ({ projeto, n, figura }: { projeto: Projeto; n: string; figura?: React.ReactNode }) => {
-  const repo = projeto.codigo.replace("https://", "");
+// card de projeto: a arte do próprio projeto à esquerda, o estudo de caso à direita
+const Project = ({ projeto, n }: { projeto: Projeto; n: string }) => {
+  const repo = projeto.codigo.replace("https://github.com/", "");
 
   return (
-    <article id={projeto.id} aria-labelledby={`${projeto.id}-nome`} className="scroll-mt-16">
-      <h3 id={`${projeto.id}-nome`} className="text-h3">
-        <span className="mr-4 font-regular font-stretch-condensed tabular-nums text-muted">{n}</span>
-        {projeto.nome}
-      </h3>
-      <p className="mt-3 max-w-measure text-lead">{projeto.resumo}</p>
+    <article
+      id={projeto.id}
+      aria-labelledby={`${projeto.id}-nome`}
+      className="grid scroll-mt-24 border lg:grid-cols-12"
+    >
+      <div className="flex flex-col justify-between gap-6 overflow-hidden border-b bg-plate p-6 lg:col-span-5 lg:border-r lg:border-b-0">
+        <span className="text-caption font-stretch-condensed tabular-nums text-muted">[{n}]</span>
+        <ProjectArt id={projeto.id} />
+        <span className="text-caption text-muted">ilustração</span>
+      </div>
 
-      <div className="mt-8 grid gap-8 xl:grid-cols-9">
-        <dl className="max-w-measure space-y-6 xl:col-span-5">
+      <div className="p-6 lg:col-span-7 lg:p-8">
+        <h3 id={`${projeto.id}-nome`} className="text-h3">
+          {projeto.nome}
+        </h3>
+        <p className="mt-2 max-w-measure text-lead">{projeto.resumo}</p>
+
+        <dl className="mt-8 max-w-measure space-y-6">
           {[
-            { k: "Problema", v: projeto.problema },
-            { k: "Como funciona", v: projeto.comoFunciona },
-            { k: "O difícil", v: projeto.dificil },
+            { k: "problema", v: projeto.problema },
+            { k: "como funciona", v: projeto.comoFunciona },
+            { k: "o difícil", v: projeto.dificil },
           ].map(({ k, v }) => (
             <div key={k}>
               <dt className="text-caption font-stretch-condensed text-muted">{k}</dt>
-              <dd className="mt-1">{v}</dd>
+              <dd className="mt-1 text-muted">{v}</dd>
             </div>
           ))}
         </dl>
 
-        <div className="xl:col-span-4">
-          <Params
-            caption={`Parâmetros do ${projeto.nome}`}
-            rows={[
-              ...projeto.parametros,
-              {
-                k: "Código",
-                v: (
-                  <a href={projeto.codigo} className="break-words">
-                    {repo}
-                  </a>
-                ),
-              },
-            ]}
-          />
-        </div>
+        <dl className="mt-8 grid border-t border-l text-caption sm:grid-cols-3">
+          {[
+            ...projeto.parametros,
+            {
+              k: "Código",
+              v: (
+                <a href={projeto.codigo} className="break-words">
+                  {repo}
+                </a>
+              ),
+            },
+          ].map((p) => (
+            <div
+              key={p.k}
+              className={`border-r border-b p-3 ${p.k === "Stack" || p.k === "Código" ? "sm:col-span-3" : ""} ${p.k === "Estado" ? "sm:col-span-2" : ""}`}
+            >
+              <dt className="font-stretch-condensed text-muted">{p.k.toLowerCase()}</dt>
+              <dd className="mt-1">{p.v}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
-
-      {figura && <div className="mt-12">{figura}</div>}
     </article>
   );
 };

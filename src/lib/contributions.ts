@@ -85,54 +85,30 @@ export const toStats = (days: Day[], weeks: Week[]): Stats => {
   };
 };
 
-// teto "redondo" do eixo y: 4 divisões com passo de 1, 2, 2,5 ou 5 × 10^n
-export const niceMax = (value: number, divisions = 4): { max: number; step: number } => {
-  if (value <= 0) return { max: divisions, step: 1 };
-  const raw = value / divisions;
-  const pow = 10 ** Math.floor(Math.log10(raw));
-  const step = [1, 2, 2.5, 5, 10].map((f) => f * pow).find((s) => s >= raw) ?? 10 * pow;
-  return { max: step * divisions, step };
-};
+// Campo de caracteres da home: cada semana é uma coluna de `rows` células. A altura da
+// coluna é proporcional às contribuições da semana (relativa à semana mais intensa); dentro
+// dela, o caractere fica mais denso perto do topo, como um relevo. Acima, só pontos.
+export const DENSIDADE = ["@", "#", "*", "+", "=", "-", ":"] as const;
+export const VAZIO = ".";
 
-export interface Point {
-  x: number;
-  y: number;
+export interface Coluna {
+  week: Week;
+  height: number; // células preenchidas, de 0 a rows
+  cells: string[]; // de cima para baixo
 }
 
-// Curva monotônica (Fritsch–Carlson): passa por todos os pontos sem inventar picos ou vales
-// entre eles. Devolve um "C ..." por segmento, para a semana em curso poder ser tracejada à parte.
-export const monotoneSegments = (pts: Point[]): string[] => {
-  const n = pts.length;
-  if (n < 2) return [];
-  const dx = pts.slice(1).map((p, i) => p.x - pts[i].x);
-  const slope = pts.slice(1).map((p, i) => (p.y - pts[i].y) / dx[i]);
-
-  const tangent = pts.map((_, i) => {
-    if (i === 0) return slope[0];
-    if (i === n - 1) return slope[n - 2];
-    return slope[i - 1] * slope[i] <= 0 ? 0 : (slope[i - 1] + slope[i]) / 2;
-  });
-  for (let i = 0; i < n - 1; i++) {
-    if (slope[i] === 0) {
-      tangent[i] = 0;
-      tangent[i + 1] = 0;
-      continue;
-    }
-    const a = tangent[i] / slope[i];
-    const b = tangent[i + 1] / slope[i];
-    const h = a * a + b * b;
-    if (h > 9) {
-      const t = 3 / Math.sqrt(h);
-      tangent[i] = t * a * slope[i];
-      tangent[i + 1] = t * b * slope[i];
-    }
-  }
-
-  const f = (v: number) => Number(v.toFixed(2));
-  return pts.slice(0, -1).map((p, i) => {
-    const q = pts[i + 1];
-    const h = dx[i] / 3;
-    return `C ${f(p.x + h)} ${f(p.y + tangent[i] * h)} ${f(q.x - h)} ${f(q.y - tangent[i + 1] * h)} ${f(q.x)} ${f(q.y)}`;
+export const toField = (weeks: Week[], rows: number): Coluna[] => {
+  const peak = Math.max(1, ...weeks.map((w) => w.count));
+  return weeks.map((week) => {
+    const height = week.count === 0 ? 0 : Math.max(1, Math.round((week.count / peak) * rows));
+    const cells = Array.from({ length: rows }, (_, r) => {
+      const depth = r - (rows - height); // 0 no topo da coluna, negativo acima dela
+      if (depth < 0) return VAZIO;
+      // a semana mais intensa ganha o "@" no topo; as outras começam em "#"
+      const offset = height === rows ? 0 : 1;
+      return DENSIDADE[Math.min(depth + offset, DENSIDADE.length - 1)];
+    });
+    return { week, height, cells };
   });
 };
 

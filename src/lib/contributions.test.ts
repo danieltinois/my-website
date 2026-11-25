@@ -3,11 +3,11 @@ import { describe, it } from "node:test";
 import {
   formatDate,
   formatNumber,
-  monotoneSegments,
-  niceMax,
   parseContributionsHtml,
+  toField,
   toStats,
   toWeeks,
+  VAZIO,
 } from "./contributions.ts";
 
 // recorte do HTML real de github.com/users/<user>/contributions (atributos em ordens diferentes)
@@ -78,37 +78,26 @@ describe("toStats", () => {
   });
 });
 
-describe("niceMax", () => {
-  it("arredonda o teto do eixo para um passo legível", () => {
-    assert.deepEqual(niceMax(85), { max: 100, step: 25 });
-    assert.deepEqual(niceMax(79), { max: 80, step: 20 });
-    assert.deepEqual(niceMax(12), { max: 20, step: 5 });
-    assert.deepEqual(niceMax(0), { max: 4, step: 1 });
-  });
-});
+describe("toField", () => {
+  const week = (count: number) => ({ start: "2026-11-01", count, days: 7 });
 
-describe("monotoneSegments", () => {
-  it("gera um segmento por intervalo, terminando em cada ponto", () => {
-    const pts = [
-      { x: 0, y: 10 },
-      { x: 10, y: 0 },
-      { x: 20, y: 0 },
-      { x: 30, y: 10 },
-    ];
-    const segs = monotoneSegments(pts);
-    assert.equal(segs.length, 3);
-    segs.forEach((s, i) => assert.match(s, new RegExp(` ${pts[i + 1].x} ${pts[i + 1].y}$`)));
+  it("dá à semana mais intensa a coluna cheia, com @ no topo", () => {
+    const [peak] = toField([week(10), week(5)], 4);
+    assert.equal(peak.height, 4);
+    assert.deepEqual(peak.cells, ["@", "#", "*", "+"]);
   });
 
-  it("não ultrapassa os pontos num trecho plano (sem inventar vale)", () => {
-    const [, flat] = monotoneSegments([
-      { x: 0, y: 10 },
-      { x: 10, y: 0 },
-      { x: 20, y: 0 },
-      { x: 30, y: 10 },
-    ]);
-    const ys = flat.split(" ").slice(1).filter((_, i) => i % 2 === 1).map(Number);
-    assert.ok(ys.every((y) => y === 0), `controles fora do plano: ${flat}`);
+  it("faz a altura proporcional e preenche acima com pontos", () => {
+    const [, half] = toField([week(10), week(5)], 4);
+    assert.equal(half.height, 2);
+    assert.deepEqual(half.cells, [VAZIO, VAZIO, "#", "*"]);
+  });
+
+  it("garante ao menos uma célula para semana com contribuição e nenhuma para semana vazia", () => {
+    const [, tiny, zero] = toField([week(100), week(1), week(0)], 4);
+    assert.equal(tiny.height, 1);
+    assert.equal(zero.height, 0);
+    assert.ok(zero.cells.every((c) => c === VAZIO));
   });
 });
 
