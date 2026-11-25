@@ -138,17 +138,35 @@ imagem nunca aparece.
   cada tom é pintado uma vez), então cada quadro é só cópia de pedaços.
 - **O que se mexe é código por cima da imagem:** a própria chama da foto balança (`balancar`
   desloca a amostragem dentro da chama), a luz das paredes pulsa com o fogo, e partículas
-  (`fagulhas`, `fumaca`, `poeira`), luzes, figuras (pessoa, pombo, corvo, dragão) e dígitos em
-  pixel-font 3×5 entram por cima.
+  (`fagulhas`, `fumaca`, `poeira`), luzes, figuras (pombo, dragão) e dígitos em pixel-font 3×5
+  entram por cima.
+
+**Personagens de imagem (sprites).** O velho do porão, o viajante da estrada e o corvo não são
+formas desenhadas em código: cada um vem de uma folha de partes (corpo, braço, perna, cabeça,
+asas...) feita no Figma sobre fundo verde (`public/cenas/figuras/*.webp`).
+
+- O `AsciiCanvas` baixa as folhas junto com a imagem de fundo (`figuras`, nome → URL) e as entrega
+  à cena em `dados.figuras`. `figura.ts` (módulo puro, sem DOM) tira o fundo verde (chroma key, com
+  corte do verde que sobra nas bordas) e guarda brilho, calor e opacidade em tabelas de soma
+  acumulada, como a imagem de fundo.
+- A cena compõe cada parte na grade girando em torno do seu pivô, e cada célula amostra a área
+  exata da folha, então a figura fica nítida em qualquer resolução. Os ossos são código: o velho
+  varre, o viajante balança a lanterna e anda, o corvo bate as asas e vira a cabeça.
+- As células da figura ganham `mat` 5 (superfície): o `lampiao` e as luzes de fogo as iluminam
+  como a qualquer parte da imagem.
+- `fps` por cena: as cenas com personagem animam a 30 quadros por segundo, as outras a 20.
+- **Espera:** enquanto a imagem de fundo decodifica, a cena mostra um campo de estrelas fraco
+  (`estrelas.ts`) que some conforme a imagem surge, em vez de um quadro vazio.
+- **Reduced motion:** com `parado`, as figuras aparecem em repouso (ângulos 0, sem balanço).
 
 | Cena | Onde | Colunas (desktop) | Imagem | O que se mexe |
 |---|---|---|---|---|
 | `castelo` | hero | até 360 | castelo no penhasco, cachoeira, lago | água, janelas, cachoeira com espuma, estrelas e estrela cadente, nuvens, névoa, luar na água, morcegos, vaga-lumes, dragão a cada 18s |
-| `porao` | DevClean | até 340 | abóbada de pedra, duas tochas, carroça | tochas com fagulhas e fumaça, luz pulsando, poeira; o varredor leva os três sacos seguros à carroça, o "?" fica; um rato a cada 15s |
+| `porao` | DevClean | até 340 | abóbada de pedra, duas tochas, carroça | tochas com fagulhas e fumaça, luz pulsando, poeira; o velho (sprite) varre os três sacos seguros até a carroça, o "?" fica; um rato a cada 15s |
 | `torre` | Pato Commit | até 340 | torre com janela acesa, braseiro, lua, vila | nuvens, estrelas, janelas da vila, fumaça das chaminés, braseiro; pombos entregam cartas e a repetida queima |
 | `escriba` | resume-tailor | até 340 | mesa à luz de vela, pergaminho, livros | vela e luz pulsando, fumaça, poeira, nuvens na janela; as linhas se reordenam e a pena sai do tinteiro para escrever |
-| `estrada` | trajetória | até 340 | estrada sob a Via Láctea, castelo ao fundo | estrelas, estrela cadente, névoa nos vales, vaga-lumes; o viajante com lanterna anda com a rolagem e acende os marcos |
-| `corvo` | contato | até 220 | lua cheia enorme, poste com lampião e caixa de correio | nuvens na lua, neblina, árvore ao vento, mariposas no lampião; o corvo pousa e solta a carta na caixa |
+| `estrada` | trajetória | até 340 | estrada sob a Via Láctea, castelo ao fundo | estrelas, estrela cadente, névoa nos vales, vaga-lumes; o viajante de capa (sprite) com lanterna balançando anda com a rolagem e acende os marcos |
+| `corvo` | contato | até 220 | lua cheia enorme, poste com lampião e caixa de correio | nuvens na lua, neblina, árvore ao vento, mariposas no lampião; o corvo (sprite) bate as asas, pousa, solta a carta na caixa, olha em volta e vai embora |
 
 **Revelação pela rolagem.** Toda cena começa com poucos caracteres grandes e ganha resolução
 conforme a rolagem: o limiar de luz também baixa, então primeiro aparece só o que brilha.
@@ -177,11 +195,25 @@ ponteiro e revela o escuro. Cada banner diz em uma linha o que o clique faz.
 | Cena | O clique faz |
 |---|---|
 | castelo | faíscas no ponto; no lago, um anel de onda (passar o mouse na água também ondula) |
-| porão | o varredor recomeça a limpeza |
+| porão | o velho recomeça a limpeza |
 | torre | solta um pombo com uma carta do ponto clicado; dois cliques a menos de 1,5s são a mesma entrega duas vezes, e a repetida queima no braseiro (a deduplicação do webhook, na mão) |
-| escriba | troca a vaga (react/node/flutter ↔ java/spring): as linhas se reordenam e a pena reescreve |
+| escriba | respingo de tinta no ponto; troca a vaga (react/node/flutter ↔ java/spring): as linhas se reordenam e a pena reescreve |
 | estrada | faíscas (o viajante anda com a rolagem) |
-| corvo | o corvo levanta voo na hora |
+| corvo | o corvo levanta voo na hora, mesmo no meio da aterrissagem |
+
+**Dicas e teclado.** Cada dica de clique é um botão (`Dica`, `src/components/Ascii/Dica.tsx`), não
+a arte focável: um `role="img"` com ação seria anunciado errado, e o botão é anunciado como botão.
+Ele fica dentro do `[data-revelar]` da cena, fora do `role="img"`, e ao ser ativado (Enter ou
+espaço) dispara `cena:acionar` no bloco, que o `AsciiCanvas` trata como um clique (no último ponto
+do ponteiro ou no centro). As dicas só informativas ("role para revelar", "role a página") são
+`span` com a classe `dica`.
+
+- Na primeira interação o `AsciiCanvas` marca `data-tocado` no bloco, e as dicas (`.dica`) somem
+  com uma transição de 0,6s e deixam de receber clique.
+- Ao receber o foco do teclado a dica volta (`.dica:focus-visible`), com o contorno global de 2px,
+  então quem navega por Tab nunca perde o botão de vista.
+- Com `prefers-reduced-motion` não há `cena:acionar` (a cena fica parada): os botões somem e não
+  há transição.
 
 As brasas do fundo desviam do cursor. Com `prefers-reduced-motion` não há interação: as cenas ficam
 paradas. A interação é um extra: todo o conteúdo está no texto ao lado, para teclado e leitor de
@@ -189,8 +221,13 @@ tela.
 
 ## 7b. Movimento
 
-- Cada cena anima a 20 quadros por segundo só enquanto aparece na tela e a aba está visível
-  (`IntersectionObserver` e `visibilitychange`).
+- Cada cena anima a 20 quadros por segundo (30 as que têm personagem de imagem: porão, estrada e
+  corvo) só enquanto aparece na tela e a aba está visível (`IntersectionObserver` e
+  `visibilitychange`).
+- Os personagens se movem por ossos em código sobre partes de imagem (`figura.ts`): o velho varre
+  e se encurva, o viajante balança a lanterna, o corvo bate as asas, vira a cabeça, pousa e
+  levanta voo (a aterrissagem, a decolagem e o clique em pleno voo são suaves, sem salto).
+- As dicas de clique somem depois da primeira interação e voltam com o foco do teclado (seção 7).
 - A estrada não anda com o tempo: anda com a rolagem. Todas as cenas ganham resolução com a
   rolagem.
 - Títulos se decifram em ASCII ao entrar na tela (`Decifrar`): cada letra passa pela rampa e
@@ -200,7 +237,8 @@ tela.
 - Brasas sobem atrás da página (só no tema escuro); o quadrado da faixa de status pulsa; o
   relógio de São Paulo se atualiza.
 - `prefers-reduced-motion: reduce`: cada cena desenha um quadro parado na resolução máxima (a
-  estrada aparece completa e o trecho alto do hero encolhe); títulos não se decifram e nada surge.
+  estrada aparece completa e o trecho alto do hero encolhe); os personagens ficam em repouso;
+  títulos não se decifram e nada surge; as dicas de clique somem.
 
 ## 8. Qualidade verificada (25 nov 2026)
 
@@ -214,11 +252,15 @@ Lighthouse 12 contra a build servida pelo `wrangler dev`:
 LCP 2,3s no celular (simulado) e 0,5s no desktop; CLS 0; TBT 80ms no celular, com as seis cenas
 feitas de imagem (as dos banners só carregam perto da tela).
 
+Esses números são de antes dos personagens de imagem (três folhas de sprites a mais, carregadas
+junto com a cena de cada um): a medir de novo.
+
 - **Teclado:** o primeiro Tab mostra "Pular para o conteúdo"; a ordem segue a leitura (índice, tema,
   CTA, links, dados, repositórios, contato). Foco com contorno de 2px. `scroll-padding-top` evita que
   o cabeçalho fixo cubra o elemento focado.
 - **Artes:** cada uma é `role="img"` com descrição; os caracteres decorativos não entram na árvore
-  de acessibilidade.
+  de acessibilidade. As dicas de clique são botões fora do `role="img"`, alcançáveis por Tab, com
+  foco visível mesmo depois de terem desaparecido.
 - **Metadados:** título, descrição, canonical, Open Graph e Twitter; imagem de compartilhamento
   gerada na build (`src/app/opengraph-image.tsx`) com o mesmo campo de contribuições; `robots.txt` e
   `sitemap.xml`. O `public/_headers` serve a imagem como `image/png`, porque o export do Next a
@@ -236,7 +278,11 @@ feitas de imagem (as dos banners só carregam perto da tela).
    grandes a milhares de pequenos), com as outras cenas ainda em código: o pedido seguinte foi o
    mesmo detalhe em todas e mais animação.
 6. As seis cenas feitas de imagem e reveladas pela rolagem, com a história de cada uma em código
-   por cima, títulos que se decifram e blocos que surgem: a versão atual.
+   por cima, títulos que se decifram e blocos que surgem: o pedido seguinte foi que os personagens
+   parecessem de verdade, e não formas de código.
+7. Personagens de imagem: o velho do porão, o viajante da estrada e o corvo viram folhas de partes
+   feitas no Figma, compostas na grade por ossos em código, com 30 quadros por segundo, estrelas
+   de espera, dicas que são botões e somem depois da primeira interação: a versão atual.
 
 ## 10. Fora do sistema (removido)
 
