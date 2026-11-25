@@ -235,13 +235,13 @@ const montar = (m: Momento, esc: number, tom: Partial<OpcoesFigura>) => {
 // está atrás (o contorno da figura já escureceu a volta: na lua conta a distância a ela). A lua
 // acende a borda fria contra o céu; o lampião, a borda quente de baixo quando ele está no poste.
 // Na frente da lua (e do halo dela) o corpo vira silhueta
-interface Fonte {
+interface FonteLuz {
   p: Pto;
   I: number;
   calor: number;
   fundo: number;
 }
-const aro = (T: Tela, centro: Pto, r: number, lua: Pto, rl: number, fontes: Fonte[]) => {
+const aro = (T: Tela, centro: Pto, r: number, lua: Pto, rl: number, fontes: FonteLuz[]) => {
   const { cols, rows, mat, A } = T;
   const { lum, calor } = T.c;
   // a direção de cada luz em passos de célula (a célula é mais alta que larga)
@@ -334,7 +334,7 @@ const carta = (T: Tela, x: number, y: number, s: number) => {
   pontoMundo(T, x, y, 0.9, 1);
 };
 
-// Interativa: um clique faz o corvo levantar voo na hora; o cursor é um lampião.
+// Interativa: um clique faz o corvo levantar voo (na hora se já entregou a carta, ou logo depois de entregá-la); o cursor é um lampião.
 export const corvo = ({ cols, rows, t, p, dados, parado, mouse, cliques }: Entrada<DadosImagem>): Campo => {
   const T = tela(cols, rows);
   const { A } = T;
@@ -394,7 +394,7 @@ export const corvo = ({ cols, rows, t, p, dados, parado, mouse, cliques }: Entra
   const sprite = dados.figuras?.corvo;
   const escAve = (s * 0.15) / COMPRIMENTO; // o comprimento do antigo (0,15 s), do bico à cauda
   const poste = para(POSTE.x, POSTE.y);
-  const caixa = para(CAIXA.x, CAIXA.y);
+  const fenda = para(CAIXA.x, CAIXA.y);
   const lua = para(LUA.x, LUA.y);
   const pontos = {
     de: { x: A + e(0.15), y: e(0.1) },
@@ -430,8 +430,8 @@ export const corvo = ({ cols, rows, t, p, dados, parado, mouse, cliques }: Entra
   } else if (c < PARTE) {
     const b = preso(montar(momento(SOLTA, t, false, pontos), escAve, tom).bico);
     const kc = (c - SOLTA) / QUEDA;
-    if (kc < 1) carta(T, b.x + (caixa.x - b.x) * kc, b.y + (caixa.y - b.y) * kc * kc, sc);
-    else if (kc < 1.6) luz(T, caixa.x, caixa.y, e(0.05), 0.5 * (1.6 - kc));
+    if (kc < 1) carta(T, b.x + (fenda.x - b.x) * kc, b.y + (fenda.y - b.y) * kc * kc, sc);
+    else if (kc < 1.6) luz(T, fenda.x, fenda.y, e(0.05), 0.5 * (1.6 - kc));
   }
 
   lampiao(T, mouse, 0.35, 0.1);
