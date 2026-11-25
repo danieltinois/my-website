@@ -122,40 +122,44 @@ compartilham borda (`border-t border-l` no contêiner, `border-r border-b` nas c
 
 ## 6. As cenas e a técnica
 
-**Técnica (modo denso, `src/components/Ascii/denso.ts`).** Cada cena calcula, por célula, uma
-luminância (0–1) e um calor (0 = luar, 1 = fogo) num mundo de coordenadas contínuas (X de 0 a A,
-Y de 0 a 1). Uma curva de exposição levanta os meios-tons; a luminância escolhe o caractere numa
-rampa alfanumérica (` .,:;i1?7tPO09#@`) e o tom de cinza; o calor puxa o tom para o laranja. O
-`AsciiCanvas` desenha com um atlas de glifos (cada caractere em cada tom é pintado uma vez), então
-cada quadro é só cópia de pedaços. Ferramentas compartilhadas: céu com lua e estrelas, luz quente,
-chama de ruído, pedra com fiadas, névoa, figuras (pessoa, elipse, triângulo, traço) e dígitos em
-pixel-font 3×5 (o único texto legível dentro das cenas).
+**Técnica: cada cena é uma imagem convertida em ASCII a cada quadro.** Para chegar perto do
+realista, nenhuma cena desenha o cenário com formas: cada uma parte de uma imagem noturna
+(`public/cenas/*.webp`, geradas no Figma) e a converte em caracteres. A saída é 100% ASCII; a
+imagem nunca aparece.
 
-| Cena | Onde | Grade (desktop) | O que acontece |
-|---|---|---|---|
-| `castelo` | hero | até 360 colunas | a partir de uma imagem (abaixo): castelo no penhasco, cachoeira, floresta, lago com reflexo; por cima, em código, água ondulando, janelas tremulando, estrelas, nuvens, trilha de luar e dragão a cada 18s |
-| `porao` | DevClean | 300×54 | varredor leva os três sacos seguros à carroça da Lixeira; o saco "?" fica |
-| `torre` | Pato Commit | 300×54 | pombos entregam cartas na janela; a repetida queima no braseiro |
-| `escriba` | resume-tailor | 300×54 | à luz de vela, as linhas se reordenam pela vaga e a pena escreve o currículo |
-| `estrada` | trajetória | 280×32 | viajante anda com a rolagem; lampiões e anos acendem quando ele passa |
-| `corvo` | contato | 150×37 | corvo cruza a lua, pousa no poste do correio e deixa a carta |
+- O `AsciiCanvas` carrega a imagem quando o canvas chega perto da tela, decodifica fora da tela e
+  a passa à cena como tabelas de soma acumulada de brilho e de calor (laranja = luz de fogo), então
+  a média de qualquer retângulo custa quatro leituras, em qualquer resolução.
+- `fundoImagem` (`src/components/Ascii/denso.ts`) enquadra a imagem em modo cover, aplica níveis
+  automáticos (percentis 1 e 97) e gama, reforça a diferença de cada célula para a vizinhança
+  (nitidez) e chama o `ajuste` da cena, onde entram os efeitos.
+- A luminância escolhe o caractere numa rampa alfanumérica (` .,:;i1?7tPO09#@`) e o tom de cinza;
+  o calor puxa o tom para o laranja. O canvas desenha com um atlas de glifos (cada caractere em
+  cada tom é pintado uma vez), então cada quadro é só cópia de pedaços.
+- **O que se mexe é código por cima da imagem:** a própria chama da foto balança (`balancar`
+  desloca a amostragem dentro da chama), a luz das paredes pulsa com o fogo, e partículas
+  (`fagulhas`, `fumaca`, `poeira`), luzes, figuras (pessoa, pombo, corvo, dragão) e dígitos em
+  pixel-font 3×5 entram por cima.
 
-Grades menores no tablet e no celular; a proporção de cada grade bate com o `aspect-ratio` do
-contêiner, então a altura é reservada antes do JavaScript (CLS 0).
+| Cena | Onde | Colunas (desktop) | Imagem | O que se mexe |
+|---|---|---|---|---|
+| `castelo` | hero | até 360 | castelo no penhasco, cachoeira, lago | água, janelas, cachoeira com espuma, estrelas e estrela cadente, nuvens, névoa, luar na água, morcegos, vaga-lumes, dragão a cada 18s |
+| `porao` | DevClean | até 340 | abóbada de pedra, duas tochas, carroça | tochas com fagulhas e fumaça, luz pulsando, poeira; o varredor leva os três sacos seguros à carroça, o "?" fica; um rato a cada 15s |
+| `torre` | Pato Commit | até 340 | torre com janela acesa, braseiro, lua, vila | nuvens, estrelas, janelas da vila, fumaça das chaminés, braseiro; pombos entregam cartas e a repetida queima |
+| `escriba` | resume-tailor | até 340 | mesa à luz de vela, pergaminho, livros | vela e luz pulsando, fumaça, poeira, nuvens na janela; as linhas se reordenam e a pena sai do tinteiro para escrever |
+| `estrada` | trajetória | até 340 | estrada sob a Via Láctea, castelo ao fundo | estrelas, estrela cadente, névoa nos vales, vaga-lumes; o viajante com lanterna anda com a rolagem e acende os marcos |
+| `corvo` | contato | até 220 | lua cheia enorme, poste com lampião e caixa de correio | nuvens na lua, neblina, árvore ao vento, mariposas no lampião; o corvo pousa e solta a carta na caixa |
 
-**O castelo vem de uma imagem.** Para chegar perto do realista, o hero não desenha o castelo com
-formas: converte uma imagem (`public/cenas/castelo.webp`, 800×450, gerada no Figma) em
-caracteres a cada quadro. O `AsciiCanvas` decodifica a imagem fora da tela e a passa à cena como
-tabelas de soma acumulada de brilho e de calor (laranja = luz de vela), então a média de qualquer
-retângulo custa quatro leituras. A cena aplica níveis e gama (a imagem é noturna, com brilho
-mediano de 0,07), reforça a diferença de cada célula para a vizinhança (nitidez) e enquadra a
-imagem em modo cover. A saída é 100% ASCII; a imagem nunca aparece.
+**Revelação pela rolagem.** Toda cena começa com poucos caracteres grandes e ganha resolução
+conforme a rolagem: o limiar de luz também baixa, então primeiro aparece só o que brilha.
 
-**Revelação pela rolagem.** O hero é um trecho alto (`[data-revelar]`, 260svh no desktop) com a
-cena presa na tela (`sticky`). Conforme a pessoa rola, a grade vai de 15% até a grade máxima
-(360 colunas no desktop largo, 120 no celular), o enquadramento abre do castelo para a paisagem e o
-limiar de luz baixa: primeiro só o que brilha (lua, nuvens, cachoeira), depois a pedra, a floresta
-e o lago. Cálculo de ~6 ms por quadro na grade máxima. Sem movimento, a cena aparece inteira.
+- No hero, um trecho alto (`[data-revelar]`, 260svh no desktop) prende a cena na tela (`sticky`);
+  a grade vai de 15% até 360 colunas (120 no celular) e o enquadramento abre do castelo para a
+  paisagem.
+- Nos banners, a grade vai de 25–30% até a máxima entre o banner entrar pela base da tela e o topo
+  dele chegar a um quarto da altura.
+- As linhas seguem a proporção do contêiner (`aspect-ratio`), reservada antes do JavaScript
+  (CLS 0). Cálculo de 3 a 6 ms por quadro na grade máxima. Sem movimento, tudo aparece inteiro.
 
 **Dados reais.** `scripts/update-contributions.mts` lê o HTML público do GitHub e grava
 `src/data/contributions.json` no `prebuild` (mantém o snapshot anterior se falhar). Os números
@@ -186,12 +190,17 @@ tela.
 ## 7b. Movimento
 
 - Cada cena anima a 20 quadros por segundo só enquanto aparece na tela e a aba está visível
-  (`IntersectionObserver` e `visibilitychange`). Cálculo de 0,2 a 2,2 ms por quadro.
-- A estrada não anda com o tempo: anda com a rolagem. O castelo ganha resolução com a rolagem.
+  (`IntersectionObserver` e `visibilitychange`).
+- A estrada não anda com o tempo: anda com a rolagem. Todas as cenas ganham resolução com a
+  rolagem.
+- Títulos se decifram em ASCII ao entrar na tela (`Decifrar`): cada letra passa pela rampa e
+  assenta, da esquerda para a direita. O texto real fica no DOM para leitor de tela e buscador.
+- Cards de projeto, títulos e marcos da trajetória sobem e aparecem com a rolagem (`.surgir`,
+  `animation-timeline: view()`, só CSS; sem suporte, ficam parados).
 - Brasas sobem atrás da página (só no tema escuro); o quadrado da faixa de status pulsa; o
   relógio de São Paulo se atualiza.
-- `prefers-reduced-motion: reduce`: cada cena desenha um quadro parado (a estrada aparece completa,
-  o castelo aparece na resolução máxima e o trecho alto do hero encolhe).
+- `prefers-reduced-motion: reduce`: cada cena desenha um quadro parado na resolução máxima (a
+  estrada aparece completa e o trecho alto do hero encolhe); títulos não se decifram e nada surge.
 
 ## 8. Qualidade verificada (25 nov 2026)
 
@@ -199,11 +208,11 @@ Lighthouse 12 contra a build servida pelo `wrangler dev`:
 
 | | Desempenho | Acessibilidade | Boas práticas | SEO |
 |---|---|---|---|---|
-| Celular | 97 | 100 | 100 | 100 |
+| Celular | 98 | 100 | 100 | 100 |
 | Desktop | 100 | 100 | 100 | 100 |
 
-LCP 2,3s no celular (simulado) e 0,5s no desktop; CLS 0; TBT 120ms no celular, com todas as cenas
-densas e o castelo a partir da imagem.
+LCP 2,3s no celular (simulado) e 0,5s no desktop; CLS 0; TBT 80ms no celular, com as seis cenas
+feitas de imagem (as dos banners só carregam perto da tela).
 
 - **Teclado:** o primeiro Tab mostra "Pular para o conteúdo"; a ordem segue a leitura (índice, tema,
   CTA, links, dados, repositórios, contato). Foco com contorno de 2px. `scroll-padding-top` evita que
@@ -224,7 +233,10 @@ densas e o castelo a partir da imagem.
 4. Mundo medieval em ASCII denso, como imagem renderizada em caracteres, tudo desenhado em código:
    aprovado, mas o pedido seguinte foi um hero "quase realista".
 5. Castelo convertido de uma imagem gerada no Figma, revelado pela rolagem (de poucos caracteres
-   grandes a milhares de pequenos): a versão atual do hero. As outras cenas seguem em código.
+   grandes a milhares de pequenos), com as outras cenas ainda em código: o pedido seguinte foi o
+   mesmo detalhe em todas e mais animação.
+6. As seis cenas feitas de imagem e reveladas pela rolagem, com a história de cada uma em código
+   por cima, títulos que se decifram e blocos que surgem: a versão atual.
 
 ## 10. Fora do sistema (removido)
 
