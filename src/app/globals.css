@@ -110,6 +110,27 @@
   color-scheme: light;
 }
 
+/* Janela para a noite: as cenas em ASCII são sempre noturnas. Dentro de .noite valem as
+   cores do tema escuro (os mesmos valores do @theme), inclusive quando a página está clara. */
+.noite {
+  --color-paper: #0b0c0e;
+  --color-plate: #131519;
+  --color-rule: #2a2e34;
+  --color-faint: #3a3f47;
+  --color-muted: #8d939c;
+  --color-ink: #e9ebee;
+  --color-signal: #ff6a13;
+  --color-on-signal: #0b0c0e;
+  color-scheme: dark;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+/* as brasas do fundo só existem na noite da página escura */
+:root[data-theme="light"] .brasas {
+  display: none;
+}
+
 @layer base {
   *,
   ::before,
