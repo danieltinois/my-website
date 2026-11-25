@@ -9,7 +9,7 @@
 @theme {
   /* tipografia: uma família mono; a largura (75–112,5%) faz o trabalho */
   --font-*: initial;
-  --font-mono: "Martian Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-mono: var(--font-martian), ui-monospace, Menlo, monospace;
 
   --font-weight-*: initial;
   --font-weight-regular: 400;

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import "@fontsource-variable/martian-mono/wdth.css";
 import { THEME_SCRIPT } from "@/src/lib/theme";
+import { mono } from "./fonts";
 
 const title = "Daniel Tinois, dev full stack";
 const description =
@@ -25,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     // escuro é o padrão; o script troca para o claro antes da pintura se a pessoa escolheu
-    <html lang="pt-BR" data-theme="dark" suppressHydrationWarning>
+    <html lang="pt-BR" data-theme="dark" className={mono.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
