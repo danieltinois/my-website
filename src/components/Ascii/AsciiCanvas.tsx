@@ -119,7 +119,7 @@ const AsciiCanvas = ({
     let mouse: Ponto | null = null;
     let cliques: Clique[] = [];
     let total = 0;
-    let dadosVivos: unknown = dados;
+    let dadosVivos: unknown = dados ?? {};
     const ponto = (e: PointerEvent): Ponto | null => {
       const r = canvas.getBoundingClientRect();
       const u = (e.clientX - r.left) / r.width;
@@ -246,7 +246,9 @@ const AsciiCanvas = ({
       }
       const { cols, rows, w, h, fonte, linha, dpr } = m;
       if (!cols) return;
-      const g = quadro({ cols, rows, t, p, dados: dadosVivos, mouse, cliques, total, parado: reduzir.matches, foco: lerFoco() });
+      // quadro parado (redimensionar, pausar): a imagem já inteira, sem refazer o surgir
+      const quadroFixo = t === quadroParado;
+      const g = quadro({ cols, rows, t, p, dados: quadroFixo ? { ...(dadosVivos as object), chegou: -9 } : dadosVivos, mouse, cliques, total, parado: reduzir.matches, foco: lerFoco() });
       if (g.lum) {
         // modo denso: copia do atlas o caractere e o tom de cada célula
         ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -335,7 +337,7 @@ const AsciiCanvas = ({
           if (!vivo) return;
           atualizar({ fonte: prepararFonte(data, width, height), chegou: agoraT() });
         })
-        .catch(() => {});
+        .catch((erro) => console.warn("ascii: falha ao carregar", imagem, erro));
       for (const [nome, url] of Object.entries(figuras ?? {})) {
         decodificar(url)
           .then(({ data, width, height }) => {
@@ -343,7 +345,7 @@ const AsciiCanvas = ({
             const atuais = (dadosVivos as DadosImagem).figuras;
             atualizar({ figuras: { ...atuais, [nome]: prepararSprite(data, width, height) } });
           })
-          .catch(() => {});
+          .catch((erro) => console.warn("ascii: falha ao carregar", url, erro));
       }
     };
     const perto = new IntersectionObserver(
