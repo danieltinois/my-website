@@ -101,6 +101,9 @@ export interface OpcoesFigura {
   gama?: number;
   brilho?: number;
   calor?: number;
+  // virando no lugar: o desenho encolhe na horizontal para k (0..1] em torno do eixo vertical x
+  // do mundo, como um perfil que gira (k = 1 é de lado; perto de 0, de frente ou de costas)
+  giro?: { x: number; k: number };
 }
 
 // posição no mundo de um ponto q da folha sobre uma parte colocada (para encadear as partes)
@@ -119,8 +122,10 @@ export const figura = (T: Tela, s: Sprite | undefined, partes: Colocada[], o: Op
   const brilho = o.brilho ?? 1;
   const calor = o.calor ?? 1;
   const sinal = o.flip ? -1 : 1;
-  // meia célula no mundo
-  const hx = A / cols / 2;
+  const gx = o.giro?.x ?? 0;
+  const gk = Math.max(0.05, o.giro?.k ?? 1);
+  // meia célula no mundo (antes do giro, a célula é gk vezes mais larga)
+  const hx = A / cols / 2 / gk;
   const hy = 1 / rows / 2;
   for (const p of partes) {
     const { caixa, pivo } = p.parte;
@@ -140,6 +145,8 @@ export const figura = (T: Tela, s: Sprite | undefined, partes: Colocada[], o: Op
         my1 = Math.max(my1, e.y);
       }
     }
+    mx0 = gx + (mx0 - gx) * gk;
+    mx1 = gx + (mx1 - gx) * gk;
     const cx0 = Math.max(0, Math.floor((mx0 / A) * cols - 0.5));
     const cx1 = Math.min(cols - 1, Math.ceil((mx1 / A) * cols));
     const cy0 = Math.max(0, Math.floor(my0 * rows - 0.5));
@@ -150,7 +157,7 @@ export const figura = (T: Tela, s: Sprite | undefined, partes: Colocada[], o: Op
     for (let y = cy0; y <= cy1; y++) {
       for (let x = cx0; x <= cx1; x++) {
         // célula → folha: desfaz a rotação e o flip em torno do pivô
-        const dx = Xde(T, x) - p.em.x;
+        const dx = gx + (Xde(T, x) - gx) / gk - p.em.x;
         const dy = Yde(T, y) - p.em.y;
         const qx = pivo.x + ((dx * cos + dy * sin) / o.esc) * sinal;
         const qy = pivo.y + (-dx * sin + dy * cos) / o.esc;

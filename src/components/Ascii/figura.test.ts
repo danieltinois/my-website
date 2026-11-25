@@ -92,6 +92,16 @@ describe("figura", () => {
     assert.ok(v > 0.3 && v < 0.7, `lum ${v}`);
   });
 
+  it("turning squeezes it around the axis", () => {
+    const largura = (T: ReturnType<typeof tela>) => T.c.lum.slice(10 * 40, 11 * 40).filter((l) => l > 0.5).length;
+    const de = tela(40, 20);
+    figura(de, folhaBranca(), [{ parte: quadrado, em: centro(de), ang: 0 }], { esc: 0.5 });
+    const girando = tela(40, 20);
+    figura(girando, folhaBranca(), [{ parte: quadrado, em: centro(girando), ang: 0 }], { esc: 0.5, giro: { x: centro(girando).x, k: 0.5 } });
+    assert.ok(Math.abs(largura(girando) - largura(de) / 2) <= 1, `${largura(girando)} de ${largura(de)}`);
+    assert.ok(girando.c.lum[10 * 40 + 20] > 0.9);
+  });
+
   it("never samples outside its box", () => {
     const s = prepararSprite(imagem(20, 10, (x) => (x < 10 ? BRANCO : [0, 0, 0])), 20, 10);
     const preta: Parte = { caixa: { x0: 1, y0: 0, x1: 2, y1: 1 }, pivo: { x: 1.5, y: 0.5 } };
