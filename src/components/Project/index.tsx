@@ -2,12 +2,16 @@ import AsciiCanvas from "@/src/components/Ascii/AsciiCanvas";
 import type { NomeCena } from "@/src/components/Ascii/cenas";
 import type { Projeto } from "@/src/data/site";
 
-// cada projeto é um lugar do mundo medieval; a descrição vai para o leitor de tela
-const CENAS: Record<string, { cena: NomeCena; dica: string; descricao: string }> = {
+// cada projeto é um lugar do mundo medieval; a descrição vai para o leitor de tela. Cenas com
+// personagens de foto levam as folhas deles (`figuras`, objeto fixo do módulo: o AsciiCanvas
+// recarrega quando ele muda) e animam a 30 quadros por segundo; as outras ficam em 20.
+const CENAS: Record<string, { cena: NomeCena; dica: string; descricao: string; figuras?: Record<string, string>; fps?: number }> = {
   devclean: {
     cena: "porao",
     dica: "clique para limpar de novo",
-    descricao: "Ilustração: no porão, um varredor leva só os sacos de cache seguros para a carroça da Lixeira; o saco marcado para revisão fica.",
+    descricao: "Ilustração: no porão, um velho encurvado varre devagar os três sacos de cache seguros até a carroça da Lixeira; o saco marcado para revisão fica.",
+    figuras: { velho: "/cenas/figuras/velho.webp" },
+    fps: 30,
   },
   "pato-commit": {
     cena: "torre",
@@ -42,7 +46,15 @@ const Project = ({ projeto, n }: { projeto: Projeto; n: string }) => {
     >
       <div className="noite relative border-b">
         <div data-revelar className="aspect-[2/1] lg:aspect-[3/1]" role="img" aria-label={CENAS[projeto.id].descricao}>
-          <AsciiCanvas cena={CENAS[projeto.id].cena} imagem={`/cenas/${CENAS[projeto.id].cena}.webp`} grades={GRADE} revelar={0.25} interativa />
+          <AsciiCanvas
+            cena={CENAS[projeto.id].cena}
+            imagem={`/cenas/${CENAS[projeto.id].cena}.webp`}
+            figuras={CENAS[projeto.id].figuras}
+            fps={CENAS[projeto.id].fps}
+            grades={GRADE}
+            revelar={0.25}
+            interativa
+          />
         </div>
         <span className="pointer-events-none absolute top-3 left-4 text-caption font-stretch-condensed tabular-nums text-muted">[{n}]</span>
         <span className="pointer-events-none absolute right-4 bottom-3 hidden text-caption text-muted sm:inline">
