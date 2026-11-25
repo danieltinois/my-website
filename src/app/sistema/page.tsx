@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import ContributionCurve from "@/src/components/ContributionCurve";
 
 // amostra do sistema de design (docs/design.md). Página de trabalho: não indexa.
 export const metadata: Metadata = {
@@ -173,6 +174,10 @@ export default function Sistema() {
             Figura 1. Exemplo de figura: curva de dados em ink, grade em rule, um marcador em signal.
           </figcaption>
         </figure>
+      </Section>
+
+      <Section n="5" title="Peça-assinatura">
+        <ContributionCurve />
       </Section>
     </main>
   );
