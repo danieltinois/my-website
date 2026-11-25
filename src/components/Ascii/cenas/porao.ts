@@ -278,7 +278,7 @@ export const porao = ({ cols, rows, t, p, dados, parado, mouse, cliques }: Entra
 
   // a história da limpeza
   const uc = ultimo(cliques);
-  const c = uc && t - uc.t < CICLO ? t - uc.t : t % CICLO;
+  const c = uc ? (t - uc.t) % CICLO : t % CICLO;
 
   // o velho num instante do ciclo: o corpo gira em volta dos pés; braços e vassoura são uma peça
   // só presa no ombro, num ângulo que deixa a palha no chão (ou na altura em que ele a segura);
