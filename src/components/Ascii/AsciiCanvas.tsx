@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { CENAS, type NomeCena } from "./cenas";
-import { RAMPA } from "./denso";
+import { K, prepararFonte, RAMPA } from "./denso";
 
 // Desenha uma cena em ASCII num canvas, com a fonte do site e as cores do tema (lidas do
 // próprio canvas, então dentro de .noite valem as cores da noite). Só anima enquanto aparece
@@ -16,6 +16,11 @@ import { RAMPA } from "./denso";
 // Interação: a cena recebe a posição do ponteiro (`mouse`, u e v de 0 a 1 na área do canvas) e
 // os cliques recentes com o instante de cada um. `global` escuta o ponteiro na janela toda (para
 // o fundo, que não recebe eventos). Com reduced motion não há interação: a cena fica parada.
+// Imagem: `imagem` é a URL de uma imagem-fonte; ela é decodificada aqui e chega à cena como
+// `dados.fonte` (brilho e calor em tabelas de soma acumulada).
+// Revelação: com `revelar` (fração inicial, de 0 a 1), a resolução vai dessa fração da grade até
+// a grade inteira conforme a pessoa rola pelo ancestral [data-revelar], e as linhas acompanham a
+// proporção do contêiner (o canvas pode ter qualquer altura).
 
 interface Grade {
   mq: string;
@@ -33,6 +38,8 @@ interface Props {
   className?: string;
   interativa?: boolean;
   global?: boolean;
+  imagem?: string;
+  revelar?: number;
 }
 
 export interface Ponto {
@@ -45,6 +52,9 @@ export interface Clique extends Ponto {
 
 const FPS = 20;
 
+// começa devagar e acelera: os primeiros passos da rolagem já mostram mudança, sem pular etapas
+const passoSuave = (p: number) => 1 - (1 - p) * (1 - p);
+
 const AsciiCanvas = ({
   cena,
   dados,
@@ -55,6 +65,8 @@ const AsciiCanvas = ({
   className = "",
   interativa = false,
   global = false,
+  imagem,
+  revelar,
 }: Props) => {
   const ref = useRef<HTMLCanvasElement>(null);
 
@@ -97,6 +109,7 @@ const AsciiCanvas = ({
     let mouse: Ponto | null = null;
     let cliques: Clique[] = [];
     let total = 0;
+    let dadosVivos: unknown = dados;
     const ponto = (e: PointerEvent): Ponto | null => {
       const r = canvas.getBoundingClientRect();
       const u = (e.clientX - r.left) / r.width;
@@ -154,6 +167,14 @@ const AsciiCanvas = ({
     };
 
     const progresso = () => {
+      if (revelar !== undefined) {
+        // sem movimento, a cena já aparece inteira
+        if (reduzir.matches) return 1;
+        const alvo = canvas.closest("[data-revelar]");
+        if (!alvo) return 1;
+        const r = alvo.getBoundingClientRect();
+        return Math.max(0, Math.min(1, -r.top / Math.max(1, r.height - innerHeight)));
+      }
       if (!rolagem) return 1;
       const alvo = canvas.closest("section");
       // fora de uma seção (o fundo da página): o progresso é o da página inteira
@@ -171,7 +192,13 @@ const AsciiCanvas = ({
       const proporcao = ctx.measureText("M").width / 100;
       let cols: number;
       let rows: number;
-      if (celula) {
+      if (revelar !== undefined) {
+        // grade da revelação: fração da grade máxima, linhas pela proporção real do contêiner
+        const g = grades!.find((x) => matchMedia(x.mq).matches) ?? grades!.at(-1)!;
+        const fr = revelar + (1 - revelar) * passoSuave(progresso());
+        cols = Math.max(8, Math.round((g.cols * fr) / 4) * 4);
+        rows = Math.max(4, Math.round((cols * K * height) / width));
+      } else if (celula) {
         cols = Math.max(1, Math.round(width / celula.w));
         rows = Math.max(1, Math.round(height / celula.h));
       } else {
@@ -187,9 +214,15 @@ const AsciiCanvas = ({
     };
 
     const desenhar = (t: number, p = progresso()) => {
+      // na revelação, a grade muda com a rolagem: refaz medidas e atlas quando muda
+      if (revelar !== undefined && m.cols) {
+        const g = grades!.find((x) => matchMedia(x.mq).matches) ?? grades!.at(-1)!;
+        const alvo = Math.max(8, Math.round((g.cols * (revelar + (1 - revelar) * passoSuave(p))) / 4) * 4);
+        if (alvo !== m.cols) medir();
+      }
       const { cols, rows, w, h, fonte, linha, dpr } = m;
       if (!cols) return;
-      const g = quadro({ cols, rows, t, p, dados, mouse, cliques, total });
+      const g = quadro({ cols, rows, t, p, dados: dadosVivos, mouse, cliques, total });
       if (g.lum) {
         // modo denso: copia do atlas o caractere e o tom de cada célula
         ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -231,7 +264,7 @@ const AsciiCanvas = ({
     const sincronizar = () => {
       cancelAnimationFrame(raf);
       if (reduzir.matches || !visivel || document.hidden) {
-        desenhar(quadroParado, reduzir.matches && rolagem ? 1 : undefined);
+        desenhar(quadroParado, reduzir.matches && (rolagem || revelar !== undefined) ? 1 : undefined);
         return;
       }
       raf = requestAnimationFrame(laco);
@@ -252,6 +285,28 @@ const AsciiCanvas = ({
     });
 
     let vivo = true;
+    // imagem-fonte: decodifica fora da tela e vira brilho e calor para a cena
+    if (imagem) {
+      const img = new Image();
+      img.decoding = "async";
+      img.src = imagem;
+      img
+        .decode()
+        .then(() => {
+          if (!vivo) return;
+          const off = document.createElement("canvas");
+          off.width = img.naturalWidth;
+          off.height = img.naturalHeight;
+          const o = off.getContext("2d", { willReadFrequently: true })!;
+          o.drawImage(img, 0, 0);
+          const { data } = o.getImageData(0, 0, off.width, off.height);
+          dadosVivos = { ...(dados as object), fonte: prepararFonte(data, off.width, off.height) };
+          desenhar(reduzir.matches ? quadroParado : agoraT(), reduzir.matches && revelar !== undefined ? 1 : undefined);
+        })
+        .catch(() => {
+          // sem a imagem a cena fica vazia; o texto do hero continua lá
+        });
+    }
     document.fonts.ready.then(() => {
       if (!vivo) return;
       familia = getComputedStyle(canvas).fontFamily;
@@ -286,7 +341,7 @@ const AsciiCanvas = ({
       canvas.removeEventListener("pointerleave", sair);
       canvas.removeEventListener("pointerdown", clicar);
     };
-  }, [cena, dados, grades, celula, rolagem, quadroParado, interativa, global]);
+  }, [cena, dados, grades, celula, rolagem, quadroParado, interativa, global, imagem, revelar]);
 
   return (
     <canvas
