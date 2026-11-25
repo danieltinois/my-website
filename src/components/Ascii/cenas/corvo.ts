@@ -3,10 +3,11 @@
 // neblina rolando no vale, a árvore balançando ao vento, o lampião do poste tremulando com
 // mariposas em volta e a história: um corvo feito de foto (public/cenas/figuras/corvo.webp) chega
 // da direita batendo as asas (desce rápido, sobe devagar), vira em frente à lua como uma silhueta
-// recortada, sobe até o alto do poste freando com as asas abertas e pousa. Fecha a asa, sacode a
-// cauda, solta a carta do bico na caixa de correio e olha em volta aos trancos (uma vez por cima
-// do ombro); então agacha, salta virando e vai embora. Contra o céu escuro, a borda virada para a
-// lua acende. Ciclo de 10s; um clique o faz levantar voo na hora.
+// recortada, sobe até o alto do poste freando com as asas abertas e estica as pernas ao pousar.
+// Fecha a asa, sacode a cauda, solta a carta do bico na caixa de correio e olha em volta aos
+// trancos (uma vez por cima do ombro); então agacha, salta virando, abre a asa, recolhe as pernas
+// e vai embora. Contra o céu escuro, a borda virada para a lua acende. Ciclo de 10s; um clique o
+// faz levantar voo: na hora se já entregou a carta, ou logo depois de entregá-la se ainda chega.
 
 import {
   acender,
@@ -22,8 +23,8 @@ import {
   pontoMundo,
   ruido,
   tela,
-  ultimo,
   type Campo,
+  type Clique,
   type DadosImagem,
   type Entrada,
   type Tela,
@@ -53,10 +54,12 @@ const PE = F(105, 472); // no corpo: entre os dedos, o que agarra o alto do post
 const PESCOCO = F(52, 112); // no corpo: o toco do pescoço, onde a cabeça se encaixa
 const OMBRO = F(95, 190); // no corpo: o alto da asa dobrada, onde a asa aberta se prende
 const RAIZ = F(225, 352); // no corpo: de onde sai a cauda
+const QUADRIL = F(135, 400); // no corpo: onde as canelas saem das penas da barriga
 // o corpo em três caixas (a da cabeça invade a coluna do corpo, mas não a sua altura): o tronco,
-// as canelas com os dedos (somem no voo) e a cauda em leque, que gira na raiz
+// as canelas com os dedos (crescem do quadril ao pousar e se recolhem no voo) e a cauda em leque,
+// que gira na raiz
 const CORPO: Parte = { caixa: caixa(15, 77, 322, 400), pivo: CENTRO };
-const PERNAS: Parte = { caixa: caixa(15, 400, 196, 501), pivo: CENTRO };
+const PERNAS: Parte = { caixa: caixa(15, 400, 196, 501), pivo: QUADRIL };
 const CAUDA: Parte = { caixa: caixa(196, 330, 376, 501), pivo: RAIZ };
 const CABECA: Parte = { caixa: caixa(320, 160, 551, 342), pivo: F(478, 296) }; // pende do pescoço
 const ASA: Parte = { caixa: caixa(608, 47, 1018, 451), pivo: F(632, 212) }; // presa no ombro
@@ -87,6 +90,7 @@ const SOLTA = 3.6; // solta a carta
 const QUEDA = 0.8;
 const PASSO_OLHAR = 1.3;
 const PARTE = 7; // levanta voo
+const ENTREGUE = SOLTA + QUEDA * 1.6; // a carta na caixa e o brilho dela apagado
 const REPOUSO = 3.45; // com movimento reduzido: pousado, com a carta no bico
 
 // a batida: desce rápido e sobe devagar (a fase anda mais depressa perto da descida)
@@ -96,6 +100,17 @@ const bate = (t: number) => {
 };
 // para onde a cabeça se inclina no passo n de olhar em volta (-1: a pose do voo)
 const olhar = (n: number) => (n < 0 ? 0 : OLHAR * Math.sin(n * 2.4 + 4));
+// a cabeça pousada, d segundos depois de pousar: a inclinação aos trancos (segura e vira) e `volta`,
+// de 0 a 2, que vira a cabeça para trás por cima do ombro (perto de 1) e de volta
+const cabecaPousado = (d: number) => {
+  const n = Math.floor(d / PASSO_OLHAR);
+  return {
+    cabeca: olhar(n - 1) + (olhar(n) - olhar(n - 1)) * passo(0, 0.15, d - n * PASSO_OLHAR),
+    volta: passo(1.3, 1.5, d) + passo(2.3, 2.5, d),
+  };
+};
+// a cabeça ao partir no fim do ciclo (sem clique)
+const SAIDA = cabecaPousado(PARTE - CHEGA);
 
 interface Momento {
   centro: Pto; // onde fica o CENTRO do corpo (mundo)
@@ -103,8 +118,8 @@ interface Momento {
   giro: number; // 1 de perfil; perto de 0, virando
   corpo: number;
   asa: number | null; // null: fechada (só a dobrada, do corpo)
-  abre: number; // escala da asa aberta (encolhe ao dobrar)
-  pernas: boolean;
+  abre: number; // escala da asa aberta (encolhe ao dobrar, cresce ao abrir)
+  pernas: number; // escala das canelas (0 recolhidas, 1 no poste)
   cauda: number;
   cabeca: number;
   olha: number; // a cabeça sozinha virando para trás (1 de perfil)
@@ -113,9 +128,16 @@ interface Momento {
 
 // o corvo num instante do ciclo. Os ângulos são para ele olhando à esquerda (o desenho espelha).
 // `de` é a entrada, `lua` a frente da lua, `pouso` o centro do corpo com os pés no poste, `ate` a
-// saída; `h` é a altura da imagem no mundo
-const momento = (c: number, t: number, parado: boolean, P: { de: Pto; lua: Pto; pouso: Pto; ate: Pto; h: number }): Momento => {
-  const pousado: Momento = { centro: P.pouso, lado: -1, giro: 1, corpo: 0, asa: null, abre: 1, pernas: true, cauda: 0, cabeca: 0, olha: 1, costas: false };
+// saída; `h` é a altura da imagem no mundo e `perna` a do quadril aos dedos. `saida` é a cabeça no
+// instante em que ele levanta voo (o clique o faz partir de qualquer pose pousada)
+const momento = (
+  c: number,
+  t: number,
+  parado: boolean,
+  P: { de: Pto; lua: Pto; pouso: Pto; ate: Pto; h: number; perna: number },
+  saida = SAIDA,
+): Momento => {
+  const pousado: Momento = { centro: P.pouso, lado: -1, giro: 1, corpo: 0, asa: null, abre: 1, pernas: 1, cauda: 0, cabeca: 0, olha: 1, costas: false };
   if (parado) return pousado;
   if (c < CHEGA) {
     // vem da direita desacelerando até a lua, vira ali e sobe até o poste, freando com as asas
@@ -124,7 +146,7 @@ const momento = (c: number, t: number, parado: boolean, P: { de: Pto; lua: Pto; 
     let y: number;
     let corpo = VOO;
     let asa = ASA0 + bate(t);
-    let pernas = false;
+    let pernas = 0;
     if (c < VIRA) {
       const u = Math.sin(((c / VIRA) * Math.PI) / 2);
       x = P.de.x + (P.lua.x - P.de.x) * u;
@@ -136,48 +158,56 @@ const momento = (c: number, t: number, parado: boolean, P: { de: Pto; lua: Pto; 
       y = P.lua.y + (P.pouso.y - P.lua.y) * k;
       corpo = VOO * (1 - passo(0.55, 1, u));
       asa += (ASA0 - 1 - asa) * passo(0.5, 0.85, u);
-      pernas = u > 0.7;
+      // as canelas descem do quadril e se esticam inteiras quando os dedos tocam o poste
+      pernas = passo(0.7, 1, u);
     }
     const v = passo(VIRA - 0.3, VIRA + 0.3, c);
     return { ...pousado, centro: { x, y }, lado: v < 0.5 ? 1 : -1, giro: Math.abs(Math.cos(Math.PI * v)), corpo, asa, pernas, cabeca: (corpo / VOO) * CABECA_VOO };
   }
   if (c < PARTE) {
-    // pousado: fecha a asa, sacode a cauda uma vez e olha em volta aos trancos (segura e vira),
-    // uma vez para trás por cima do ombro
+    // pousado: fecha a asa (deita sobre a dobrada e encolhe até sumir nela), sacode a cauda uma
+    // vez e olha em volta aos trancos, uma vez para trás por cima do ombro
     const d = c - CHEGA;
     const fecha = passo(0, 0.3, d);
-    const n = Math.floor(d / PASSO_OLHAR);
-    const cabeca = olhar(n - 1) + (olhar(n) - olhar(n - 1)) * passo(0, 0.15, d - n * PASSO_OLHAR);
-    const volta = passo(1.3, 1.5, d) + passo(2.3, 2.5, d);
+    const { cabeca, volta } = cabecaPousado(d);
     return {
       ...pousado,
       asa: d < 0.3 ? ASA0 - 1 + (DOBRA - ASA0 + 1) * fecha : null,
-      abre: 1 - 0.5 * fecha,
+      abre: 1 - 0.9 * fecha,
       cauda: RABO * Math.sin(Math.PI * Math.min(1, d / 0.45)) ** 2,
       cabeca,
       olha: Math.abs(Math.cos(Math.PI * volta)),
       costas: volta > 0.5 && volta < 1.5,
     };
   }
-  // parte: agacha, salta virando para a esquerda, abre a asa, cai um pouco e vai embora subindo
+  // parte: agacha (as canelas dobram, os dedos ficam no poste), salta virando para a esquerda,
+  // abre a asa (cresce do ombro, desdobrando de cima da dobrada), recolhe as canelas, cai um pouco
+  // e vai embora subindo; a cabeça sai da pose em que estava
   const d = c - PARTE;
   const agacha = d < 0.25 ? Math.sin((Math.PI * d) / 0.25) : 0;
+  const desce = P.h * 0.006 * agacha;
   const k = Math.max(0, d - 0.15) / (CICLO - PARTE - 0.15);
   const x = P.pouso.x + (P.ate.x - P.pouso.x) * k ** 1.7;
-  const y = P.pouso.y + (P.ate.y - P.pouso.y) * k ** 1.3 + P.h * (0.04 * Math.sin(Math.PI * passo(0, 1 / 3, k)) + 0.006 * agacha);
+  const y = P.pouso.y + (P.ate.y - P.pouso.y) * k ** 1.3 + P.h * 0.04 * Math.sin(Math.PI * passo(0, 1 / 3, k)) + desce;
   const corpo = VOO * passo(0.1, 0.5, d) - 0.1 * agacha;
-  const abre = passo(0.05, 0.3, d);
+  const abre = passo(0, 0.3, d);
   const v = passo(0.2, 0.6, d);
+  // a cabeça virada para trás volta para a frente (ou termina de voltar) nos primeiros 0,2s
+  const volta = saida.volta + ((saida.volta < 1 ? 0 : 2) - saida.volta) * passo(0, 0.2, d);
   return {
     ...pousado,
     centro: { x, y },
     lado: v < 0.5 ? -1 : 1,
     giro: Math.abs(Math.cos(Math.PI * v)),
     corpo,
-    asa: d < 0.05 ? null : DOBRA + (ASA0 + bate(t) - DOBRA) * abre,
-    abre: 0.5 + 0.5 * abre,
-    pernas: d < 0.5,
-    cabeca: olhar(Math.floor((PARTE - CHEGA) / PASSO_OLHAR)) * (1 - passo(0, 0.3, d)) + (corpo / VOO) * CABECA_VOO,
+    asa: DOBRA + (ASA0 + bate(t) - DOBRA) * abre,
+    abre: 0.1 + 0.9 * abre,
+    // os dedos largam o poste quando ele começa a andar (0,15s): até lá as canelas dobram com a
+    // agachada; depois se recolhem
+    pernas: (1 - desce / P.perna) * (1 - passo(0.15, 0.45, d)),
+    cabeca: saida.cabeca * (1 - passo(0, 0.3, d)) + (corpo / VOO) * CABECA_VOO,
+    olha: Math.abs(Math.cos(Math.PI * volta)),
+    costas: volta > 0.5 && volta < 1.5,
   };
 };
 
@@ -187,7 +217,7 @@ const montar = (m: Momento, esc: number, tom: Partial<OpcoesFigura>) => {
   const o: OpcoesFigura = { ...tom, esc, flip: m.lado < 0, giro: { x: m.centro.x, k: m.giro } };
   const corpo: Colocada = { parte: CORPO, em: m.centro, ang: m.lado * m.corpo };
   const cauda: Colocada = { parte: CAUDA, em: encaixar(corpo, RAIZ, o), ang: m.lado * (m.corpo + m.cauda) };
-  const pernas: Colocada = { parte: PERNAS, em: m.centro, ang: corpo.ang };
+  const pernas: Colocada = { parte: PERNAS, em: encaixar(corpo, QUADRIL, o), ang: corpo.ang };
   const pescoco = encaixar(corpo, PESCOCO, o);
   // a cabeça vira sozinha (olhando para trás) em volta do pescoço; com o corpo virando, vai junto
   const lc = m.costas ? -m.lado : m.lado;
@@ -197,7 +227,7 @@ const montar = (m: Momento, esc: number, tom: Partial<OpcoesFigura>) => {
   const g = oc.giro!;
   const ponta = encaixar(cabeca, BICO, oc);
   const bico = { x: g.x + (ponta.x - g.x) * g.k, y: ponta.y, lado: lc };
-  return { o, oc, oa: { ...o, esc: esc * m.abre }, tronco: m.pernas ? [cauda, corpo, pernas] : [cauda, corpo], cabeca, asa, bico };
+  return { o, oc, oa: { ...o, esc: esc * m.abre }, op: { ...o, esc: esc * m.pernas }, tronco: [cauda, corpo], pernas, cabeca, asa, bico };
 };
 
 // a luz na borda: as células da silhueta com uma vizinha de fora, do lado virado para uma luz,
@@ -250,6 +280,52 @@ const aro = (T: Tela, centro: Pto, r: number, lua: Pto, rl: number, fontes: Font
     },
     { x0: centro.x - r, x1: centro.x + r, y0: centro.y - r, y1: centro.y + r },
   );
+};
+
+const mod = (v: number) => ((v % CICLO) + CICLO) % CICLO;
+
+// memória dos cliques entre quadros (há um corvo só na página): o ciclo corre deslocado de
+// `desloca`, um salto pode esperar o pouso (`espera`) e `saida` guarda quando e com que cabeça
+// ele partiu por um clique
+const memoria = {
+  t: -Infinity,
+  visto: -Infinity,
+  desloca: 0,
+  espera: null as number | null, // quando o salto acontece
+  saida: { t: -Infinity, ...SAIDA },
+};
+
+// o instante do ciclo, ouvindo os cliques: pousado depois de entregar a carta, ele levanta voo na
+// hora; chegando (ou soltando a carta), termina a entrega e parte assim que ela cai na caixa;
+// já indo embora, o clique não muda nada. Um salto do relógio para trás (outro canvas, quadro
+// parado) recomeça a memória e relê os cliques
+const ouvir = (t: number, cliques: Clique[]) => {
+  const M = memoria;
+  if (t < M.t - 1) {
+    M.visto = -Infinity;
+    M.desloca = 0;
+    M.espera = null;
+    M.saida = { t: -Infinity, ...SAIDA };
+  }
+  M.t = t;
+  const partir = (quando: number, c: number) => {
+    M.desloca = PARTE - quando;
+    M.espera = null;
+    M.saida = { t: quando, ...cabecaPousado(c - CHEGA) };
+  };
+  const vence = (ate: number) => {
+    if (M.espera !== null && M.espera <= ate) partir(M.espera, ENTREGUE);
+  };
+  for (const q of cliques) {
+    if (q.t <= M.visto || q.t > t) continue;
+    M.visto = q.t;
+    vence(q.t);
+    const c = mod(q.t + M.desloca);
+    if (c < ENTREGUE) M.espera = q.t + ENTREGUE - c;
+    else if (c < PARTE) partir(q.t, c);
+  }
+  vence(t);
+  return mod(t + M.desloca);
 };
 
 // carta: retângulo claro com o lacre quente
@@ -312,9 +388,9 @@ export const corvo = ({ cols, rows, t, p, dados, parado, mouse, cliques }: Entra
   }
 
   // o corvo: chega da direita cruzando a lua, pousa no poste, solta a carta e vai embora. O clique
-  // o faz levantar voo na hora, e a história segue dali
-  const uc = ultimo(cliques);
-  const c = parado ? REPOUSO : uc ? (t - uc.t + PARTE) % CICLO : t % CICLO;
+  // o faz levantar voo (veja `ouvir`), e a história segue dali
+  const c = parado ? REPOUSO : ouvir(t, cliques);
+  const pressa = !parado && c >= PARTE && Math.abs(t - (c - PARTE) - memoria.saida.t) < 1e-6;
   const sprite = dados.figuras?.corvo;
   const escAve = (s * 0.15) / COMPRIMENTO; // o comprimento do antigo (0,15 s), do bico à cauda
   const poste = para(POSTE.x, POSTE.y);
@@ -327,11 +403,13 @@ export const corvo = ({ cols, rows, t, p, dados, parado, mouse, cliques }: Entra
     pouso: { x: poste.x + (PE.x - CENTRO.x) * escAve, y: poste.y - (PE.y - CENTRO.y) * escAve },
     ate: { x: -e(0.3), y: e(0.03) },
     h: e(1),
+    perna: (PE.y - QUADRIL.y) * escAve,
   };
-  const m = momento(c, t, parado, pontos);
+  const m = momento(c, t, parado, pontos, pressa ? memoria.saida : SAIDA);
   const tom = { gama: GAMA, brilho: surgir * BRILHO, contorno: CONTORNO * surgir };
   const ave = montar(m, escAve, tom);
   figura(T, sprite, ave.tronco, ave.o);
+  if (m.pernas > 0.05) figura(T, sprite, [ave.pernas], ave.op);
   figura(T, sprite, [ave.cabeca], ave.oc);
   if (ave.asa) figura(T, sprite, [ave.asa], ave.oa);
   if (sprite) {
