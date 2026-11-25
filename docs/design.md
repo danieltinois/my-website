@@ -1,9 +1,11 @@
 # Sistema de design
 
-O site parece **o painel de um dev ao vivo**: escuro, uma fonte mono, uma cor de destaque e uma
-peça grande que se mexe com dados reais. A referência de energia é o hackbrasil.com; o que separa
-este site dele é o conteúdo (as contribuições e os projetos do Daniel viram a arte), a cor
-(laranja de segurança, não verde) e a fonte (Martian Mono, não JetBrains Mono).
+O site é **um mundo medieval à noite, desenhado em ASCII**, dentro de uma interface de dev
+(escura, uma fonte mono, um destaque). Cada parte do site é um lugar desse mundo, renderizado como
+imagem de luz feita de caracteres, no nível de detalhe de um jogo em ASCII: o castelo do hero, o
+porão do DevClean, a torre do correio do Pato Commit, o escriba do resume-tailor, a estrada da
+trajetória e o corvo do contato. A história de origem (plugins de Minecraft em 2020) justifica o
+mundo; o conteúdo continua em texto, legível para recrutador e buscador.
 
 Os tokens vivem em `src/app/globals.css` (`@theme`). O `@theme` zera os namespaces padrão do
 Tailwind (`--color-*`, `--text-*`, `--spacing-*`, `--radius-*`, `--shadow-*`...), então **só o que
@@ -111,40 +113,69 @@ compartilham borda (`border-t border-l` no contêiner, `border-r border-b` nas c
 ## 5. Motivos recorrentes
 
 1. **Marcadores entre colchetes.** Seções `[01]`, `[02]`, `[03]` no título e no índice; projetos
-   `[1.1]`, `[1.2]`, `[1.3]` no canto da arte.
-2. **Arte feita de caracteres, com tema do próprio dono.** O campo de contribuições e as três artes
-   dos projetos usam só caracteres da fonte; cada uma ilustra o que o projeto faz (DevClean varre
-   caches, Pato Commit descarta entregas repetidas, resume-tailor reordena experiências). As artes
-   dos projetos levam o rótulo "ilustração".
-3. **Grade de dados em caixas de 1px.** Estatísticas do hero, especificações, parâmetros dos
-   projetos e trajetória usam a mesma grade de células.
+   `[1.1]`, `[1.2]`, `[1.3]` no canto do banner da cena.
+2. **Janelas para a noite.** Toda cena fica num bloco `.noite`: sempre noturno, inclusive no tema
+   claro, onde vira um retângulo escuro dentro da página clara.
+3. **Grade de dados em caixas de 1px.** Estatísticas, especificações, parâmetros e trajetória.
+4. **Fogo é o laranja.** Dentro das cenas, o `signal` só aparece como luz de fogo: tochas, janelas,
+   fogueira, vela, braseiro, lampiões.
 
-## 6. Peça-assinatura: o campo de contribuições
+## 6. As cenas e a técnica
 
-As contribuições públicas no GitHub dos últimos 12 meses viram um campo de caracteres de 53
-colunas (semanas) por 20 linhas.
+**Técnica (modo denso, `src/components/Ascii/denso.ts`).** Cada cena calcula, por célula, uma
+luminância (0–1) e um calor (0 = luar, 1 = fogo) num mundo de coordenadas contínuas (X de 0 a A,
+Y de 0 a 1). Uma curva de exposição levanta os meios-tons; a luminância escolhe o caractere numa
+rampa alfanumérica (` .,:;i1?7tPO09#@`) e o tom de cinza; o calor puxa o tom para o laranja. O
+`AsciiCanvas` desenha com um atlas de glifos (cada caractere em cada tom é pintado uma vez), então
+cada quadro é só cópia de pedaços. Ferramentas compartilhadas: céu com lua e estrelas, luz quente,
+chama de ruído, pedra com fiadas, névoa, figuras (pessoa, elipse, triângulo, traço) e dígitos em
+pixel-font 3×5 (o único texto legível dentro das cenas).
 
-- **Dados reais, sem token.** `scripts/update-contributions.mts` lê o HTML público do GitHub
-  (cada dia tem a contagem no tooltip) e grava `src/data/contributions.json`. Roda no `prebuild`;
-  se o GitHub falhar ou o HTML mudar de formato, mantém o snapshot anterior e a build segue.
-- **Desenho (`toField` em `src/lib/contributions.ts`):** a altura da coluna é proporcional às
-  contribuições da semana; dentro dela o caractere fica mais denso perto do topo
-  (`@ # * + = - :`), e acima só há pontos em `faint`. O topo de cada coluna fica em `ink`.
-- **Uma marca em `signal`:** a semana de 24–29 set, quando começam os três projetos
-  (`src/data/curva.ts`), com rótulo e linha de chamada. Some sozinha quando sai da janela.
-- **Embaixo:** quatro números calculados (total, dias com contribuição, maior sequência, semana
-  mais intensa) e a tabela completa em "ver os dados por semana", para leitor de tela e conferência.
-- **Zero JavaScript.** É componente de servidor; o campo sai pronto da build.
+| Cena | Onde | Grade (desktop) | O que acontece |
+|---|---|---|---|
+| `castelo` | hero | 260×80 | castelo no penhasco, cachoeira, floresta, lago com reflexo e trilha de luar, raios de lua, dragão a cada 18s; as montanhas são as contribuições reais e a fogueira marca 24–29 set |
+| `porao` | DevClean | 300×54 | varredor leva os três sacos seguros à carroça da Lixeira; o saco "?" fica |
+| `torre` | Pato Commit | 300×54 | pombos entregam cartas na janela; a repetida queima no braseiro |
+| `escriba` | resume-tailor | 300×54 | à luz de vela, as linhas se reordenam pela vaga e a pena escreve o currículo |
+| `estrada` | trajetória | 280×32 | viajante anda com a rolagem; lampiões e anos acendem quando ele passa |
+| `corvo` | contato | 150×37 | corvo cruza a lua, pousa no poste do correio e deixa a carta |
 
-## 7. Movimento
+Grades menores no tablet e no celular; a proporção de cada grade bate com o `aspect-ratio` do
+contêiner, então a altura é reservada antes do JavaScript (CLS 0).
 
-- **Varredura do campo:** cada coluna acende e apaga devagar, em sequência da esquerda para a
-  direita, em loop de 6s. Só `opacity`, que a GPU compõe.
-- **Artes dos projetos:** loops curtos só com `transform`, `opacity` e `clip-path`.
-- **Indicador ao vivo:** o quadrado `signal` da faixa de status pulsa.
-- **Relógio:** a hora de São Paulo se atualiza (o único JavaScript da página, junto com o botão de tema).
-- `prefers-reduced-motion: reduce`: nada se mexe. Cada arte para num estado que faz sentido
-  (campo aceso, eventos espalhados pelo caminho, experiências já na ordem da vaga).
+**Dados reais.** `scripts/update-contributions.mts` lê o HTML público do GitHub e grava
+`src/data/contributions.json` no `prebuild` (mantém o snapshot anterior se falhar). As montanhas,
+os números abaixo do hero e a imagem de compartilhamento saem daí.
+
+**Hero no desktop.** O texto fica por cima do céu, à esquerda; a cena apaga quase tudo atrás dele.
+
+## 7. Interação
+
+As cenas respondem ao ponteiro (mouse ou toque); o `AsciiCanvas` passa a posição e os cliques
+recentes em coordenadas do mundo. Em todas, **o cursor é um lampião**: uma luz quente que segue o
+ponteiro e revela o escuro. Cada banner diz em uma linha o que o clique faz.
+
+| Cena | O clique faz |
+|---|---|
+| castelo | faíscas no ponto; no lago, um anel de onda (passar o mouse na água também ondula) |
+| porão | o varredor recomeça a limpeza |
+| torre | solta um pombo com uma carta do ponto clicado; dois cliques a menos de 1,5s são a mesma entrega duas vezes, e a repetida queima no braseiro (a deduplicação do webhook, na mão) |
+| escriba | troca a vaga (react/node/flutter ↔ java/spring): as linhas se reordenam e a pena reescreve |
+| estrada | faíscas (o viajante anda com a rolagem) |
+| corvo | o corvo levanta voo na hora |
+
+As brasas do fundo desviam do cursor. Com `prefers-reduced-motion` não há interação: as cenas ficam
+paradas. A interação é um extra: todo o conteúdo está no texto ao lado, para teclado e leitor de
+tela.
+
+## 7b. Movimento
+
+- Cada cena anima a 20 quadros por segundo só enquanto aparece na tela e a aba está visível
+  (`IntersectionObserver` e `visibilitychange`). Cálculo de 0,2 a 2,2 ms por quadro.
+- A estrada não anda com o tempo: anda com a rolagem.
+- Brasas sobem atrás da página (só no tema escuro); o quadrado da faixa de status pulsa; o
+  relógio de São Paulo se atualiza.
+- `prefers-reduced-motion: reduce`: cada cena desenha um quadro parado (a estrada aparece completa).
 
 ## 8. Qualidade verificada (25 nov 2026)
 
@@ -155,7 +186,7 @@ Lighthouse 12 contra a build servida pelo `wrangler dev`:
 | Celular | 98 | 100 | 100 | 100 |
 | Desktop | 100 | 100 | 100 | 100 |
 
-LCP 2,5s no celular (simulado) e 0,5s no desktop; CLS 0; TBT ≤ 10ms.
+LCP 2,3s no celular (simulado) e 0,5s no desktop; CLS 0; TBT 70ms no celular, com todas as cenas densas.
 
 - **Teclado:** o primeiro Tab mostra "Pular para o conteúdo"; a ordem segue a leitura (índice, tema,
   CTA, links, dados, repositórios, contato). Foco com contorno de 2px. `scroll-padding-top` evita que
@@ -169,13 +200,15 @@ LCP 2,5s no celular (simulado) e 0,5s no desktop; CLS 0; TBT ≤ 10ms.
 
 ## 9. Histórico
 
-A primeira versão deste sistema era uma "ficha técnica" clara e estática (Archivo, fundo branco,
-curva em SVG). Foi rejeitada porque perdia a energia da referência: tinha a disciplina, mas não o
-impacto. Ficaram dela a regra de um destaque, a linha de 1px, raio 0 e os dados reais.
+1. "Ficha técnica" clara e estática (Archivo, fundo branco): rejeitada, sem a energia da referência.
+2. "Painel de dev ao vivo" (escuro, mono, campo de contribuições em caracteres): aprovado, mas o
+   pedido seguinte foi um tema e um ASCII de jogo.
+3. Mundo medieval em ASCII de contorno (`|`, `_`, `/`): rejeitado por ser simples demais.
+4. Mundo medieval em ASCII denso, como imagem renderizada em caracteres: a versão atual.
 
 ## 10. Fora do sistema (removido)
 
 Tokens: `cn-*`, cores de redes sociais, sombras `bump`/`flat`, `docker-*`, `wave-*`, cursores,
 Roboto Mono e Archivo. Componentes: desktop, janelas, terminal, celular, Craft, Konami, sons,
-a curva em SVG e o diagrama de blocos. Dependências: `framer-motion`, `react-draggable`,
+a curva em SVG, o diagrama de blocos, o campo de caracteres em CSS e as artes de contorno dos projetos. Dependências: `framer-motion`, `react-draggable`,
 `use-sound`, `three`, `@hugeicons/*`, `next-themes`. Deploy: o Worker de `/api/github/contributions`.
