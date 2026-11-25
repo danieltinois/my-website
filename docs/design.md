@@ -63,8 +63,8 @@ Quatro neutros por tema e **um** destaque.
 
 1. **No CTA de e-mail**, como fundo, com texto `on-signal`.
 2. **Em no máximo dois dados** da página inteira, como marca gráfica (ponto, barra ou traço) — nunca
-   como cor de texto. Hoje: o marcador "24–29 set" na curva de contribuições e o número de destaque
-   do DevClean.
+   como cor de texto. Hoje: o marcador "24–29 set" na curva de contribuições. O segundo fica
+   reservado para o número de uso do DevClean, quando ele existir.
 
 Em nenhum outro lugar: nem hover, nem foco, nem seleção, nem borda, nem ícone. Se aparecer um terceiro
 uso, um dos dois existentes sai.
@@ -121,13 +121,34 @@ uma borda e não conta como segunda espessura.
    legenda embaixo: "Figura 1. Contribuições por semana nos últimos 12 meses." Prints e diagramas
    seguem a mesma regra.
 
-## 6. Movimento
+## 6. Peça-assinatura: a curva característica
 
-- **Um** momento orquestrado: a curva de contribuições se desenha uma vez ao carregar (Fase 4).
+A Figura 1 é o gráfico das contribuições públicas no GitHub por semana, nos últimos 12 meses,
+desenhado como a curva característica de uma ficha técnica.
+
+- **Dados reais, sem token.** `scripts/update-contributions.mts` lê o HTML público do GitHub
+  (cada dia tem a contagem no tooltip) e grava `src/data/contributions.json`. Roda no `prebuild`;
+  se o GitHub falhar ou o HTML mudar de formato, mantém o snapshot anterior e a build segue.
+- **Zero JavaScript no cliente.** `src/components/ContributionCurve` é componente de servidor: o SVG
+  sai pronto da build. Os dados se atualizam a cada deploy; a legenda diz a data do recorte.
+- **Desenho:** linha em `ink` (curva monotônica, que passa por todos os pontos sem inventar picos),
+  grade em `rule`, eixos em `caption` condensada. A semana em curso é tracejada, porque está incompleta.
+- **Uma anotação em `signal`:** o marcador quadrado em 24–29 set, quando começam os três projetos
+  (`src/data/curva.ts`). Ela some sozinha quando a data sai da janela de 12 meses.
+- **Características típicas:** abaixo da figura, quatro números calculados (total, dias com
+  contribuição, maior sequência, semana mais intensa) e a tabela completa em "Dados da figura 1",
+  para leitor de tela e para quem quer conferir.
+- **Geometria:** proporção 2:1 no celular e 4:1 a partir de 768px; o rótulo da anotação tem largura
+  máxima `max-w-callout` (15rem). São as únicas medidas fora da escala de espaçamento.
+
+## 7. Movimento
+
+- **Um** momento orquestrado: a curva se desenha da esquerda para a direita uma vez ao carregar
+  (`animate-draw`, 1,6s) e a anotação aparece quando a linha chega nela (`animate-mark`). Só CSS.
 - Interação responde ao usuário: sublinhado no hover, foco visível. Nada entra deslizando ao rolar.
 - `prefers-reduced-motion: reduce`: nenhuma animação; a curva já aparece desenhada.
 
-## 7. Revisão do plano contra os padrões genéricos
+## 8. Revisão do plano contra os padrões genéricos
 
 O que mudou em relação ao esboço da Fase 2, e por quê:
 
@@ -141,7 +162,7 @@ O que mudou em relação ao esboço da Fase 2, e por quê:
 | Links com `→` | Sublinhado | Seta no fim do link é tique. |
 | Laranja como texto em números | Laranja só como marca gráfica | Laranja em texto não passa AA no claro; e reforça a regra. |
 
-## 8. Fora do sistema (removido)
+## 9. Fora do sistema (removido)
 
 Tokens apagados do `globals.css`: `cn-*`, cores de redes sociais (`instagram`, `linkdin`, `github`),
 sombras `bump`/`flat`, `docker-*`, `wave-*`, `bg-header`, cursores customizados e Roboto Mono.
