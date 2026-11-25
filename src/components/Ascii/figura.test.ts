@@ -102,6 +102,41 @@ describe("figura", () => {
     assert.ok(girando.c.lum[10 * 40 + 20] > 0.9);
   });
 
+  it("outline darkens only the background cells around the silhouette", () => {
+    const desenhar = (contorno?: number) => {
+      const T = tela(40, 20);
+      T.c.lum.fill(0.5);
+      // quadrado de 0,3 de lado no meio: colunas ~17..22, linhas ~7..12
+      figura(T, folhaBranca(), [{ parte: quadrado, em: centro(T), ang: 0 }], { esc: 0.3, contorno });
+      return T;
+    };
+    const sem = desenhar();
+    const com = desenhar(0.6);
+    const linha = 10 * 40;
+    // dentro igual, colado na borda escurecido, longe intacto
+    assert.equal(com.c.lum[linha + 20], sem.c.lum[linha + 20]);
+    // na linha do meio, exatamente uma célula escurecida de cada lado, colada na figura
+    const x = [...Array(40).keys()];
+    const escuras = x.filter((k) => com.c.lum[linha + k] < 0.5 - 1e-9);
+    const figura0 = x.find((k) => sem.c.lum[linha + k] > 0.5)!;
+    const figura1 = x.findLast((k) => sem.c.lum[linha + k] > 0.5)!;
+    assert.deepEqual(escuras, [figura0 - 1, figura1 + 1]);
+    for (const k of escuras) assert.ok(Math.abs(com.c.lum[linha + k] - 0.5 * 0.4) < 1e-6);
+    assert.equal(com.c.lum[linha + 2], 0.5);
+    assert.equal(com.c.lum[2 * 40 + 20], 0.5);
+  });
+
+  it("coverage exponent thickens a thin part", () => {
+    // uma linha branca de 1 px numa folha 10×10: cobre ~1/4 da célula
+    const s = prepararSprite(imagem(10, 10, (_x, y) => (y === 5 ? BRANCO : VERDE)), 10, 10);
+    const desenhar = (cobertura?: number) => {
+      const T = tela(40, 20);
+      figura(T, s, [{ parte: quadrado, em: centro(T), ang: 0 }], { esc: 0.4, gama: 1, cobertura });
+      return maxLum(T);
+    };
+    assert.ok(desenhar(0.5) > desenhar() + 0.1, `${desenhar(0.5)} vs ${desenhar()}`);
+  });
+
   it("never samples outside its box", () => {
     const s = prepararSprite(imagem(20, 10, (x) => (x < 10 ? BRANCO : [0, 0, 0])), 20, 10);
     const preta: Parte = { caixa: { x0: 1, y0: 0, x1: 2, y1: 1 }, pivo: { x: 1.5, y: 0.5 } };

@@ -104,6 +104,13 @@ export interface OpcoesFigura {
   // virando no lugar: o desenho encolhe na horizontal para k (0..1] em torno do eixo vertical x
   // do mundo, como um perfil que gira (k = 1 é de lado; perto de 0, de frente ou de costas)
   giro?: { x: number; k: number };
+  // contorno escuro (0..1): as células de fundo coladas na silhueta (fora dela, com uma vizinha
+  // dentro) escurecem por esse fator, para a figura se separar de um fundo do mesmo tom. Não
+  // escurece células de outra figura já desenhada.
+  contorno?: number;
+  // expoente da cobertura de cada célula: abaixo de 1 engrossa o que é mais fino que uma célula
+  // (um cabo de vassoura), para não sumir em grades pequenas
+  cobertura?: number;
 }
 
 // posição no mundo de um ponto q da folha sobre uma parte colocada (para encadear as partes)
@@ -127,6 +134,12 @@ export const figura = (T: Tela, s: Sprite | undefined, partes: Colocada[], o: Op
   // meia célula no mundo (antes do giro, a célula é gk vezes mais larga)
   const hx = A / cols / 2 / gk;
   const hy = 1 / rows / 2;
+  // cobertura acumulada de cada célula (só quando há contorno) e a caixa visitada
+  const cob = o.contorno ? new Float32Array(cols * rows) : null;
+  let ux0 = cols;
+  let ux1 = -1;
+  let uy0 = rows;
+  let uy1 = -1;
   for (const p of partes) {
     const { caixa, pivo } = p.parte;
     const cos = Math.cos(p.ang);
@@ -151,6 +164,10 @@ export const figura = (T: Tela, s: Sprite | undefined, partes: Colocada[], o: Op
     const cx1 = Math.min(cols - 1, Math.ceil((mx1 / A) * cols));
     const cy0 = Math.max(0, Math.floor(my0 * rows - 0.5));
     const cy1 = Math.min(rows - 1, Math.ceil(my1 * rows));
+    ux0 = Math.min(ux0, cx0);
+    ux1 = Math.max(ux1, cx1);
+    uy0 = Math.min(uy0, cy0);
+    uy1 = Math.max(uy1, cy1);
     // meia célula na folha, já girada (a célula vira um losango; usamos a caixa dele)
     const ex = (Math.abs(cos) * hx + Math.abs(sin) * hy) / o.esc;
     const ey = (Math.abs(sin) * hx + Math.abs(cos) * hy) / o.esc;
@@ -169,14 +186,27 @@ export const figura = (T: Tela, s: Sprite | undefined, partes: Colocada[], o: Op
         if (bx <= ax || by <= ay) continue;
         const m = amostrarSprite(s, ax, ay, bx, by);
         // cobertura parcial da célula pela caixa
-        const a = m.a * (((bx - ax) * (by - ay)) / (4 * ex * ey));
-        if (a <= 0) continue;
+        const a0 = m.a * (((bx - ax) * (by - ay)) / (4 * ex * ey));
+        if (a0 <= 0) continue;
+        const a = o.cobertura ? Math.pow(limitar(a0), o.cobertura) : a0;
         const i = y * cols + x;
         const tom = Math.pow(limitar((m.L - s.lo) / (s.hi - s.lo)), gama) * brilho;
         c.lum[i] = c.lum[i] * (1 - a) + tom * a;
         c.calor[i] = c.calor[i] * (1 - a) + limitar(m.W * 1.6) * calor * a;
         if (a > 0.5) T.mat[i] = 5;
+        if (cob) cob[i] += a * (1 - cob[i]);
       }
+    }
+  }
+  if (!cob || !o.contorno) return;
+  const escurece = 1 - limitar(o.contorno);
+  const dentro = (x: number, y: number) => x >= 0 && y >= 0 && x < cols && y < rows && cob[y * cols + x] >= 0.5;
+  for (let y = Math.max(0, uy0 - 1); y <= Math.min(rows - 1, uy1 + 1); y++) {
+    for (let x = Math.max(0, ux0 - 1); x <= Math.min(cols - 1, ux1 + 1); x++) {
+      const i = y * cols + x;
+      if (cob[i] >= 0.3 || T.mat[i] === 5) continue;
+      if (dentro(x - 1, y) || dentro(x + 1, y) || dentro(x, y - 1) || dentro(x, y + 1) || dentro(x - 1, y - 1) || dentro(x + 1, y - 1) || dentro(x - 1, y + 1) || dentro(x + 1, y + 1))
+        c.lum[i] *= escurece;
     }
   }
 };

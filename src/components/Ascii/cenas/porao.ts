@@ -51,6 +51,7 @@ const SACOS = [0.42, 0.52, 0.6];
 const REVIEW = 0.33;
 const CASA = 0.25;
 const FIM = 0.745; // onde ele para: a palha chega à boca da carroça
+const RECUO = 0.695; // dá um passo para trás para descansar, com a tocha à frente do rosto
 const ALTURA = 0.3; // altura do velho nessa profundidade, em alturas da imagem
 const R_SACO = 0.045;
 
@@ -89,6 +90,13 @@ const RETO = 0.08;
 const ERGUE = 0.03; // a palha sai do chão ao recolher
 const CARREGA = 0.07; // a vassoura no ar, quando ele anda sem varrer
 const PASSO_ALTO = 0.006;
+// tom do velho: brilho da foto, contorno escuro em volta, borda acesa pela tocha e o teto (abaixo
+// das chamas, que vão de 0,9 para cima)
+const BRILHO = 1.5;
+const CONTORNO = 0.8;
+const BORDA = 0.18;
+const TETO = 0.8;
+const COBERTURA = 0.55; // o cabo tem menos de uma célula de espessura: engrossa para não sumir
 const FOLEGO = 0.008;
 // poeira de cada passada
 const GRAOS = 18;
@@ -111,6 +119,35 @@ const grao = (T: Tela, x: number, y: number, L: number, calor: number) => {
   const i = cy * T.cols + cx;
   T.c.lum[i] = Math.max(T.c.lum[i], Math.min(T.c.lum[i] + L, 0.7));
   if (calor > T.c.calor[i]) T.c.calor[i] = calor;
+};
+
+// a tocha mais perto de um ponto da imagem
+const brasaDe = (q: { x: number; y: number }) => (Math.hypot(q.x - TOCHAS[0].x, (q.y - TOCHAS[0].y) / ASPECTO) < Math.hypot(q.x - TOCHAS[1].x, (q.y - TOCHAS[1].y) / ASPECTO) ? 0 : 1);
+
+// a borda do velho virada para a tocha mais perto acende quente (luz de recorte), e nada nele
+// passa do brilho da chama
+const borda = (T: Tela, pe: { x: number; y: number }, alt: number, tocha: { x: number; y: number }, forca: number) => {
+  const { cols, rows, mat, c } = T;
+  const dx = tocha.x - pe.x;
+  const dy = tocha.y - (pe.y - alt * 0.6);
+  const d = Math.hypot(dx, dy) || 1;
+  const sx = Math.abs(dx) > d * 0.3 ? Math.sign(dx) : 0;
+  const sy = Math.abs(dy) > d * 0.3 ? Math.sign(dy) : 0;
+  const fora = (x: number, y: number) => x < 0 || y < 0 || x >= cols || y >= rows || mat[y * cols + x] !== 5;
+  cada(
+    T,
+    (_X, _Y, i) => {
+      if (mat[i] !== 5) return;
+      const x = i % cols;
+      const y = (i - x) / cols;
+      if ((sx && fora(x + sx, y)) || (sy && fora(x, y + sy)) || (sx && sy && fora(x + sx, y + sy))) {
+        c.lum[i] += BORDA * (0.6 + 0.8 * forca);
+        if (0.5 + 0.5 * forca > c.calor[i]) c.calor[i] = 0.5 + 0.5 * forca;
+      }
+      if (c.lum[i] > TETO) c.lum[i] = TETO;
+    },
+    { x0: pe.x - alt * 1.6, x1: pe.x + alt * 1.6, y0: pe.y - alt * 1.2, y1: pe.y + alt * 0.1 },
+  );
 };
 
 // calor da tocha mais perto num ponto da imagem: forte junto dela, some a ~0,15 de distância
@@ -173,22 +210,32 @@ const momento = (c: number, parado: boolean): Momento => {
       ergue: c < INICIO ? CARREGA * (1 - passo(0, INICIO, c)) : ph >= 0.5 ? ERGUE * sen2(Math.PI * (2 * ph - 1)) : 0,
     };
   }
-  if (parado) return { x: c < DESCANSO ? FIM : CASA, lado: c < DESCANSO ? 1 : -1, giro: 1, inclina: 0, sobe: 0, ergue: 0 };
-  // descansa apoiado na vassoura e a levanta para ir embora
-  if (c < DESCANSO) return { x: FIM, lado: 1, giro: 1, inclina: 0, sobe: 0, ergue: CARREGA * passo(DESCANSO - 1, DESCANSO, c) };
+  if (parado) return { x: c < DESCANSO ? RECUO : CASA, lado: c < DESCANSO ? 1 : -1, giro: 1, inclina: 0, sobe: 0, ergue: 0 };
+  // recua um passo, descansa apoiado na vassoura e a levanta para ir embora
+  if (c < DESCANSO) {
+    const r = (c - VARRE) / 2;
+    return {
+      x: FIM + (RECUO - FIM) * passo(0, 1, r),
+      lado: 1,
+      giro: 1,
+      inclina: 0,
+      sobe: r < 1 ? PASSO_ALTO * sen2(Math.PI * r) : 0,
+      ergue: CARREGA * passo(DESCANSO - 1, DESCANSO, c),
+    };
+  }
   // vira no lugar (o perfil encolhe até quase sumir e abre do outro lado)
   const virar = (u: number, de: 1 | -1, x: number): Momento => {
     const k = passo(0, 1, u);
     return { x, lado: k < 0.5 ? de : (-de as 1 | -1), giro: Math.abs(Math.cos(Math.PI * k)), inclina: 0, sobe: 0, ergue: CARREGA };
   };
-  if (c < DESCANSO + GIRO) return virar((c - DESCANSO) / GIRO, 1, FIM);
+  if (c < DESCANSO + GIRO) return virar((c - DESCANSO) / GIRO, 1, RECUO);
   if (c >= VOLTA) return virar((c - VOLTA) / GIRO, -1, CASA);
   // volta arrastando os pés, passo a passo, com a vassoura parada no ar
   const s = ((c - DESCANSO - GIRO) / (VOLTA - DESCANSO - GIRO)) * PASSOS_VOLTA;
   const k = Math.floor(s);
   const f = s - k;
   return {
-    x: FIM + ((CASA - FIM) * (k + passo(0, 1, f))) / PASSOS_VOLTA,
+    x: RECUO + ((CASA - RECUO) * (k + passo(0, 1, f))) / PASSOS_VOLTA,
     lado: -1,
     giro: 1,
     inclina: BALANCO * (k % 2 ? 1 : -1) * sen2(Math.PI * f),
@@ -276,18 +323,19 @@ export const porao = ({ cols, rows, t, p, dados, parado, mouse, cliques }: Entra
   });
 
   // o velho fica na frente das tochas e antes da luz delas, que cai nele; mais claro e quente
-  // perto do fogo
+  // perto do fogo, com um contorno escuro que o separa da parede do mesmo tom
   const meio = v.paraImagem(agora.pe.x, agora.pe.y - e(ALTURA) * 0.6);
   const brasa = quente(meio.x, meio.y, tremor);
-  const tom = { gama: 0.65, brilho: surgir * (0.8 + 0.45 * brasa), calor: 0.6 + 0.7 * brasa, giro: { x: agora.pe.x, k: agora.m.giro } };
+  const tom = { gama: 0.65, brilho: surgir * BRILHO * (1 - 0.3 * brasa), calor: 0.6 + 0.7 * brasa, contorno: CONTORNO * surgir, giro: { x: agora.pe.x, k: agora.m.giro } };
   figura(T, dados.figuras?.velho, [agora.corpo], { ...agora.oc, ...tom });
-  figura(T, dados.figuras?.velho, [agora.bracos, agora.palha], { ...agora.ob, ...tom });
+  figura(T, dados.figuras?.velho, [agora.bracos, agora.palha], { ...agora.ob, ...tom, cobertura: COBERTURA });
 
   // a luz das tochas, pulsando com a chama, nas paredes e no velho
   TOCHAS.forEach((k, n) => {
     const m = para(k.x, k.y);
     luz(T, m.x, m.y, e(0.12) * tremor[n], 0.5 * tremor[n]);
   });
+  if (dados.figuras?.velho) borda(T, agora.pe, e(ALTURA), para(TOCHAS[brasaDe(meio)].x, TOCHAS[brasaDe(meio)].y), brasa * surgir);
   // poeira girando no feixe da primeira tocha
   const p0 = para(TOCHAS[0].x, TOCHAS[0].y);
   poeira(T, p0.x - e(0.05), p0.x + e(0.35), p0.y, p0.y + e(0.45), t, 40, 0.35);
