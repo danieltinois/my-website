@@ -133,7 +133,7 @@ export default function Sistema() {
 
       <Section n="4" title="Motivos">
         <h3 className="text-h3">
-          <span className="mr-4 font-stretch-condensed font-regular tabular-nums text-muted">2.1</span>
+          <span className="mr-4 font-stretch-condensed font-regular tabular-nums text-muted">1.1</span>
           DevClean
         </h3>
         <p className="mt-3 max-w-measure text-lead">
