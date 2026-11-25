@@ -64,11 +64,11 @@ const Hero = () => {
             {/* o botão fica fora do role="img" (os filhos dele são apresentacionais) */}
             <p className="pointer-events-none absolute right-6 bottom-2 left-6 text-right text-caption text-muted lg:right-12">
               <span className="dica">role para revelar</span>
-              <span className="dica hidden sm:inline motion-reduce:hidden" aria-hidden="true">
+              <span className="dica hidden motion-safe:sm:inline" aria-hidden="true">
                 {" "}
                 ·{" "}
               </span>
-              <Dica texto="clique no céu ou no lago" className="hidden sm:inline" />
+              <Dica texto="clique no céu ou no lago" className="hidden motion-safe:sm:inline" />
             </p>
           </div>
         </div>

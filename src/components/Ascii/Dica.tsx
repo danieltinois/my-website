@@ -2,7 +2,8 @@
 
 // Dica de clique de uma cena, como botão: aciona a cena pelo teclado e pelo leitor de tela.
 // Dispara `cena:acionar` no [data-revelar] mais próximo, que o AsciiCanvas trata como um clique.
-// Não faz nada com reduced motion (a cena fica parada), então some nesse caso. Some também depois
+// Não faz nada com reduced motion (a cena fica parada), então some nesse caso em qualquer largura
+// (quem a esconde por largura usa motion-safe:, para a regra de largura não vencer a de reduced motion). Some também depois
 // da primeira interação (regra [data-tocado] .dica), mas volta ao receber o foco do teclado.
 const Dica = ({ texto, className = "" }: { texto: string; className?: string }) => (
   <button
