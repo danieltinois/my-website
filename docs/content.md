@@ -29,7 +29,9 @@ perde evento, não inventa dado e não apaga o que não deve.
 - CTA principal: **me@danieltinois.dev** (mailto)
 - Secundários: GitHub, LinkedIn
 
-Especificações (tabela ao lado):
+À direita: o campo de contribuições (ver `docs/design.md`, seção 6).
+
+Abaixo, grade de especificações:
 
 | Parâmetro | Valor |
 |---|---|
@@ -39,8 +41,6 @@ Especificações (tabela ao lado):
 | Back-end | Node, Spring, PostgreSQL |
 | Programando desde | 2020 |
 | Formação | Engenharia de Software, FIAP (2027) |
-
-Abaixo: Figura 1, a curva de contribuições (ver `docs/design.md`, seção 6).
 
 ---
 
@@ -57,7 +57,7 @@ Abaixo: Figura 1, a curva de contribuições (ver `docs/design.md`, seção 6).
 - **Papel:** projeto solo.
 - **Stack:** TypeScript · Bun · Swift · SwiftUI · JavaScriptCore
 - **Links:** github.com/danieltinois/dev-macos-clean
-- **Imagem:** print do app no Mac + saída da CLI (gero rodando localmente)
+- **Ilustração:** a varredura de caches em caracteres (valores do exemplo do README)
 
 ### 1.2 Pato Commit
 
@@ -70,7 +70,7 @@ Abaixo: Figura 1, a curva de contribuições (ver `docs/design.md`, seção 6).
 - **Papel:** projeto solo, do ADR ao CI.
 - **Stack:** Java 25 · Spring Boot 4 · PostgreSQL 18 · Flyway · Next.js 16
 - **Links:** github.com/danieltinois/pato-commit
-- **Imagem:** Figura 2, diagrama de blocos do caminho de um evento (sem UI pronta ainda)
+- **Ilustração:** eventos andando pelo pipeline, com a entrega repetida descartada no webhook
 
 ### 1.3 resume-tailor
 
@@ -83,7 +83,7 @@ Abaixo: Figura 1, a curva de contribuições (ver `docs/design.md`, seção 6).
 - **Papel:** projeto solo.
 - **Stack:** Java 21 · Spring Boot · Angular · PostgreSQL · Typst · Playwright
 - **Links:** github.com/danieltinois/job-resume-generator
-- **Imagem:** tela de revisão com preview do PDF (gero rodando localmente)
+- **Ilustração:** experiências reordenadas pela aderência à vaga
 
 ---
 

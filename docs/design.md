@@ -1,13 +1,13 @@
 # Sistema de design
 
-O site parece **a ficha técnica de um componente**. Uma ficha técnica é o documento em que um
-engenheiro prova que a peça é confiável: o que ela faz, os limites, as medições. É o formato do
-posicionamento ("software que não perde, não inventa e não apaga o que não deve").
+O site parece **o painel de um dev ao vivo**: escuro, uma fonte mono, uma cor de destaque e uma
+peça grande que se mexe com dados reais. A referência de energia é o hackbrasil.com; o que separa
+este site dele é o conteúdo (as contribuições e os projetos do Daniel viram a arte), a cor
+(laranja de segurança, não verde) e a fonte (Martian Mono, não JetBrains Mono).
 
 Os tokens vivem em `src/app/globals.css` (`@theme`). O `@theme` zera os namespaces padrão do
 Tailwind (`--color-*`, `--text-*`, `--spacing-*`, `--radius-*`, `--shadow-*`...), então **só o que
-está aqui existe como utilitário**. Se algo não tem token, a resposta é usar um que tem, não criar
-um valor arbitrário.
+está aqui existe como utilitário**. Se algo não tem token, a resposta é usar um que tem.
 
 Textos: `docs/content.md`.
 
@@ -15,165 +15,143 @@ Textos: `docs/content.md`.
 
 ## 1. Tipografia
 
-**Uma família: Archivo** (variável, `@fontsource-variable/archivo/wdth.css`, eixos `wght` 100–900 e
-`wdth` 62–125). A personalidade vem da largura, não de uma segunda fonte.
+**Uma família: Martian Mono** (variável, `@fontsource-variable/martian-mono/wdth.css`, 38 KB,
+eixos `wght` 100–800 e `wdth` 75–112,5).
 
 | Largura | Utilitário | Onde |
 |---|---|---|
-| 62,5% | `font-stretch-extra-condensed` | só o nome no hero (`text-display`) |
-| 75% | `font-stretch-condensed` | numeração de seção, rótulos de tabela, legendas de figura, números |
-| 87,5% | `font-stretch-semi-condensed` | títulos de seção (`text-h2`) |
+| 75% | `font-stretch-condensed` | rótulos, marcadores `[01]`, números, artes em caracteres |
 | 100% | (padrão) | todo o resto |
 
-**Pesos permitidos:** 400 (`font-regular`) e 600 (`font-semibold`). Nada mais.
+**Pesos permitidos:** 400 (`font-regular`) e 600 (`font-semibold`).
 
 **Escala fixa** (px / entrelinha / tracking):
 
-| Token | Tamanho | Entrelinha | Tracking | Peso | Uso |
-|---|---|---|---|---|---|
-| `text-caption` | 14 | 20 | +0,005em | 400 | legendas de figura, rótulos, rodapé |
-| `text-body` | 16 | 26 | 0 | 400 | texto corrido |
-| `text-lead` | 18 | 28 | 0 | 400 | frase do hero, resumo de projeto |
-| `text-h3` | 24 | 30 | −0,01em | 600 | nome do projeto |
-| `text-h2` | 36 | 40 | −0,015em | 600 | título de seção |
-| `text-display-sm` | 60 | 56 | −0,02em | 600 | nome no hero, < 768px |
-| `text-display` | 96 | 88 | −0,025em | 600 | nome no hero, ≥ 768px |
+| Token | Tamanho | Entrelinha | Tracking | Uso |
+|---|---|---|---|---|
+| `text-caption` | 12 | 18 | +0,01em | rótulos, faixa de status, legendas, cabeçalho |
+| `text-body` | 15 | 24 | 0 | texto corrido |
+| `text-lead` | 17 | 28 | 0 | cargo, resumo de projeto |
+| `text-h3` | 20 | 28 | −0,01em | nome do projeto, números das estatísticas |
+| `text-h2` | 32 | 38 | −0,03em | título de seção |
+| `text-display-sm` | 52 | 52 | −0,05em | nome no hero, < 768px |
+| `text-display` | 88 | 84 | −0,055em | nome no hero, ≥ 768px |
 
 Regras:
-- **Sentence case sempre.** Nada de rótulo em caixa alta.
-- Números em tabela, figura e numeração usam `tabular-nums`.
-- Medida do texto: no máximo `max-w-measure` (42rem, ~68 caracteres).
-- Link é sublinhado (1px, offset 0,2em); no hover o sublinhado vai a 2px. Sem seta `→` no texto.
+- Títulos em sentence case; navegação, rótulos e faixa de status em minúsculas (é a voz de terminal
+  do site). Nada em caixa alta.
+- Números usam `tabular-nums`.
+- Medida do texto: no máximo `max-w-measure` (40rem).
+- Link é sublinhado (1px, offset 0,25em); no hover o sublinhado vai a 2px.
 
 ## 2. Cor
 
-Quatro neutros por tema e **um** destaque.
+**Escuro é o padrão.** O claro existe e é escolhido no botão do cabeçalho.
 
-| Token | Claro | Escuro | Papel |
+| Token | Escuro (padrão) | Claro | Papel |
 |---|---|---|---|
-| `paper` | `#FFFFFF` | `#1B1E22` | fundo |
-| `plate` | `#F1F2F3` | `#24282D` | área de figura, cabeçalho de tabela |
-| `rule` | `#C9CDD2` | `#454B53` | linhas finas, grade do gráfico (decorativo) |
-| `muted` | `#575D66` | `#A2A8B0` | texto secundário, numeração |
-| `ink` | `#15181C` | `#ECEEF0` | texto, dados, foco |
-| `signal` | `#F25400` | `#FF6A13` | o destaque: laranja de segurança |
-| `on-signal` | `#15181C` | `#15181C` | texto sobre `signal` |
+| `paper` | `#0B0C0E` | `#FFFFFF` | fundo |
+| `plate` | `#131519` | `#F1F2F3` | painel das artes |
+| `rule` | `#2A2E34` | `#D5D8DC` | linhas finas, bordas dos cards |
+| `faint` | `#3A3F47` | `#B8BDC4` | caracteres de fundo das artes (decorativo) |
+| `muted` | `#8D939C` | `#575D66` | texto secundário, rótulos |
+| `ink` | `#E9EBEE` | `#15181C` | texto, topo das colunas, foco |
+| `signal` | `#FF6A13` | `#F25400` | o destaque: laranja de segurança |
+| `on-signal` | `#0B0C0E` | `#15181C` | texto sobre `signal` |
 
-### Onde o `signal` pode aparecer (regra escrita)
+### Onde o `signal` pode aparecer
 
-1. **No CTA de e-mail**, como fundo, com texto `on-signal`.
-2. **Em no máximo dois dados** da página inteira, como marca gráfica (ponto, barra ou traço) — nunca
-   como cor de texto. Hoje: o marcador "24–29 set" na curva de contribuições. O segundo fica
-   reservado para o número de uso do DevClean, quando ele existir.
+1. **No CTA de e-mail** (fundo), com texto `on-signal`.
+2. **Na marca do campo de contribuições** (a semana de 24–29 set).
+3. **No indicador "ao vivo"** da faixa de status (o quadrado que pulsa).
 
-Em nenhum outro lugar: nem hover, nem foco, nem seleção, nem borda, nem ícone. Se aparecer um terceiro
-uso, um dos dois existentes sai.
+Em nenhum outro lugar: nem hover, nem foco, nem seleção, nem borda. Nunca como cor de texto
+pequeno (no tema claro ele não passa AA em 12–15px).
 
 ### Contraste verificado (WCAG 2.1)
 
-| Par | Claro | Escuro | Exigido |
+| Par | Escuro | Claro | Exigido |
 |---|---|---|---|
-| `ink` sobre `paper` | 17,81 | 14,38 | 4,5 |
-| `ink` sobre `plate` | 15,89 | 12,75 | 4,5 |
-| `muted` sobre `paper` | 6,64 | 6,98 | 4,5 |
-| `muted` sobre `plate` | 5,92 | 6,19 | 4,5 |
-| `on-signal` sobre `signal` (CTA) | 5,12 | 6,21 | 4,5 |
-| `signal` sobre `paper` (marca gráfica) | 3,47 | 5,83 | 3,0 |
-| `signal` sobre `plate` (marca gráfica) | 3,10 | 5,17 | 3,0 |
-| `ink` sobre `paper` (anel de foco) | 17,81 | 14,38 | 3,0 |
+| `ink` sobre `paper` | 16,38 | 17,81 | 4,5 |
+| `ink` sobre `plate` | 15,30 | 15,89 | 4,5 |
+| `muted` sobre `paper` | 6,32 | 6,64 | 4,5 |
+| `muted` sobre `plate` | 5,91 | 5,92 | 4,5 |
+| `on-signal` sobre `signal` (CTA) | 6,82 | 5,12 | 4,5 |
+| `signal` sobre `paper` (marca gráfica) | 6,82 | 3,47 | 3,0 |
 
-`rule` (1,60 / 1,90) é decorativo: nunca é a única coisa que separa ou identifica algo.
+`rule` e `faint` são decorativos: nunca são a única coisa que identifica algo.
 
 ## 3. Espaço, linha, raio, sombra
 
-**Escala de espaçamento** (base 4px; só estes passos existem): `1`=4 · `2`=8 · `3`=12 · `4`=16 ·
-`6`=24 · `8`=32 · `12`=48 · `16`=64 · `24`=96 · `32`=128.
+**Escala de espaçamento** (base 4px; só estes passos existem): `0` · `1`=4 · `2`=8 · `3`=12 ·
+`4`=16 · `6`=24 · `8`=32 · `12`=48 · `16`=64 · `24`=96 · `32`=128.
 
-- Dentro de um bloco: 4–16. Entre blocos de uma seção: 24–48. Entre seções: 96 (mobile 64).
+**Linha:** uma espessura, **1px**, cor `rule`. Cards e grades de dados são caixas de 1px que
+compartilham borda (`border-t border-l` no contêiner, `border-r border-b` nas células).
 
-**Linha:** uma espessura, **1px**, cor `rule` (padrão de todo `border`). Linha separa
-informação: entre seções, entre linhas de tabela, eixo de figura. Não se usa linha como enfeite.
+**Exceção de acessibilidade:** o anel de foco é `outline` de 2px em `ink`, offset 3px.
 
-**Exceção de acessibilidade:** o anel de foco é `outline` de 2px em `ink`, offset 3px. Ele não é
-uma borda e não conta como segunda espessura.
-
-**Raio:** 0. Tudo é retangular, como papel impresso. (`--radius-*` está zerado.)
-
-**Sombra:** não existe. Profundidade é dada por `plate` e por linha. (`--shadow-*` está zerado.)
+**Raio:** 0. **Sombra:** não existe.
 
 ## 4. Layout
 
-- Container `max-w-page` (75rem), alinhado à esquerda do grid, com 24px de margem no mobile e 48px no desktop.
-- Grid de 12 colunas a partir de 1024px: **coluna de margem** (colunas 1–3) para número de seção e
-  rótulos, **coluna de conteúdo** (4–12). Abaixo de 1024px a margem vira uma linha acima do conteúdo.
-- Tudo alinhado à esquerda. Nada centralizado.
-- Cabeçalho corrido como o de uma ficha técnica: nome à esquerda, índice das seções e botão de
-  tema à direita. A revisão ("Rev. 25 nov 2026", data do snapshot) fica no rodapé.
-- Rótulo e valor de tabelas e listas se alinham pela linha de base, nunca pelo topo.
-- No celular o CTA de e-mail ocupa a largura toda.
-
-**Tema:** um script inline no `<head>` (`src/lib/theme.ts`) aplica `data-theme` antes da pintura,
-a partir da escolha salva ou da preferência do sistema. O botão do cabeçalho só troca o atributo
-e grava a escolha. Sem JavaScript, vale o tema claro.
+- Container `max-w-page` (80rem), 24px de margem no mobile e 48px no desktop. Tudo à esquerda.
+- **Cabeçalho fixo** com duas linhas: nome, índice `[01] projetos [02] trajetória [03] contato`
+  e tema; embaixo, a **faixa de status** (`■ são paulo 10:38`, total de contribuições, revisão).
+- **Hero:** 5 colunas de texto (nome em duas linhas, cargo, resumo, CTA) e 7 colunas com o campo
+  de contribuições. Abaixo, a grade de especificações (local, stack, desde, formação).
+- **Projetos:** um card por projeto, a arte à esquerda (5 colunas, sobre `plate`) e o estudo de
+  caso à direita (problema, como funciona, o difícil e a grade de parâmetros).
+- **Tema:** um script inline no `<head>` (`src/lib/theme.ts`) aplica `data-theme` antes da pintura.
+  O HTML já sai com `data-theme="dark"`, então sem JavaScript vale o escuro.
 
 ## 5. Motivos recorrentes
 
-1. **Numeração de documento.** O hero é a capa, sem número. As seções são numeradas porque a
-   página é um documento com índice (o mesmo do cabeçalho): `1 Projetos` (`1.1 DevClean`,
-   `1.2 Pato Commit`, `1.3 resume-tailor`), `2 Trajetória`, `3 Contato`. O número fica na coluna
-   de margem, no tamanho do título, em `condensed` + `muted`, alinhado pela linha de base; abaixo
-   de 1024px ele vai junto do título.
-2. **Tabela de parâmetros.** Todo projeto tem uma tabela de duas colunas (parâmetro / valor) com
-   linhas de 1px: Problema, Papel, Estado, Stack, Código. É o "datasheet" de cada peça.
-3. **Figura com legenda.** Todo visual é uma figura numerada sobre `plate`, com grade em `rule` e
-   legenda embaixo: "Figura 1. Contribuições por semana nos últimos 12 meses." Prints e diagramas
-   seguem a mesma regra. **Tracejado quer dizer incompleto**: a semana em curso na Figura 1 e o
-   bloco ainda não construído no diagrama do Pato Commit (Figura 2).
+1. **Marcadores entre colchetes.** Seções `[01]`, `[02]`, `[03]` no título e no índice; projetos
+   `[1.1]`, `[1.2]`, `[1.3]` no canto da arte.
+2. **Arte feita de caracteres, com tema do próprio dono.** O campo de contribuições e as três artes
+   dos projetos usam só caracteres da fonte; cada uma ilustra o que o projeto faz (DevClean varre
+   caches, Pato Commit descarta entregas repetidas, resume-tailor reordena experiências). As artes
+   dos projetos levam o rótulo "ilustração".
+3. **Grade de dados em caixas de 1px.** Estatísticas do hero, especificações, parâmetros dos
+   projetos e trajetória usam a mesma grade de células.
 
-## 6. Peça-assinatura: a curva característica
+## 6. Peça-assinatura: o campo de contribuições
 
-A Figura 1 é o gráfico das contribuições públicas no GitHub por semana, nos últimos 12 meses,
-desenhado como a curva característica de uma ficha técnica.
+As contribuições públicas no GitHub dos últimos 12 meses viram um campo de caracteres de 53
+colunas (semanas) por 20 linhas.
 
 - **Dados reais, sem token.** `scripts/update-contributions.mts` lê o HTML público do GitHub
   (cada dia tem a contagem no tooltip) e grava `src/data/contributions.json`. Roda no `prebuild`;
   se o GitHub falhar ou o HTML mudar de formato, mantém o snapshot anterior e a build segue.
-- **Zero JavaScript no cliente.** `src/components/ContributionCurve` é componente de servidor: o SVG
-  sai pronto da build. Os dados se atualizam a cada deploy; a legenda diz a data do recorte.
-- **Desenho:** linha em `ink` (curva monotônica, que passa por todos os pontos sem inventar picos),
-  grade em `rule`, eixos em `caption` condensada. A semana em curso é tracejada, porque está incompleta.
-- **Uma anotação em `signal`:** o marcador quadrado em 24–29 set, quando começam os três projetos
-  (`src/data/curva.ts`). Ela some sozinha quando a data sai da janela de 12 meses.
-- **Características típicas:** abaixo da figura, quatro números calculados (total, dias com
-  contribuição, maior sequência, semana mais intensa) e a tabela completa em "Dados da figura 1",
-  para leitor de tela e para quem quer conferir.
-- **Geometria:** proporção 2:1 no celular e 4:1 a partir de 768px; o rótulo da anotação tem largura
-  máxima `max-w-callout` (15rem). São as únicas medidas fora da escala de espaçamento.
+- **Desenho (`toField` em `src/lib/contributions.ts`):** a altura da coluna é proporcional às
+  contribuições da semana; dentro dela o caractere fica mais denso perto do topo
+  (`@ # * + = - :`), e acima só há pontos em `faint`. O topo de cada coluna fica em `ink`.
+- **Uma marca em `signal`:** a semana de 24–29 set, quando começam os três projetos
+  (`src/data/curva.ts`), com rótulo e linha de chamada. Some sozinha quando sai da janela.
+- **Embaixo:** quatro números calculados (total, dias com contribuição, maior sequência, semana
+  mais intensa) e a tabela completa em "ver os dados por semana", para leitor de tela e conferência.
+- **Zero JavaScript.** É componente de servidor; o campo sai pronto da build.
 
 ## 7. Movimento
 
-- **Um** momento orquestrado: a curva se desenha da esquerda para a direita uma vez ao carregar
-  (`animate-draw`, 1,6s) e a anotação aparece quando a linha chega nela (`animate-mark`). Só CSS.
-- Interação responde ao usuário: sublinhado no hover, foco visível. Nada entra deslizando ao rolar.
-- `prefers-reduced-motion: reduce`: nenhuma animação; a curva já aparece desenhada.
+- **Varredura do campo:** cada coluna acende e apaga devagar, em sequência da esquerda para a
+  direita, em loop de 6s. Só `opacity`, que a GPU compõe.
+- **Artes dos projetos:** loops curtos só com `transform`, `opacity` e `clip-path`.
+- **Indicador ao vivo:** o quadrado `signal` da faixa de status pulsa.
+- **Relógio:** a hora de São Paulo se atualiza (o único JavaScript da página, junto com o botão de tema).
+- `prefers-reduced-motion: reduce`: nada se mexe. Cada arte para num estado que faz sentido
+  (campo aceso, eventos espalhados pelo caminho, experiências já na ordem da vaga).
 
-## 8. Revisão do plano contra os padrões genéricos
+## 8. Histórico
 
-O que mudou em relação ao esboço da Fase 2, e por quê:
-
-| Esboço | Agora | Motivo |
-|---|---|---|
-| Fundo creme `#F4F3EF` | Branco `#FFFFFF` | Creme é o padrão genérico; ficha técnica é papel branco. |
-| Escuro `#111110` | Grafite `#1B1E22` | Quase-preto tingido é tique; grafite lê como tela, não como tinta. |
-| "DT-2026 · FICHA TÉCNICA" em caixa alta com ponto médio | "Rev. nov 2026" em sentence case | Rótulo decorativo em caixa alta é marca de template. |
-| `01 / 02 / 03` nos projetos | `1.1 / 1.2 / 1.3` | Os projetos não são sequência; a numeração é a do documento. |
-| Rótulos em monospace | Archivo condensada + `tabular-nums` | Mono puxa para terminal, que o brief exclui. |
-| Links com `→` | Sublinhado | Seta no fim do link é tique. |
-| Laranja como texto em números | Laranja só como marca gráfica | Laranja em texto não passa AA no claro; e reforça a regra. |
+A primeira versão deste sistema era uma "ficha técnica" clara e estática (Archivo, fundo branco,
+curva em SVG). Foi rejeitada porque perdia a energia da referência: tinha a disciplina, mas não o
+impacto. Ficaram dela a regra de um destaque, a linha de 1px, raio 0 e os dados reais.
 
 ## 9. Fora do sistema (removido)
 
-Tokens apagados do `globals.css`: `cn-*`, cores de redes sociais (`instagram`, `linkdin`, `github`),
-sombras `bump`/`flat`, `docker-*`, `wave-*`, `bg-header`, cursores customizados e Roboto Mono.
-Junto saíram o desktop, as janelas, o terminal, o celular, o Craft, o Konami, os sons e as
-dependências `framer-motion`, `react-draggable`, `use-sound`, `three`, `@hugeicons/*` e `next-themes`.
+Tokens: `cn-*`, cores de redes sociais, sombras `bump`/`flat`, `docker-*`, `wave-*`, cursores,
+Roboto Mono e Archivo. Componentes: desktop, janelas, terminal, celular, Craft, Konami, sons,
+a curva em SVG e o diagrama de blocos. Dependências: `framer-motion`, `react-draggable`,
+`use-sound`, `three`, `@hugeicons/*`, `next-themes`. Deploy: o Worker de `/api/github/contributions`.
