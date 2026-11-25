@@ -4,16 +4,13 @@ import Hero from "@/src/components/Hero";
 import Project from "@/src/components/Project";
 import Section from "@/src/components/Section";
 import SiteHeader, { SECOES } from "@/src/components/SiteHeader";
-import { LINKS, PERFIL, PROJETOS, TRAJETORIA } from "@/src/data/site";
+import Trajetoria from "@/src/components/Trajetoria";
+import { LINKS, PERFIL, PROJETOS } from "@/src/data/site";
 
 const [projetos, trajetoria, contato] = SECOES;
 
 // colunas máximas de cada cena; as linhas seguem a proporção do contêiner e a cena ganha
 // detalhe conforme sobe pela tela
-const GRADE_ESTRADA = [
-  { mq: "(min-width: 1024px)", cols: 340, rows: 0 },
-  { mq: "all", cols: 160, rows: 0 },
-];
 const GRADE_CORVO = [
   { mq: "(min-width: 640px)", cols: 220, rows: 0 },
   { mq: "all", cols: 130, rows: 0 },
@@ -42,28 +39,7 @@ export default function Home() {
         </Section>
 
         <Section id={trajetoria.id} n={trajetoria.n} title={trajetoria.titulo}>
-          <div
-            data-revelar
-            className="noite relative mb-8 aspect-[3/1] border lg:aspect-[19/4]"
-            role="img"
-            aria-label="Ilustração: sob a Via Láctea, um viajante com lanterna anda por uma estrada de 2020 a 2026 conforme a página rola, acendendo o lampião de cada marco da trajetória listada abaixo, rumo a um castelo no fim do caminho."
-          >
-            <AsciiCanvas cena="estrada" imagem="/cenas/estrada.webp" grades={GRADE_ESTRADA} revelar={0.3} rolagem interativa />
-            <span className="pointer-events-none absolute right-3 bottom-2 text-caption text-muted">role a página</span>
-          </div>
-          <ol className="border-t border-l">
-            {TRAJETORIA.map((t) => (
-              <li
-                key={`${t.quando}-${t.titulo}`}
-                className="surgir grid items-baseline gap-2 border-r border-b bg-paper p-4 md:grid-cols-[10rem_1fr] md:gap-6"
-              >
-                <span className="text-caption font-stretch-condensed tabular-nums text-muted">{t.quando}</span>
-                <p>
-                  <span className="font-semibold">{t.titulo}.</span> <span className="text-muted">{t.texto}</span>
-                </p>
-              </li>
-            ))}
-          </ol>
+          <Trajetoria />
         </Section>
 
         <Section id={contato.id} n={contato.n} title={contato.titulo}>
