@@ -14,7 +14,7 @@ const Hero = () => {
             <span className="block">{primeiro}</span>
             <span className="block">{resto.join(" ")}</span>
           </h1>
-          <p className="mt-8 text-lead font-semibold">{PERFIL.cargo}</p>
+          <p className="mt-8 text-lead font-semibold text-balance">{PERFIL.cargo}</p>
           <p className="mt-4 max-w-measure text-muted">{PERFIL.resumo}</p>
           <div className="mt-8">
             <EmailCta />

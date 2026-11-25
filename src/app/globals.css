@@ -133,6 +133,12 @@
     line-height: var(--text-body--line-height);
   }
 
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
   a {
     text-decoration-line: underline;
     text-decoration-thickness: 1px;
