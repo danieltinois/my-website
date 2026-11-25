@@ -1,5 +1,7 @@
 // Todo o texto da página. Fonte: docs/content.md (se um texto mudar, muda lá e aqui).
 
+export const SITE_URL = "https://danieltinois.dev";
+
 export const EMAIL = "me@danieltinois.dev";
 
 export const LINKS = {

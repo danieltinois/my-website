@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { SITE_URL } from "@/src/data/site";
 import { THEME_SCRIPT } from "@/src/lib/theme";
 import { mono } from "./fonts";
 
@@ -8,14 +9,24 @@ const description =
   "Dev full stack pleno na Verzel, em São Paulo. React, Next, Flutter, Node e Spring. Projetos, trajetória e contato.";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title,
   description,
+  alternates: { canonical: "/" },
   openGraph: {
     title,
     description,
+    url: "/",
+    siteName: "Daniel Tinois",
     locale: "pt_BR",
     type: "website",
   },
+  twitter: { card: "summary_large_image", title, description },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0b0c0e",
+  colorScheme: "dark light",
 };
 
 export default function RootLayout({

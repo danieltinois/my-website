@@ -1,0 +1,5 @@
+# Cloudflare Workers Static Assets. O Next exporta a imagem de compartilhamento sem
+# extensão (out/opengraph-image); sem isto ela sairia como application/octet-stream.
+/opengraph-image
+  Content-Type: image/png
+  Cache-Control: public, max-age=86400
