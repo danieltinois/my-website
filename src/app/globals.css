@@ -193,6 +193,25 @@
   }
 }
 
+/* surgir: o bloco sobe e aparece conforme entra na tela, guiado pela própria rolagem
+   (animation-timeline: view()); sem suporte ou com reduced motion, fica parado e visível */
+@keyframes surgir {
+  from {
+    opacity: 0;
+    translate: 0 2.5rem;
+    filter: blur(6px);
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .surgir {
+      animation: surgir linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 70%;
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,

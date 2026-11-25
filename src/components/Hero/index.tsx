@@ -1,5 +1,6 @@
 import AsciiCanvas from "@/src/components/Ascii/AsciiCanvas";
 import ContributionStats from "@/src/components/ContributionStats";
+import Decifrar from "@/src/components/Decifrar";
 import EmailCta from "@/src/components/EmailCta";
 import { ESPECIFICACOES, LINKS, PERFIL } from "@/src/data/site";
 
@@ -29,8 +30,12 @@ const Hero = () => {
         <div className="relative z-10 pt-8 lg:pointer-events-none lg:sticky lg:top-32 lg:h-0">
           <div className="max-w-measure lg:pointer-events-auto lg:max-w-[34rem]">
             <h1 id="hero-nome" className="text-display-sm md:text-display">
-              <span className="block">{primeiro}</span>
-              <span className="block">{resto.join(" ")}</span>
+              <span className="block">
+                <Decifrar texto={primeiro} />
+              </span>
+              <span className="block">
+                <Decifrar texto={resto.join(" ")} atraso={250} />
+              </span>
             </h1>
             <p className="mt-6 text-lead font-semibold text-balance">{PERFIL.cargo}</p>
             <p className="mt-3 text-muted">{PERFIL.resumo}</p>

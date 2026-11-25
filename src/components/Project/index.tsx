@@ -38,7 +38,7 @@ const Project = ({ projeto, n }: { projeto: Projeto; n: string }) => {
     <article
       id={projeto.id}
       aria-labelledby={`${projeto.id}-nome`}
-      className="scroll-mt-24 border bg-paper"
+      className="surgir scroll-mt-24 border bg-paper"
     >
       <div className="noite relative border-b">
         <div data-revelar className="aspect-[2/1] lg:aspect-[3/1]" role="img" aria-label={CENAS[projeto.id].descricao}>

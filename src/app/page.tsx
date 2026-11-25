@@ -55,7 +55,7 @@ export default function Home() {
             {TRAJETORIA.map((t) => (
               <li
                 key={`${t.quando}-${t.titulo}`}
-                className="grid items-baseline gap-2 border-r border-b bg-paper p-4 md:grid-cols-[10rem_1fr] md:gap-6"
+                className="surgir grid items-baseline gap-2 border-r border-b bg-paper p-4 md:grid-cols-[10rem_1fr] md:gap-6"
               >
                 <span className="text-caption font-stretch-condensed tabular-nums text-muted">{t.quando}</span>
                 <p>
