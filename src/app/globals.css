@@ -69,6 +69,7 @@
   --container-*: initial;
   --container-measure: 42rem;
   --container-page: 75rem;
+  --container-callout: 15rem;
 
   /* sem raio, sem sombra */
   --radius-*: initial;
@@ -80,6 +81,28 @@
   --animate-*: initial;
   --ease-*: initial;
   --ease-draw: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* o único movimento automático do site: a curva da Figura 1 se desenha uma vez */
+  --animate-draw: draw 1.6s var(--ease-draw) 0.2s both;
+  --animate-mark: mark 0.4s ease-out 1.5s both;
+
+  @keyframes draw {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  @keyframes mark {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
 }
 
 :root[data-theme="dark"] {
@@ -143,6 +166,7 @@
   ::before,
   ::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
