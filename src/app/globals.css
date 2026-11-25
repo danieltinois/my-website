@@ -1,14 +1,15 @@
 @import "tailwindcss";
 
 /*
- * Sistema de design: ficha técnica. Regras e motivos em docs/design.md.
+ * Sistema de design: painel de dev ao vivo. Regras e motivos em docs/design.md.
  * Os namespaces padrão do Tailwind são zerados: só existe o que está aqui.
+ * Escuro é o padrão (valores do @theme); o claro sobrescreve em [data-theme="light"].
  */
 
 @theme {
-  /* tipografia: uma família, a largura faz o trabalho */
+  /* tipografia: uma família mono; a largura (75–112,5%) faz o trabalho */
   --font-*: initial;
-  --font-sans: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Martian Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
 
   --font-weight-*: initial;
   --font-weight-regular: 400;
@@ -18,43 +19,45 @@
   --leading-*: initial;
 
   --text-*: initial;
-  --text-caption: 0.875rem;
-  --text-caption--line-height: 1.25rem;
-  --text-caption--letter-spacing: 0.005em;
-  --text-body: 1rem;
-  --text-body--line-height: 1.625rem;
-  --text-lead: 1.125rem;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.125rem;
+  --text-caption--letter-spacing: 0.01em;
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.5rem;
+  --text-lead: 1.0625rem;
   --text-lead--line-height: 1.75rem;
-  --text-h3: 1.5rem;
-  --text-h3--line-height: 1.875rem;
+  --text-h3: 1.25rem;
+  --text-h3--line-height: 1.75rem;
   --text-h3--letter-spacing: -0.01em;
   --text-h3--font-weight: 600;
-  --text-h2: 2.25rem;
-  --text-h2--line-height: 2.5rem;
-  --text-h2--letter-spacing: -0.015em;
+  --text-h2: 2rem;
+  --text-h2--line-height: 2.375rem;
+  --text-h2--letter-spacing: -0.03em;
   --text-h2--font-weight: 600;
-  --text-display-sm: 3.75rem;
-  --text-display-sm--line-height: 3.5rem;
-  --text-display-sm--letter-spacing: -0.02em;
+  --text-display-sm: 3.25rem;
+  --text-display-sm--line-height: 3.25rem;
+  --text-display-sm--letter-spacing: -0.05em;
   --text-display-sm--font-weight: 600;
-  --text-display: 6rem;
-  --text-display--line-height: 5.5rem;
-  --text-display--letter-spacing: -0.025em;
+  --text-display: 5.5rem;
+  --text-display--line-height: 5.25rem;
+  --text-display--letter-spacing: -0.055em;
   --text-display--font-weight: 600;
 
-  /* cor: quatro neutros e um destaque (valores do tema claro; o escuro sobrescreve abaixo) */
+  /* cor: cinco neutros e um destaque */
   --color-*: initial;
-  --color-paper: #ffffff;
-  --color-plate: #f1f2f3;
-  --color-rule: #c9cdd2;
-  --color-muted: #575d66;
-  --color-ink: #15181c;
-  --color-signal: #f25400;
-  --color-on-signal: #15181c;
+  --color-paper: #0b0c0e;
+  --color-plate: #131519;
+  --color-rule: #2a2e34;
+  --color-faint: #3a3f47;
+  --color-muted: #8d939c;
+  --color-ink: #e9ebee;
+  --color-signal: #ff6a13;
+  --color-on-signal: #0b0c0e;
 
   /* espaço: só estes passos */
   --spacing: initial;
   --spacing-*: initial;
+  --spacing-0: 0px;
   --spacing-1: 0.25rem;
   --spacing-2: 0.5rem;
   --spacing-3: 0.75rem;
@@ -67,9 +70,9 @@
   --spacing-32: 8rem;
 
   --container-*: initial;
-  --container-measure: 42rem;
-  --container-page: 75rem;
-  --container-callout: 15rem;
+  --container-measure: 40rem;
+  --container-page: 80rem;
+  --container-callout: 16rem;
 
   /* sem raio, sem sombra */
   --radius-*: initial;
@@ -80,42 +83,30 @@
 
   --animate-*: initial;
   --ease-*: initial;
-  --ease-draw: cubic-bezier(0.2, 0.7, 0.2, 1);
 
-  /* o único movimento automático do site: a curva da Figura 1 se desenha uma vez */
-  --animate-draw: draw 1.6s var(--ease-draw) 0.2s both;
-  --animate-mark: mark 0.4s ease-out 1.5s both;
+  /* indicador "ao vivo" da faixa de status */
+  --animate-pulse: pulse 2s ease-in-out infinite;
 
-  @keyframes draw {
-    from {
-      clip-path: inset(0 100% 0 0);
-    }
-    to {
-      clip-path: inset(0 0 0 0);
-    }
-  }
-
-  @keyframes mark {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
+  @keyframes pulse {
+    50% {
+      opacity: 0.3;
     }
   }
 }
 
-:root[data-theme="dark"] {
-  --color-paper: #1b1e22;
-  --color-plate: #24282d;
-  --color-rule: #454b53;
-  --color-muted: #a2a8b0;
-  --color-ink: #eceef0;
-  --color-signal: #ff6a13;
+:root {
   color-scheme: dark;
 }
 
 :root[data-theme="light"] {
+  --color-paper: #ffffff;
+  --color-plate: #f1f2f3;
+  --color-rule: #d5d8dc;
+  --color-faint: #b8bdc4;
+  --color-muted: #575d66;
+  --color-ink: #15181c;
+  --color-signal: #f25400;
+  --color-on-signal: #15181c;
   color-scheme: light;
 }
 
@@ -129,7 +120,7 @@
   html {
     background-color: var(--color-paper);
     color: var(--color-ink);
-    font-family: var(--font-sans);
+    font-family: var(--font-mono);
     font-size: 100%;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -143,7 +134,7 @@
   a {
     text-decoration-line: underline;
     text-decoration-thickness: 1px;
-    text-underline-offset: 0.2em;
+    text-underline-offset: 0.25em;
   }
 
   a:hover {
@@ -165,7 +156,7 @@
 @utility link {
   text-decoration-line: underline;
   text-decoration-thickness: 1px;
-  text-underline-offset: 0.2em;
+  text-underline-offset: 0.25em;
   cursor: pointer;
 
   &:hover {

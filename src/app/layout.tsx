@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import "@fontsource-variable/archivo/wdth.css";
+import "@fontsource-variable/martian-mono/wdth.css";
 import { THEME_SCRIPT } from "@/src/lib/theme";
 
 const title = "Daniel Tinois, dev full stack";
@@ -24,8 +24,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // data-theme é escrito pelo script antes da pintura; o servidor não sabe o tema
-    <html lang="pt-BR" suppressHydrationWarning>
+    // escuro é o padrão; o script troca para o claro antes da pintura se a pessoa escolheu
+    <html lang="pt-BR" data-theme="dark" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
