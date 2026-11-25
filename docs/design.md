@@ -15,8 +15,10 @@ Textos: `docs/content.md`.
 
 ## 1. Tipografia
 
-**Uma família: Martian Mono** (variável, `@fontsource-variable/martian-mono/wdth.css`, 38 KB,
-eixos `wght` 100–800 e `wdth` 75–112,5).
+**Uma família: Martian Mono** (variável, 38 KB, eixos `wght` 100–800 e `wdth` 75–112,5).
+Carregada por `next/font/local` em `src/app/fonts.ts`: preload no `<head>` e uma fonte de fallback
+com métricas ajustadas, para a troca não mover o layout. A imagem de compartilhamento usa a versão
+estática em woff (`@fontsource/martian-mono`, devDependency), porque o `ImageResponse` não lê woff2.
 
 | Largura | Utilitário | Onde |
 |---|---|---|
@@ -43,6 +45,7 @@ Regras:
 - Números usam `tabular-nums`.
 - Medida do texto: no máximo `max-w-measure` (40rem).
 - Link é sublinhado (1px, offset 0,25em); no hover o sublinhado vai a 2px.
+- Títulos usam `text-wrap: balance` (sem palavra órfã).
 
 ## 2. Cor
 
@@ -143,13 +146,34 @@ colunas (semanas) por 20 linhas.
 - `prefers-reduced-motion: reduce`: nada se mexe. Cada arte para num estado que faz sentido
   (campo aceso, eventos espalhados pelo caminho, experiências já na ordem da vaga).
 
-## 8. Histórico
+## 8. Qualidade verificada (25 nov 2026)
+
+Lighthouse 12 contra a build servida pelo `wrangler dev`:
+
+| | Desempenho | Acessibilidade | Boas práticas | SEO |
+|---|---|---|---|---|
+| Celular | 98 | 100 | 100 | 100 |
+| Desktop | 100 | 100 | 100 | 100 |
+
+LCP 2,5s no celular (simulado) e 0,5s no desktop; CLS 0; TBT ≤ 10ms.
+
+- **Teclado:** o primeiro Tab mostra "Pular para o conteúdo"; a ordem segue a leitura (índice, tema,
+  CTA, links, dados, repositórios, contato). Foco com contorno de 2px. `scroll-padding-top` evita que
+  o cabeçalho fixo cubra o elemento focado.
+- **Artes:** cada uma é `role="img"` com descrição; os caracteres decorativos não entram na árvore
+  de acessibilidade.
+- **Metadados:** título, descrição, canonical, Open Graph e Twitter; imagem de compartilhamento
+  gerada na build (`src/app/opengraph-image.tsx`) com o mesmo campo de contribuições; `robots.txt` e
+  `sitemap.xml`. O `public/_headers` serve a imagem como `image/png`, porque o export do Next a
+  grava sem extensão.
+
+## 9. Histórico
 
 A primeira versão deste sistema era uma "ficha técnica" clara e estática (Archivo, fundo branco,
 curva em SVG). Foi rejeitada porque perdia a energia da referência: tinha a disciplina, mas não o
 impacto. Ficaram dela a regra de um destaque, a linha de 1px, raio 0 e os dados reais.
 
-## 9. Fora do sistema (removido)
+## 10. Fora do sistema (removido)
 
 Tokens: `cn-*`, cores de redes sociais, sombras `bump`/`flat`, `docker-*`, `wave-*`, cursores,
 Roboto Mono e Archivo. Componentes: desktop, janelas, terminal, celular, Craft, Konami, sons,
