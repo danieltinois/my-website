@@ -133,7 +133,7 @@ pixel-font 3×5 (o único texto legível dentro das cenas).
 
 | Cena | Onde | Grade (desktop) | O que acontece |
 |---|---|---|---|
-| `castelo` | hero | 260×80 | castelo no penhasco, cachoeira, floresta, lago com reflexo e trilha de luar, raios de lua, dragão a cada 18s; as montanhas são as contribuições reais e a fogueira marca 24–29 set |
+| `castelo` | hero | até 360 colunas | a partir de uma imagem (abaixo): castelo no penhasco, cachoeira, floresta, lago com reflexo; por cima, em código, água ondulando, janelas tremulando, estrelas, nuvens, trilha de luar e dragão a cada 18s |
 | `porao` | DevClean | 300×54 | varredor leva os três sacos seguros à carroça da Lixeira; o saco "?" fica |
 | `torre` | Pato Commit | 300×54 | pombos entregam cartas na janela; a repetida queima no braseiro |
 | `escriba` | resume-tailor | 300×54 | à luz de vela, as linhas se reordenam pela vaga e a pena escreve o currículo |
@@ -143,11 +143,26 @@ pixel-font 3×5 (o único texto legível dentro das cenas).
 Grades menores no tablet e no celular; a proporção de cada grade bate com o `aspect-ratio` do
 contêiner, então a altura é reservada antes do JavaScript (CLS 0).
 
-**Dados reais.** `scripts/update-contributions.mts` lê o HTML público do GitHub e grava
-`src/data/contributions.json` no `prebuild` (mantém o snapshot anterior se falhar). As montanhas,
-os números abaixo do hero e a imagem de compartilhamento saem daí.
+**O castelo vem de uma imagem.** Para chegar perto do realista, o hero não desenha o castelo com
+formas: converte uma imagem (`public/cenas/castelo.webp`, 800×450, gerada no Figma) em
+caracteres a cada quadro. O `AsciiCanvas` decodifica a imagem fora da tela e a passa à cena como
+tabelas de soma acumulada de brilho e de calor (laranja = luz de vela), então a média de qualquer
+retângulo custa quatro leituras. A cena aplica níveis e gama (a imagem é noturna, com brilho
+mediano de 0,07), reforça a diferença de cada célula para a vizinhança (nitidez) e enquadra a
+imagem em modo cover. A saída é 100% ASCII; a imagem nunca aparece.
 
-**Hero no desktop.** O texto fica por cima do céu, à esquerda; a cena apaga quase tudo atrás dele.
+**Revelação pela rolagem.** O hero é um trecho alto (`[data-revelar]`, 260svh no desktop) com a
+cena presa na tela (`sticky`). Conforme a pessoa rola, a grade vai de 15% até a grade máxima
+(360 colunas no desktop largo, 120 no celular), o enquadramento abre do castelo para a paisagem e o
+limiar de luz baixa: primeiro só o que brilha (lua, nuvens, cachoeira), depois a pedra, a floresta
+e o lago. Cálculo de ~6 ms por quadro na grade máxima. Sem movimento, a cena aparece inteira.
+
+**Dados reais.** `scripts/update-contributions.mts` lê o HTML público do GitHub e grava
+`src/data/contributions.json` no `prebuild` (mantém o snapshot anterior se falhar). Os números
+abaixo do hero e a imagem de compartilhamento saem daí.
+
+**Hero no desktop.** O texto fica preso por cima do céu, à esquerda, durante a revelação; a cena
+apaga quase tudo atrás dele. No celular o texto vem antes e a cena fica presa logo abaixo.
 
 ## 7. Interação
 
@@ -172,10 +187,11 @@ tela.
 
 - Cada cena anima a 20 quadros por segundo só enquanto aparece na tela e a aba está visível
   (`IntersectionObserver` e `visibilitychange`). Cálculo de 0,2 a 2,2 ms por quadro.
-- A estrada não anda com o tempo: anda com a rolagem.
+- A estrada não anda com o tempo: anda com a rolagem. O castelo ganha resolução com a rolagem.
 - Brasas sobem atrás da página (só no tema escuro); o quadrado da faixa de status pulsa; o
   relógio de São Paulo se atualiza.
-- `prefers-reduced-motion: reduce`: cada cena desenha um quadro parado (a estrada aparece completa).
+- `prefers-reduced-motion: reduce`: cada cena desenha um quadro parado (a estrada aparece completa,
+  o castelo aparece na resolução máxima e o trecho alto do hero encolhe).
 
 ## 8. Qualidade verificada (25 nov 2026)
 
@@ -183,10 +199,11 @@ Lighthouse 12 contra a build servida pelo `wrangler dev`:
 
 | | Desempenho | Acessibilidade | Boas práticas | SEO |
 |---|---|---|---|---|
-| Celular | 98 | 100 | 100 | 100 |
+| Celular | 97 | 100 | 100 | 100 |
 | Desktop | 100 | 100 | 100 | 100 |
 
-LCP 2,3s no celular (simulado) e 0,5s no desktop; CLS 0; TBT 70ms no celular, com todas as cenas densas.
+LCP 2,3s no celular (simulado) e 0,5s no desktop; CLS 0; TBT 120ms no celular, com todas as cenas
+densas e o castelo a partir da imagem.
 
 - **Teclado:** o primeiro Tab mostra "Pular para o conteúdo"; a ordem segue a leitura (índice, tema,
   CTA, links, dados, repositórios, contato). Foco com contorno de 2px. `scroll-padding-top` evita que
@@ -204,7 +221,10 @@ LCP 2,3s no celular (simulado) e 0,5s no desktop; CLS 0; TBT 70ms no celular, co
 2. "Painel de dev ao vivo" (escuro, mono, campo de contribuições em caracteres): aprovado, mas o
    pedido seguinte foi um tema e um ASCII de jogo.
 3. Mundo medieval em ASCII de contorno (`|`, `_`, `/`): rejeitado por ser simples demais.
-4. Mundo medieval em ASCII denso, como imagem renderizada em caracteres: a versão atual.
+4. Mundo medieval em ASCII denso, como imagem renderizada em caracteres, tudo desenhado em código:
+   aprovado, mas o pedido seguinte foi um hero "quase realista".
+5. Castelo convertido de uma imagem gerada no Figma, revelado pela rolagem (de poucos caracteres
+   grandes a milhares de pequenos): a versão atual do hero. As outras cenas seguem em código.
 
 ## 10. Fora do sistema (removido)
 
