@@ -166,16 +166,20 @@ const AsciiCanvas = ({
         }
     };
 
+    // revelação: num trecho mais alto que a tela (o hero), o quanto já se rolou por ele; num
+    // bloco menor (os banners), o quanto ele já subiu: começa ao entrar pela base e termina
+    // quando o topo chega a um quarto da altura da tela
+    const revelacao = () => {
+      if (revelar === undefined || reduzir.matches) return 1;
+      const alvo = canvas.closest("[data-revelar]") ?? canvas;
+      const r = alvo.getBoundingClientRect();
+      const p = r.height > innerHeight ? -r.top / (r.height - innerHeight) : (innerHeight - r.top) / (innerHeight * 0.75);
+      return Math.max(0, Math.min(1, p));
+    };
+    const colunasDe = (g: Grade) => Math.max(8, Math.round((g.cols * (revelar! + (1 - revelar!) * passoSuave(revelacao()))) / 4) * 4);
+
     const progresso = () => {
-      if (revelar !== undefined) {
-        // sem movimento, a cena já aparece inteira
-        if (reduzir.matches) return 1;
-        const alvo = canvas.closest("[data-revelar]");
-        if (!alvo) return 1;
-        const r = alvo.getBoundingClientRect();
-        return Math.max(0, Math.min(1, -r.top / Math.max(1, r.height - innerHeight)));
-      }
-      if (!rolagem) return 1;
+      if (!rolagem) return revelar !== undefined ? revelacao() : 1;
       const alvo = canvas.closest("section");
       // fora de uma seção (o fundo da página): o progresso é o da página inteira
       if (!alvo) return scrollY / Math.max(1, document.documentElement.scrollHeight - innerHeight);
@@ -195,8 +199,7 @@ const AsciiCanvas = ({
       if (revelar !== undefined) {
         // grade da revelação: fração da grade máxima, linhas pela proporção real do contêiner
         const g = grades!.find((x) => matchMedia(x.mq).matches) ?? grades!.at(-1)!;
-        const fr = revelar + (1 - revelar) * passoSuave(progresso());
-        cols = Math.max(8, Math.round((g.cols * fr) / 4) * 4);
+        cols = colunasDe(g);
         rows = Math.max(4, Math.round((cols * K * height) / width));
       } else if (celula) {
         cols = Math.max(1, Math.round(width / celula.w));
@@ -217,8 +220,7 @@ const AsciiCanvas = ({
       // na revelação, a grade muda com a rolagem: refaz medidas e atlas quando muda
       if (revelar !== undefined && m.cols) {
         const g = grades!.find((x) => matchMedia(x.mq).matches) ?? grades!.at(-1)!;
-        const alvo = Math.max(8, Math.round((g.cols * (revelar + (1 - revelar) * passoSuave(p))) / 4) * 4);
-        if (alvo !== m.cols) medir();
+        if (colunasDe(g) !== m.cols) medir();
       }
       const { cols, rows, w, h, fonte, linha, dpr } = m;
       if (!cols) return;
@@ -264,7 +266,7 @@ const AsciiCanvas = ({
     const sincronizar = () => {
       cancelAnimationFrame(raf);
       if (reduzir.matches || !visivel || document.hidden) {
-        desenhar(quadroParado, reduzir.matches && (rolagem || revelar !== undefined) ? 1 : undefined);
+        desenhar(quadroParado, reduzir.matches && rolagem ? 1 : undefined);
         return;
       }
       raf = requestAnimationFrame(laco);
@@ -285,11 +287,12 @@ const AsciiCanvas = ({
     });
 
     let vivo = true;
-    // imagem-fonte: decodifica fora da tela e vira brilho e calor para a cena
-    if (imagem) {
+    // imagem-fonte: carrega quando o canvas chega perto da tela, decodifica fora da tela e vira
+    // brilho e calor para a cena
+    const carregar = () => {
       const img = new Image();
       img.decoding = "async";
-      img.src = imagem;
+      img.src = imagem!;
       img
         .decode()
         .then(() => {
@@ -301,12 +304,21 @@ const AsciiCanvas = ({
           o.drawImage(img, 0, 0);
           const { data } = o.getImageData(0, 0, off.width, off.height);
           dadosVivos = { ...(dados as object), fonte: prepararFonte(data, off.width, off.height) };
-          desenhar(reduzir.matches ? quadroParado : agoraT(), reduzir.matches && revelar !== undefined ? 1 : undefined);
+          desenhar(reduzir.matches ? quadroParado : agoraT());
         })
         .catch(() => {
-          // sem a imagem a cena fica vazia; o texto do hero continua lá
+          // sem a imagem a cena fica vazia; o texto ao lado continua lá
         });
-    }
+    };
+    const perto = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting) return;
+        perto.disconnect();
+        carregar();
+      },
+      { rootMargin: "800px 0px" },
+    );
+    if (imagem) perto.observe(canvas);
     document.fonts.ready.then(() => {
       if (!vivo) return;
       familia = getComputedStyle(canvas).fontFamily;
@@ -330,6 +342,7 @@ const AsciiCanvas = ({
 
     return () => {
       vivo = false;
+      perto.disconnect();
       cancelAnimationFrame(raf);
       tema.disconnect();
       tamanho.disconnect();

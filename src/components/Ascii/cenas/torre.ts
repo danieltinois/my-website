@@ -1,206 +1,147 @@
-// Pato Commit: a torre do correio, em modo denso. Pombos chegam da direita com cartas (as
-// entregas do webhook) e entram pela janela acesa, que pisca a cada entrega. A carta repetida
-// (mesmo ID de entrega) não entra: cai no braseiro e vira labareda. Ciclo de 9s.
+// Pato Commit: a torre do correio, a partir de uma imagem realista (public/cenas/torre.webp)
+// convertida em caracteres a cada quadro. Por cima, em código: nuvens correndo pela lua,
+// estrelas piscando, a janela da torre e as janelas da vila tremulando, fumaça das chaminés, o
+// braseiro com fagulhas e a história: pombos chegam da direita com cartas (as entregas do
+// webhook) e entram pela janela acesa, que pisca a cada entrega. A carta repetida (mesmo ID de
+// entrega) não entra: cai no braseiro e vira labareda. Ciclo de 9s.
 
 import {
-  acender,
+  balancar,
   cada,
-  ceu,
+  acender,
   chama,
-  copiar,
   elipse,
-  estrelasDe,
-  expor,
+  faiscas,
+  fagulhas,
   fbm,
+  fechar,
+  fumaca,
+  fundoImagem,
   lampiao,
   luz,
-  memoTela,
-  nevoa,
   passo,
-  pedra,
-  piscar,
   ruido,
   tela,
-  traco,
   triangulo,
   type Campo,
+  type DadosImagem,
   type Entrada,
   type Tela,
 } from "../denso.ts";
 
-const CHAO = 0.86;
-
-interface Base {
-  T: Tela;
-  janela: { x: number; y: number };
-  braseiro: { x: number; y: number };
-  estrelas: number[];
-  lua: { x: number; y: number; r: number };
-}
-
-const montar = (cols: number, rows: number): Base => {
-  const T = tela(cols, rows);
-  const { A } = T;
-  const lua = { x: A * 0.72, y: 0.2, r: 0.07 };
-  ceu(T, lua);
-  // colinas ao longe
-  cada(T, (X, Y, i) => {
-    const h = 0.7 - 0.05 * Math.sin(X * 3 + 1) - 0.03 * fbm(X * 5, 2);
-    if (Y < h || Y >= CHAO) return;
-    T.c.lum[i] = 0.04 + 0.04 * fbm(X * 20, Y * 20) + (Y - h < 0.008 ? 0.12 : 0);
-    T.mat[i] = 7;
-  });
-  // chão com grama
-  cada(
-    T,
-    (X, Y, i) => {
-      T.c.lum[i] = 0.05 + 0.07 * fbm(X * 40, Y * 60) + (Y - CHAO < 0.008 ? 0.15 : 0);
-      T.mat[i] = 4;
-    },
-    { x0: 0, x1: A, y0: CHAO, y1: 1 },
-  );
-  // torre redonda de pedra com telhado cônico; a lua acende o lado direito
-  const tx = A * 0.22;
-  const meia = 0.085;
-  const topo = 0.3;
-  cada(
-    T,
-    (X, Y, i) => {
-      const u = (X - (tx - meia)) / (2 * meia);
-      if (u < 0 || u > 1) return;
-      const claro = 0.3 + 0.95 * u ** 1.3;
-      let L = 0.3 * claro * pedra(X, Y, 0.025, 0.05);
-      if (u > 0.94) L = Math.max(L, 0.55);
-      T.c.lum[i] = L;
-      T.mat[i] = 2;
-    },
-    { x0: tx - meia, x1: tx + meia, y0: topo, y1: CHAO },
-  );
-  triangulo(T, { x: tx - meia - 0.02, y: topo }, { x: tx + meia + 0.02, y: topo }, { x: tx, y: topo - 0.22 }, 0, 3);
-  cada(
-    T,
-    (X, Y, i) => {
-      if (T.mat[i] !== 3) return;
-      const lado = passo(tx - meia, tx + meia, X);
-      T.c.lum[i] = 0.22 * (0.4 + 0.9 * lado) * (0.7 + 0.4 * ((Y / 0.016) % 1));
-      if (Math.abs(Y - (topo - 0.002)) < 0.006) T.c.lum[i] = 0.4;
-    },
-    { x0: tx - meia - 0.02, x1: tx + meia + 0.02, y0: topo - 0.23, y1: topo + 0.01 },
-  );
-  traco(T, tx, topo - 0.22, tx, topo - 0.27, 0.002, 0.45, 2);
-  // janela em arco no alto (o brilho é dinâmico) e porta
-  const janela = { x: tx + 0.01, y: topo + 0.1 };
-  elipse(T, janela.x, janela.y, 0.02, 0.04, () => 0, 5);
-  elipse(T, tx, CHAO - 0.04, 0.025, 0.05, (_u, v) => (v > 0.7 ? 0.2 : 0.04), 4);
-  // braseiro: bacia de ferro num tripé
-  const braseiro = { x: tx + meia + 0.12, y: CHAO - 0.09 };
-  cada(
-    T,
-    (X, Y, i) => {
-      const u = (X - braseiro.x) / 0.035;
-      const v = (Y - braseiro.y - 0.005) / 0.018;
-      if (v >= 0 && u * u + v * v <= 1) {
-        T.c.lum[i] = 0.25 + 0.2 * u;
-        T.mat[i] = 4;
-      }
-    },
-    { x0: braseiro.x - 0.035, x1: braseiro.x + 0.035, y0: braseiro.y, y1: braseiro.y + 0.025 },
-  );
-  for (const d of [-0.025, 0, 0.025]) traco(T, braseiro.x + d * 0.6, braseiro.y + 0.02, braseiro.x + d, CHAO, 0.0025, 0.25, 4);
-
-  return { T, janela, braseiro, estrelas: estrelasDe(T, 0.02, 0.6), lua };
-};
-
-const base$ = memoTela(montar);
+// pontos da imagem (coordenadas normalizadas), medidos no arquivo
+const ASPECTO = 3;
+const JANELA = { x: 0.242, y: 0.27 };
+const BRASEIRO = { x: 0.1375, y: 0.74 };
+const LUA = { x: 0.889, y: 0.168, r: 0.068 };
+const CHAMINES = [
+  { x: 0.808, y: 0.69 },
+  { x: 0.93, y: 0.73 },
+];
+const VILA = { x0: 0.74, x1: 0.99, y0: 0.66, y1: 0.9 };
+const CHAMAS = [{ x: BRASEIRO.x, y: BRASEIRO.y, alt: 0.12, larg: 0.018 }];
 const CICLO = 9;
 const VOO = 3.2;
 // a segunda entrega é a repetida (mesmo ID): vai para o braseiro
 const REPETIDA = [false, true, false];
 
-// pombo em voo: corpo, cabeça, cauda e asas batendo; a carta presa embaixo
-const pombo = (T: Tela, x: number, y: number, t: number, fase: number) => {
-  const asa = Math.sin(t * 14 + fase) * 0.022;
-  elipse(T, x, y, 0.016, 0.008, (u) => 0.55 + 0.25 * u);
-  elipse(T, x - 0.017, y - 0.004, 0.006, 0.006, () => 0.65);
-  triangulo(T, { x: x + 0.012, y: y - 0.002 }, { x: x + 0.032, y: y - 0.008 }, { x: x + 0.03, y: y + 0.006 }, 0.45);
-  triangulo(T, { x: x - 0.006, y }, { x: x + 0.01, y }, { x: x + 0.006, y: y - 0.02 - asa }, 0.7);
-  cada(T, (_X, _Y, i) => acender(T, i, 0.85), { x0: x - 0.004, x1: x + 0.008, y0: y + 0.008, y1: y + 0.016 });
+// pombo em voo: corpo, cabeça, cauda e asas batendo; a carta presa embaixo; `s` é a escala
+const pombo = (T: Tela, x: number, y: number, t: number, fase: number, s: number) => {
+  const asa = Math.sin(t * 14 + fase) * 0.022 * s;
+  elipse(T, x, y, 0.016 * s, 0.008 * s, (u) => 0.55 + 0.25 * u);
+  elipse(T, x - 0.017 * s, y - 0.004 * s, 0.006 * s, 0.006 * s, () => 0.65);
+  triangulo(T, { x: x + 0.012 * s, y: y - 0.002 * s }, { x: x + 0.032 * s, y: y - 0.008 * s }, { x: x + 0.03 * s, y: y + 0.006 * s }, 0.45);
+  triangulo(T, { x: x - 0.006 * s, y }, { x: x + 0.01 * s, y }, { x: x + 0.006 * s, y: y - 0.02 * s - asa }, 0.7);
+  cada(T, (_X, _Y, i) => acender(T, i, 0.85), { x0: x - 0.004 * s, x1: x + 0.008 * s, y0: y + 0.008 * s, y1: y + 0.016 * s });
 };
 
 // Interativa: cada clique solta um pombo do ponto clicado. Um clique a menos de 1,5s do anterior
 // é a mesma entrega chegando de novo (o GitHub entrega "pelo menos uma vez"): vai para o braseiro.
 // Sem cliques recentes, a cena roda sozinha em ciclo.
-export const torre = ({ cols, rows, t, mouse, cliques }: Entrada): Campo => {
-  const b = base$<Base>(cols, rows);
-  const T = copiar(b.T);
+export const torre = ({ cols, rows, t, p, dados, mouse, cliques }: Entrada<DadosImagem>): Campo => {
+  const T = tela(cols, rows);
   const { A } = T;
-  piscar(T, b.estrelas, t);
-  // nuvens finas passando pela lua
-  cada(
-    T,
-    (X, Y, i) => {
-      if (T.mat[i] !== 0) return;
-      const dens = passo(0.58, 0.82, fbm(X * 2.6 - t * 0.015, Y * 8, 3)) * passo(0.5, 0.3, Y);
-      if (dens > 0) T.c.lum[i] = Math.max(T.c.lum[i], 0.03 + dens * (0.08 + 0.3 * Math.exp(-Math.hypot(X - b.lua.x, Y - b.lua.y) / 0.3)));
-    },
-    { x0: 0, x1: A, y0: 0, y1: 0.5 },
-  );
-  nevoa(T, CHAO - 0.12, t, 0.06);
+  const f = dados?.fonte;
+  if (!f) return T.c;
 
   // as entregas deste quadro: dos cliques recentes ou, sem eles, do ciclo automático
-  type Voo = { saida: number; de: { x: number; y: number }; repetida: boolean; k: number };
+  type Voo = { saida: number; de: { x: number; y: number } | null; repetida: boolean; k: number };
   const recentes = cliques.filter((q) => t - q.t < VOO + 2);
   const voos: Voo[] = recentes.length
-    ? recentes.map((q, k) => ({
-        saida: q.t,
-        de: { x: q.u * A, y: q.v },
-        repetida: k > 0 && q.t - recentes[k - 1].t < 1.5,
-        k,
-      }))
-    : REPETIDA.map((repetida, k) => ({
-        saida: t - (t % CICLO) + k * (CICLO / 3),
-        de: { x: A + 0.05, y: b.janela.y - 0.05 },
-        repetida,
-        k,
-      }));
+    ? recentes.map((q, k) => ({ saida: q.t, de: { x: q.u * A, y: q.v }, repetida: k > 0 && q.t - recentes[k - 1].t < 1.5, k }))
+    : REPETIDA.map((repetida, k) => ({ saida: t - (t % CICLO) + k * (CICLO / 3), de: null, repetida, k }));
   let flashJanela = 0;
   let labareda = 0;
   for (const v of voos) {
     const voo = t - v.saida;
-    if (voo < 0) continue;
-    const alvo = v.repetida ? { x: b.braseiro.x, y: b.braseiro.y - 0.03 } : { x: b.janela.x + 0.02, y: b.janela.y };
-    const dur = VOO * Math.min(1, 0.4 + Math.abs(v.de.x - alvo.x) / A);
-    if (voo < dur) {
-      const q = voo / dur;
-      const x = v.de.x + (alvo.x - v.de.x) * q;
-      const y = v.de.y + (alvo.y - v.de.y) * q - 0.12 * Math.sin(q * Math.PI) + Math.sin(voo * 5 + v.k) * 0.01;
-      pombo(T, x, y, t, v.k);
-    } else if (v.repetida) labareda = Math.max(labareda, 1 - (voo - dur) / 1.4);
-    else flashJanela = Math.max(flashJanela, 1 - (voo - dur) / 0.9);
+    if (voo < VOO) continue;
+    if (v.repetida) labareda = Math.max(labareda, 1 - (voo - VOO) / 1.4);
+    else flashJanela = Math.max(flashJanela, 1 - (voo - VOO) / 0.9);
   }
-  lampiao(T, mouse, 0.4, 0.1);
-
-  // janela acesa, que pisca forte quando uma carta entra
-  const brilho = 0.6 + 0.15 * ruido(t * 3, 1) + 0.4 * Math.max(0, flashJanela);
-  luz(T, b.janela.x, b.janela.y, 0.06 + 0.05 * Math.max(0, flashJanela), brilho);
-  cada(
-    T,
-    (_X, _Y, i) => {
-      if (T.mat[i] === 5) acender(T, i, 0.6 + 0.4 * brilho, 1);
-    },
-    { x0: b.janela.x - 0.03, x1: b.janela.x + 0.03, y0: b.janela.y - 0.05, y1: b.janela.y + 0.05 },
-  );
-
-  // braseiro: sempre aceso; a carta repetida vira labareda com faíscas
+  flashJanela = Math.max(0, flashJanela);
   const forte = Math.max(0, labareda);
-  luz(T, b.braseiro.x, b.braseiro.y - 0.02, 0.12 + 0.12 * forte, 0.7 + 0.3 * forte);
-  chama(T, b.braseiro.x, b.braseiro.y, 0.05 + 0.1 * forte, 0.025 + 0.015 * forte, t, 2);
-  if (forte > 0)
-    for (let k = 0; k < 10; k++) {
-      const idade = (t * 1.5 + k * 0.1) % 1;
-      const fx = b.braseiro.x + Math.sin(k * 2.1 + idade * 4) * 0.04 * idade;
-      const fy = b.braseiro.y - 0.05 - idade * 0.2 * forte;
-      cada(T, (_X, _Y, i) => acender(T, i, 0.9, 1), { x0: fx, x1: fx + 0.003, y0: fy, y1: fy + 0.008 });
-    }
-  return expor(T.c);
+  const tremor = 0.8 + 0.2 * ruido(t * 3, 1);
+  const fogo = 0.75 + 0.25 * ruido(t * 9, 4);
+
+  const { para, esc } = fundoImagem(T, f, ASPECTO, {
+    fx: 0.45,
+    fy: 0.45,
+    limiar: 0.35 * (1 - passo(0, 1, p)),
+    gama: 0.72,
+    desloca: (ix, iy) => balancar(ix, iy, CHAMAS, t),
+    ajuste: ({ i, ix, iy, l, w, destaque }) => {
+      // céu: estrelas piscando e nuvens correndo, mais claras perto da lua
+      if (iy < 0.62) {
+        const dl = Math.hypot((ix - LUA.x) * ASPECTO, iy - LUA.y);
+        if (destaque > 0.08 && dl > LUA.r * 1.5) l *= 0.6 + 0.5 * (0.5 + 0.5 * Math.sin(t * (1 + (i % 7) * 0.4) + i));
+        if (ix > 0.3) {
+          const dens = passo(0.6, 0.86, fbm(ix * 6 - t * 0.02, iy * 10, 3));
+          l += dens * (0.03 + 0.16 * Math.exp(-dl / 0.3));
+        }
+      }
+      // janela da torre: vela tremulando, e um clarão quando uma carta entra
+      const dj = Math.hypot((ix - JANELA.x) * ASPECTO, iy - JANELA.y);
+      if (dj < 0.08 && w > 0.1) l *= tremor + 0.6 * flashJanela;
+      // janelas da vila: cada uma no seu ritmo
+      if (ix > VILA.x0 && iy > VILA.y0 && iy < VILA.y1 && w > 0.12) l *= 0.75 + 0.4 * ruido(Math.floor(ix * 300) + t * 1.5, Math.floor(iy * 200));
+      // o braseiro ilumina a pedra da torre, pulsando
+      const db = Math.hypot((ix - BRASEIRO.x) * ASPECTO, iy - BRASEIRO.y);
+      if (db < 0.35) l *= 1 + (fogo - 0.85 + forte * 0.5) * Math.exp(-db * 6);
+      return l;
+    },
+  });
+  const e = (n: number) => n * esc;
+
+  // fumaça das chaminés da vila
+  CHAMINES.forEach((c, n) => {
+    const m = para(c.x, c.y);
+    fumaca(T, m.x, m.y, t + n * 5, e(0.22), e(0.02), 0.07);
+  });
+
+  // pombos: saem da direita (ou do ponto clicado) e vão à janela; o repetido, ao braseiro
+  const janela = para(JANELA.x, JANELA.y);
+  const braseiro = para(BRASEIRO.x, BRASEIRO.y);
+  for (const v of voos) {
+    const voo = t - v.saida;
+    if (voo < 0) continue;
+    const de = v.de ?? { x: A + 0.1, y: janela.y - e(0.12) };
+    const alvo = v.repetida ? { x: braseiro.x, y: braseiro.y - e(0.06) } : { x: janela.x + e(0.03), y: janela.y };
+    const dur = VOO * Math.min(1, 0.4 + Math.abs(de.x - alvo.x) / A);
+    if (voo >= dur) continue;
+    const q = voo / dur;
+    const x = de.x + (alvo.x - de.x) * q;
+    const y = de.y + (alvo.y - de.y) * q - e(0.2) * Math.sin(q * Math.PI) + Math.sin(voo * 5 + v.k) * e(0.012);
+    pombo(T, x, y, t, v.k, e(1.1));
+  }
+
+  // janela: halo que cresce no clarão
+  luz(T, janela.x, janela.y, e(0.08) * (1 + flashJanela), 0.35 * tremor + 0.5 * flashJanela);
+  // braseiro: chama viva e fagulhas; a carta repetida vira labareda
+  luz(T, braseiro.x, braseiro.y - e(0.04), e(0.14) * (1 + forte), 0.4 * fogo + 0.5 * forte);
+  chama(T, braseiro.x, braseiro.y - e(0.01), e(0.08 + 0.14 * forte), e(0.025 + 0.015 * forte), t, 2);
+  fagulhas(T, braseiro.x, braseiro.y - e(0.06), t, 10 + Math.round(forte * 30), e(0.35 + 0.3 * forte), e(0.06));
+
+  lampiao(T, mouse, 0.4, 0.1);
+  faiscas(T, cliques, t);
+  return fechar(T.c);
 };

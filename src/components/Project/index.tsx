@@ -21,11 +21,13 @@ const CENAS: Record<string, { cena: NomeCena; dica: string; descricao: string }>
   },
 };
 
-// modo denso: banner 3:1 no desktop (300×54); 3:2 no tablet e no celular
+// colunas máximas de cada tamanho de tela (as linhas seguem a proporção do banner: 3:1 no
+// desktop, 2:1 no tablet e no celular); a cena começa com 25% delas e ganha detalhe conforme o
+// banner sobe pela tela
 const GRADE = [
-  { mq: "(min-width: 1024px)", cols: 300, rows: 54 },
-  { mq: "(min-width: 640px)", cols: 150, rows: 56 },
-  { mq: "all", cols: 100, rows: 37 },
+  { mq: "(min-width: 1024px)", cols: 340, rows: 0 },
+  { mq: "(min-width: 640px)", cols: 220, rows: 0 },
+  { mq: "all", cols: 130, rows: 0 },
 ];
 
 // card de projeto: a cena do projeto como banner no topo, o estudo de caso embaixo
@@ -39,11 +41,11 @@ const Project = ({ projeto, n }: { projeto: Projeto; n: string }) => {
       className="scroll-mt-24 border bg-paper"
     >
       <div className="noite relative border-b">
-        <div className="aspect-[3/2] lg:aspect-[3/1]" role="img" aria-label={CENAS[projeto.id].descricao}>
-          <AsciiCanvas cena={CENAS[projeto.id].cena} grades={GRADE} interativa />
+        <div data-revelar className="aspect-[2/1] lg:aspect-[3/1]" role="img" aria-label={CENAS[projeto.id].descricao}>
+          <AsciiCanvas cena={CENAS[projeto.id].cena} imagem={`/cenas/${CENAS[projeto.id].cena}.webp`} grades={GRADE} revelar={0.25} interativa />
         </div>
         <span className="pointer-events-none absolute top-3 left-4 text-caption font-stretch-condensed tabular-nums text-muted">[{n}]</span>
-        <span className="pointer-events-none absolute right-4 bottom-3 text-caption text-muted">
+        <span className="pointer-events-none absolute right-4 bottom-3 hidden text-caption text-muted sm:inline">
           ilustração: {CENAS[projeto.id].dica}
         </span>
       </div>

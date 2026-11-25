@@ -6,7 +6,7 @@ import { CENAS } from "../src/components/Ascii/cenas/index.ts";
 
 const [nome = "castelo", ...nums] = process.argv.slice(2);
 const [cols = 150, rows = 44, t = 5.1, p = 0.5] = nums.map(Number);
-// o castelo precisa da imagem decodificada (só no navegador): aqui ele sai vazio
+// as cenas feitas de imagem precisam dela decodificada (só no navegador) e saem vazias aqui
 const dados = undefined;
 const cena = CENAS[nome as keyof typeof CENAS];
 const saida = cena({ cols, rows, t, p, dados } as never) as Parameters<typeof ansi>[0] & { lum?: Float32Array };

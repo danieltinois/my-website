@@ -8,14 +8,15 @@ import { LINKS, PERFIL, PROJETOS, TRAJETORIA } from "@/src/data/site";
 
 const [projetos, trajetoria, contato] = SECOES;
 
-// modo denso: a proporção de cada grade bate com o aspect-ratio do contêiner
+// colunas máximas de cada cena; as linhas seguem a proporção do contêiner e a cena ganha
+// detalhe conforme sobe pela tela
 const GRADE_ESTRADA = [
-  { mq: "(min-width: 1024px)", cols: 280, rows: 32 },
-  { mq: "all", cols: 120, rows: 22 },
+  { mq: "(min-width: 1024px)", cols: 340, rows: 0 },
+  { mq: "all", cols: 160, rows: 0 },
 ];
 const GRADE_CORVO = [
-  { mq: "(min-width: 640px)", cols: 150, rows: 37 },
-  { mq: "all", cols: 100, rows: 25 },
+  { mq: "(min-width: 640px)", cols: 220, rows: 0 },
+  { mq: "all", cols: 130, rows: 0 },
 ];
 const CELULA_BRASAS = { w: 14, h: 24 };
 
@@ -42,11 +43,12 @@ export default function Home() {
 
         <Section id={trajetoria.id} n={trajetoria.n} title={trajetoria.titulo}>
           <div
+            data-revelar
             className="noite relative mb-8 aspect-[3/1] border lg:aspect-[19/4]"
             role="img"
-            aria-label="Ilustração: um viajante anda por uma estrada de 2020 a 2026 conforme a página rola, acendendo o lampião de cada marco da trajetória listada abaixo."
+            aria-label="Ilustração: sob a Via Láctea, um viajante com lanterna anda por uma estrada de 2020 a 2026 conforme a página rola, acendendo o lampião de cada marco da trajetória listada abaixo, rumo a um castelo no fim do caminho."
           >
-            <AsciiCanvas cena="estrada" grades={GRADE_ESTRADA} rolagem interativa />
+            <AsciiCanvas cena="estrada" imagem="/cenas/estrada.webp" grades={GRADE_ESTRADA} revelar={0.3} rolagem interativa />
             <span className="pointer-events-none absolute right-3 bottom-2 text-caption text-muted">role a página</span>
           </div>
           <ol className="border-t border-l">
@@ -75,11 +77,12 @@ export default function Home() {
               </div>
             </div>
             <div
+              data-revelar
               className="noite relative aspect-[11/5] border"
               role="img"
-              aria-label="Ilustração: um corvo-mensageiro chega voando com uma carta e a deixa num poste com a placa mail."
+              aria-label="Ilustração: sob uma lua cheia enorme, um corvo-mensageiro cruza o céu com uma carta, pousa num poste com lampião e a solta na caixa de correio."
             >
-              <AsciiCanvas cena="corvo" grades={GRADE_CORVO} interativa />
+              <AsciiCanvas cena="corvo" imagem="/cenas/corvo.webp" grades={GRADE_CORVO} revelar={0.3} interativa />
               <span className="pointer-events-none absolute right-3 bottom-2 text-caption text-muted">clique para soltar o corvo</span>
             </div>
           </div>

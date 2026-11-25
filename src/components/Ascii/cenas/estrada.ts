@@ -1,135 +1,118 @@
-// Trajetória: a estrada, em modo denso. Um viajante de capa e cajado anda de 2020 a 2026
-// conforme a página rola (p de 0 a 1); cada marco é um poste com lampião que acende quando
-// ele passa, e o ano fica escrito em cima. No fim da estrada, um castelinho com janelas acesas.
-// As pernas se mexem com a rolagem: parado na página, ele fica parado.
+// Trajetória: a estrada, a partir de uma imagem realista (public/cenas/estrada.webp) convertida
+// em caracteres a cada quadro. Por cima, em código: a Via Láctea cintilando, estrela cadente,
+// névoa correndo nos vales, vaga-lumes na beira da estrada, as janelas do castelo tremulando e a
+// história: um viajante de capa, cajado e lanterna anda de 2020 a 2026 conforme a página rola
+// (p de 0 a 1); cada marco é um poste com lampião que acende quando ele passa, e o ano fica
+// escrito em cima. As pernas se mexem com a rolagem: parado na página, ele fica parado.
 
 import { TRAJETORIA } from "../../../data/site.ts";
 import {
-  acender,
-  cada,
-  ceu,
   chama,
-  copiar,
   escrever,
-  estrelasDe,
-  expor,
+  faiscas,
   fbm,
+  fechar,
+  fundoImagem,
+  lampiao,
   luz,
-  memoTela,
+  passo,
   pessoa,
-  piscar,
+  pontoMundo,
+  ruido,
   tela,
   traco,
-  triangulo,
   type Campo,
-  type Tela,
-  faiscas,
-  lampiao,
+  type DadosImagem,
   type Entrada,
 } from "../denso.ts";
 
 const ANOS = [...TRAJETORIA].reverse().map((m) => m.quando.slice(0, 4));
 
-interface Base {
-  T: Tela;
-  y: (X: number) => number;
-  inicio: number;
-  fim: number;
-  marcos: { x: number; y: number; ano: string; mostra: boolean }[];
-  estrelas: number[];
-  janelas: { x: number; y: number }[];
-}
-
-const montar = (cols: number, rows: number): Base => {
-  const T = tela(cols, rows);
-  const { A } = T;
-  ceu(T, { x: A * 0.06, y: 0.2, r: 0.09 });
-  // serras ao longe e colinas mais perto
-  cada(T, (X, Y, i) => {
-    const serra = 0.55 - 0.12 * fbm(X * 1.5, 1.7) - 0.05 * Math.abs(Math.sin(X * 2.2));
-    const colina = 0.68 - 0.05 * Math.sin(X * 1.3 + 2) - 0.03 * fbm(X * 3, 4.1);
-    if (Y > colina) {
-      T.c.lum[i] = 0.05 + 0.04 * fbm(X * 25, Y * 25) + (Y - colina < 0.02 ? 0.1 : 0);
-      T.mat[i] = 7;
-    } else if (Y > serra) {
-      T.c.lum[i] = 0.06 + 0.06 * fbm(X * 12, Y * 12) + (Y - serra < 0.02 ? 0.12 : 0);
-      T.mat[i] = 1;
-    }
-  });
-  // a estrada: faixa clara ondulada com cascalho e bordas
-  const y = (X: number) => 0.8 + 0.04 * Math.sin((X / A) * Math.PI * 3 + 0.4);
-  cada(T, (X, Y, i) => {
-    const d = Y - y(X);
-    if (d < -0.035 || d > 0.035) return;
-    T.c.lum[i] = Math.abs(d) > 0.028 ? 0.3 : 0.14 + 0.1 * fbm(X * 90, Y * 90);
-    T.mat[i] = 4;
-  });
-  // castelinho no fim da estrada
-  const cx = A - 0.12;
-  const base = y(cx) - 0.04;
-  cada(
-    T,
-    (X, Y, i) => {
-      const dentro = (Math.abs(X - cx) < 0.05 && Y > base - 0.12) || (Math.abs(X - cx - 0.035) < 0.015 && Y > base - 0.2);
-      if (!dentro || Y > base) return;
-      T.c.lum[i] = 0.12 + 0.12 * (X > cx ? 1 : 0);
-      T.mat[i] = 2;
-    },
-    { x0: cx - 0.06, x1: cx + 0.06, y0: base - 0.25, y1: base },
-  );
-  triangulo(T, { x: cx + 0.015, y: base - 0.2 }, { x: cx + 0.055, y: base - 0.2 }, { x: cx + 0.035, y: base - 0.28 }, 0.25, 3);
-  const janelas = [
-    { x: cx - 0.02, y: base - 0.07 },
-    { x: cx + 0.015, y: base - 0.07 },
-    { x: cx + 0.035, y: base - 0.15 },
-  ];
-  // marcos: postes; em tela estreita o ano só aparece no primeiro marco de cada ano
-  const inicio = 0.12;
-  const fim = A - 0.3;
-  const passo = (fim - inicio) / (ANOS.length - 1);
-  const largo = A > 3.5;
-  const marcos = ANOS.map((ano, k) => {
-    const x = inicio + k * passo;
-    const topo = y(x) - 0.2;
-    traco(T, x, y(x) - 0.03, x, topo, 0.004, 0.22, 4);
-    traco(T, x, topo, x + 0.02, topo, 0.003, 0.22, 4);
-    return { x: x + 0.02, y: topo + 0.03, ano, mostra: largo || ANOS[k - 1] !== ano };
-  });
-  return { T, y, inicio, fim, marcos, estrelas: estrelasDe(T, 0.02, 0.5), janelas };
-};
-
-const base$ = memoTela(montar);
+// pontos da imagem (coordenadas normalizadas), medidos no arquivo
+const ASPECTO = 3;
+const meio = (ix: number) => 0.6725 + 0.0425 * ix; // centro da estrada
+const CASTELO = { x: 0.942, y: 0.4 };
+const INICIO = 0.06;
+const FIM = 0.86;
+const POSTE = 0.2; // altura de um poste, em alturas da imagem
+const ALTURA = 0.13; // altura do viajante
 
 // Interativa: anda com a rolagem; o cursor é um lampião e o clique solta faíscas.
-export const estrada = ({ cols, rows, t, p, mouse, cliques }: Entrada): Campo => {
-  const b = base$<Base>(cols, rows);
-  const T = copiar(b.T);
-  piscar(T, b.estrelas, t);
-  const vx = b.inicio + Math.max(0, Math.min(1, p)) * (b.fim - b.inicio);
-  const px = 1.6 / T.rows; // altura de um "pixel" da fonte, em mundo
+export const estrada = ({ cols, rows, t, p, dados, mouse, cliques }: Entrada<DadosImagem>): Campo => {
+  const T = tela(cols, rows);
+  const { A } = T;
+  const f = dados?.fonte;
+  if (!f) return T.c;
 
-  // lampiões: acesos atrás do viajante; o ano acende junto
-  for (const m of b.marcos) {
-    const aceso = m.x - 0.02 <= vx + 0.01;
+  const q = Math.max(0, Math.min(1, p));
+  const { para, esc } = fundoImagem(T, f, ASPECTO, {
+    fx: 0.5,
+    fy: 0.5,
+    gama: 0.68,
+    ajuste: ({ i, ix, iy, l, w, destaque }) => {
+      // céu: estrelas e a Via Láctea cintilando
+      if (iy < 0.45 && destaque > 0.06) l *= 0.55 + 0.6 * (0.5 + 0.5 * Math.sin(t * (1.2 + (i % 9) * 0.35) + i * 1.3));
+      // névoa correndo nos vales
+      if (iy > 0.45 && iy < 0.68) l += 0.1 * passo(0.5, 0.82, fbm(ix * 7 - t * 0.04, iy * 25, 3)) * passo(0.45, 0.55, iy);
+      // janelas do castelo
+      if (w > 0.15 && Math.abs(ix - CASTELO.x) < 0.06) l *= 0.75 + 0.4 * ruido(i * 0.3 + t * 2, 2);
+      return l;
+    },
+  });
+  const e = (n: number) => n * esc;
+  const px = Math.max(1, Math.round(rows / 45)); // pixel da fonte dos anos, em células
+  const largo = A > 3.5;
+
+  // marcos: postes ao longo da estrada; em tela estreita o ano só aparece no primeiro marco de cada ano
+  const vx = INICIO + q * (FIM - INICIO);
+  ANOS.forEach((ano, k) => {
+    const ix = INICIO + 0.03 + (k / (ANOS.length - 1)) * (FIM - INICIO - 0.03);
+    const pe = para(ix, meio(ix) - 0.02);
+    const topo = pe.y - e(POSTE);
+    traco(T, pe.x, pe.y, pe.x, topo, e(0.004), 0.22);
+    traco(T, pe.x, topo, pe.x + e(0.025), topo, e(0.003), 0.22);
+    const lx = pe.x + e(0.025);
+    const ly = topo + e(0.03);
+    const aceso = ix <= vx + 0.005;
     if (aceso) {
-      luz(T, m.x, m.y, 0.09, 0.7 + 0.2 * Math.sin(t * 6 + m.x * 9));
-      chama(T, m.x, m.y + 0.01, 0.035, 0.008, t, m.x * 20);
-    } else cada(T, (_X, _Y, i) => acender(T, i, 0.2), { x0: m.x - 0.006, x1: m.x + 0.006, y0: m.y - 0.01, y1: m.y + 0.01 });
-    if (m.mostra) escrever(T, m.x - 0.04, m.y - 0.13 - 5 * px, m.ano, aceso ? 0.95 : 0.4, 1, aceso ? 0.3 : 0);
+      const tremor = 0.75 + 0.25 * ruido(t * 8 + k * 3, 1);
+      luz(T, lx, ly, e(0.12) * tremor, 0.6 * tremor);
+      chama(T, lx, ly + e(0.012), e(0.04), e(0.009), t, k * 20);
+    } else pontoMundo(T, lx, ly, 0.2);
+    if (largo || ANOS[k - 1] !== ano) escrever(T, pe.x - e(0.03), topo - e(0.08) - (5 * px) / rows, ano, aceso ? 0.95 : 0.35, px, aceso ? 0.3 : 0);
+  });
+
+  // estrela cadente a cada 9s
+  const ce = t % 9;
+  if (ce < 0.8) {
+    const k = ce / 0.8;
+    const sx = A * (0.3 + 0.4 * ruido(Math.floor(t / 9), 5));
+    for (let n = 0; n < 16; n++) {
+      const d = Math.max(0, k - n * 0.02);
+      pontoMundo(T, sx + d * 0.5, 0.04 + d * 0.1, (1 - n / 16) * (1 - k * 0.5));
+    }
   }
 
-  // janelas do castelinho
-  for (const j of b.janelas) {
-    luz(T, j.x, j.y, 0.03, 0.6);
-    cada(T, (_X, _Y, i) => acender(T, i, 0.9, 1), { x0: j.x - 0.004, x1: j.x + 0.004, y0: j.y - 0.008, y1: j.y + 0.008 });
+  // vaga-lumes na beira da estrada
+  for (let k = 0; k < 30; k++) {
+    const ix = ruido(k, 2.2);
+    const base = para(ix, meio(ix) + 0.03 + 0.1 * ruido(k, 6.1));
+    const brilho = passo(0.5, 0.95, Math.sin(t * (1.1 + (k % 4) * 0.35) + k * 2.1));
+    if (brilho > 0) pontoMundo(T, base.x + Math.sin(t * 0.6 + k) * 0.03, base.y + Math.cos(t * 0.4 + k) * 0.02, 0.45 + 0.5 * brilho, 1);
   }
 
-  // o viajante, de capa, com cajado; as pernas andam com a rolagem
-  const pe = b.y(vx) - 0.01;
-  const mao = pessoa(T, vx, pe, 0.2, p * 90, 1, 0.5, 0.7);
-  traco(T, mao.x + 0.01, mao.y - 0.06, mao.x + 0.02, pe, 0.003, 0.6);
-  traco(T, vx - 0.012, pe - 0.17, vx - 0.03, pe - 0.06, 0.012, 0.3); // capa
+  // o viajante, de capa, com cajado e lanterna; as pernas andam com a rolagem
+  const pe = para(vx, meio(vx) - 0.004);
+  const mao = pessoa(T, pe.x, pe.y, e(ALTURA), q * 90, 1, 0.08, 0.55);
+  traco(T, mao.x + e(0.006), mao.y - e(0.05), mao.x + e(0.012), pe.y, e(0.0025), 0.35); // cajado
+  const capa = Math.sin(t * 3) * e(0.006);
+  traco(T, pe.x - e(0.008), pe.y - e(0.11), pe.x - e(0.03) + capa, pe.y - e(0.04), e(0.009), 0.06); // capa ao vento
+  const lanterna = { x: pe.x - e(0.02), y: pe.y - e(0.055) };
+  const tl = 0.8 + 0.2 * ruido(t * 9, 3);
+  luz(T, lanterna.x, lanterna.y, e(0.1) * tl, 0.7 * tl);
+  pontoMundo(T, lanterna.x, lanterna.y, 0.95, 1);
+
   lampiao(T, mouse, 0.4, 0.1);
   faiscas(T, cliques, t);
-  return expor(T.c);
+  return fechar(T.c);
 };

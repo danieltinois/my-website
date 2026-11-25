@@ -100,15 +100,6 @@ export const tela = (cols: number, rows: number): Tela => ({
   rows,
 });
 
-// copia o fundo estático para um quadro novo
-export const copiar = (base: Tela): Tela => {
-  const t = tela(base.cols, base.rows);
-  t.c.lum.set(base.c.lum);
-  t.c.calor.set(base.c.calor);
-  t.mat.set(base.mat);
-  return t;
-};
-
 export const Xde = (T: Tela, x: number) => ((x + 0.5) / T.cols) * T.A;
 export const Yde = (T: Tela, y: number) => (y + 0.5) / T.rows;
 
@@ -129,43 +120,6 @@ export const acender = (T: Tela, i: number, L: number, calor = 0) => {
   if (L > T.c.lum[i]) T.c.lum[i] = L;
   if (calor > T.c.calor[i]) T.c.calor[i] = calor;
 };
-
-// céu noturno: degradê, halo e disco da lua com crateras
-export const ceu = (T: Tela, lua?: { x: number; y: number; r: number }) =>
-  cada(T, (X, Y, i) => {
-    let L = 0.012 + 0.06 * Y ** 1.6;
-    if (lua) {
-      const d = Math.hypot(X - lua.x, Y - lua.y);
-      if (d < lua.r) {
-        L = 0.62 + 0.3 * Math.sqrt(1 - (d / lua.r) ** 2) - 0.28 * passo(0.55, 0.8, fbm(X * 40, Y * 40, 3));
-        T.mat[i] = 9;
-      } else L += 0.24 * Math.exp(-(d - lua.r) / 0.05);
-    }
-    T.c.lum[i] = L;
-  });
-
-// estrelas: células do céu escolhidas por ruído, piscando com t
-export const estrelasDe = (T: Tela, densidade: number, ate = 1): number[] => {
-  const r: number[] = [];
-  for (let i = 0; i < T.c.lum.length; i++)
-    if (T.mat[i] === 0 && T.c.lum[i] < 0.12 && Math.floor(i / T.cols) / T.rows < ate && ruido(i * 0.37, 7.7) < densidade * 4 && ruido(i * 1.3, 3.3) < 0.25)
-      r.push(i);
-  return r;
-};
-export const piscar = (T: Tela, estrelas: number[], t: number) => {
-  for (const i of estrelas) T.c.lum[i] = 0.35 + 0.55 * (0.5 + 0.5 * Math.sin(t * (1 + (i % 7) * 0.3) + i));
-};
-
-// névoa rasteira que anda devagar
-export const nevoa = (T: Tela, de: number, t: number, forca = 0.07) =>
-  cada(
-    T,
-    (X, Y, i) => {
-      if (T.mat[i] >= 2 && T.mat[i] <= 6) return;
-      T.c.lum[i] += forca * passo(0.5, 0.85, fbm(X * 3 - t * 0.03, Y * 12 + t * 0.02, 2)) * passo(de, de + 0.15, Y);
-    },
-    { x0: 0, x1: T.A, y0: de, y1: 1 },
-  );
 
 // luz quente: clareia e esquenta em volta de um ponto, mais nas superfícies que no ar
 export const luz = (T: Tela, x: number, y: number, r: number, I: number) =>
@@ -234,13 +188,6 @@ export const elipse = (
     { x0: x - rx, x1: x + rx, y0: y - ry, y1: y + ry },
   );
 
-// textura de pedra: fiadas e juntas desencontradas
-export const pedra = (X: number, Y: number, alt = 0.02, larg = 0.04) => {
-  const fiada = Math.floor(Y / alt);
-  const junta = (Y / alt) % 1 < 0.16 || ((X + (fiada % 2) * larg * 0.5) / larg) % 1 < 0.09;
-  return junta ? 0.45 : 0.85 + 0.35 * ruido(X * 120, Y * 120);
-};
-
 // dígitos e alguns sinais em pixel-font 3×5, desenhados com a própria luminância
 const FONTE: Record<string, string[]> = {
   "0": ["###", "#.#", "#.#", "#.#", "###"],
@@ -275,12 +222,6 @@ export const escrever = (T: Tela, x: number, y: number, s: string, L: number, px
       }),
     );
   });
-};
-
-// curva de exposição final: levanta meios-tons sem clarear o escuro
-export const expor = (c: Campo) => {
-  for (let i = 0; i < c.lum.length; i++) c.lum[i] = limitar(Math.pow(limitar(c.lum[i] * 1.9), 0.7));
-  return c;
 };
 
 // figura humana em silhueta: cabeça, tronco, braços e pernas que alternam com `fase`.
@@ -327,16 +268,6 @@ export const triangulo = (
     },
     { x0: Math.min(a.x, b.x, c.x), x1: Math.max(a.x, b.x, c.x), y0: Math.min(a.y, b.y, c.y), y1: Math.max(a.y, b.y, c.y) },
   );
-
-// guarda o fundo estático de uma cena densa por tamanho de grade
-export const memoTela = (montar: (cols: number, rows: number) => unknown) => {
-  let cache: { k: string; v: unknown } | null = null;
-  return <B>(cols: number, rows: number): B => {
-    const k = `${cols}x${rows}`;
-    if (cache?.k !== k) cache = { k, v: montar(cols, rows) };
-    return cache.v as B;
-  };
-};
 
 // --- interação --------------------------------------------------------------------------
 // O AsciiCanvas passa a posição do ponteiro (u, v de 0 a 1) e os cliques recentes.
@@ -400,11 +331,15 @@ export interface Fonte {
   h: number;
   satL: Float64Array; // (w+1)×(h+1)
   satW: Float64Array;
+  // níveis automáticos: brilho no percentil 1 e no 97 (as luzes estouram de leve, como foto)
+  lo: number;
+  hi: number;
 }
 
 export const prepararFonte = (rgba: Uint8ClampedArray, w: number, h: number): Fonte => {
   const satL = new Float64Array((w + 1) * (h + 1));
   const satW = new Float64Array((w + 1) * (h + 1));
+  const hist = new Uint32Array(256);
   for (let y = 0; y < h; y++) {
     let somaL = 0;
     let somaW = 0;
@@ -413,15 +348,22 @@ export const prepararFonte = (rgba: Uint8ClampedArray, w: number, h: number): Fo
       const r = rgba[k] / 255;
       const g = rgba[k + 1] / 255;
       const b = rgba[k + 2] / 255;
-      somaL += 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      const L = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      somaL += L;
+      hist[Math.min(255, Math.floor(L * 256))]++;
       // laranja: vermelho bem acima do azul, e claro o bastante para ser luz
-      somaW += limitar((r - b) * 2.2) * limitar((r - 0.25) * 2.5);
+      somaW += limitar((r - b - 0.1) * 2.6) * limitar((r - 0.25) * 2.5);
       const j = (y + 1) * (w + 1) + (x + 1);
       satL[j] = satL[j - (w + 1)] + somaL;
       satW[j] = satW[j - (w + 1)] + somaW;
     }
   }
-  return { w, h, satL, satW };
+  const percentil = (q: number) => {
+    let acc = 0;
+    for (let k = 0; k < 256; k++) if ((acc += hist[k]) >= q * w * h) return k / 255;
+    return 1;
+  };
+  return { w, h, satL, satW, lo: percentil(0.01), hi: Math.max(percentil(0.97), percentil(0.01) + 0.05) };
 };
 
 // média de brilho e calor no retângulo [x0,x1)×[y0,y1) em coordenadas normalizadas da imagem
@@ -450,4 +392,145 @@ export const enquadrar = (A: number, aspecto: number, z: number, fx: number, fy:
     vw,
     vh,
   };
+};
+
+// Fundo a partir da imagem: cada célula amostra a sua área exata da imagem (já enquadrada),
+// passa pelos níveis e pela gama, ganha nitidez (diferença para a vizinhança 3×3) e então
+// `ajuste` aplica os efeitos da cena (água, chama, céu...). Abaixo de `limiar` a célula some,
+// para a revelação começar só pelo que brilha. Devolve o enquadramento e `para`, que leva um
+// ponto da imagem ao mundo, e `esc`, quantas unidades de mundo vale a altura da imagem.
+export interface Celula {
+  i: number;
+  X: number;
+  Y: number;
+  ix: number;
+  iy: number;
+  l: number;
+  w: number;
+  destaque: number;
+}
+export interface OpcoesImagem {
+  z?: number;
+  fx?: number;
+  fy?: number;
+  limiar?: number;
+  gama?: number;
+  nitidez?: number;
+  tom?: (l: number) => number;
+  desloca?: (ix: number, iy: number) => number;
+  ajuste?: (c: Celula) => number;
+  calor?: number;
+}
+export const fundoImagem = (T: Tela, f: Fonte, aspecto: number, o: OpcoesImagem = {}) => {
+  const { cols, rows, A, c } = T;
+  const v = enquadrar(A, aspecto, o.z ?? 1, o.fx ?? 0.5, o.fy ?? 0.5);
+  const limiar = o.limiar ?? 0;
+  const gama = o.gama ?? 0.7;
+  const nitidez = o.nitidez ?? 0.8;
+  const tom = o.tom ?? ((l: number) => Math.pow(limitar((l - f.lo) / (f.hi - f.lo)), gama));
+  const cw = v.vw / cols;
+  const ch = v.vh / rows;
+  const cel: Celula = { i: 0, X: 0, Y: 0, ix: 0, iy: 0, l: 0, w: 0, destaque: 0 };
+  for (let y = 0; y < rows; y++) {
+    const Y = (y + 0.5) / rows;
+    for (let x = 0; x < cols; x++) {
+      const X = ((x + 0.5) / cols) * A;
+      const i = y * cols + x;
+      const p = v.paraImagem(X, Y);
+      const sx = p.x + (o.desloca ? o.desloca(p.x, p.y) : 0);
+      const a = amostrar(f, sx - cw / 2, p.y - ch / 2, sx + cw / 2, p.y + ch / 2);
+      const base = tom(a.L);
+      const viz = tom(amostrar(f, sx - cw * 1.5, p.y - ch * 1.5, sx + cw * 1.5, p.y + ch * 1.5).L);
+      const destaque = base - viz;
+      let l = base + destaque * nitidez;
+      cel.i = i;
+      cel.X = X;
+      cel.Y = Y;
+      cel.ix = p.x;
+      cel.iy = p.y;
+      cel.l = l;
+      cel.w = a.W;
+      cel.destaque = destaque;
+      if (o.ajuste) l = o.ajuste(cel);
+      l = Math.max(0, (l - limiar) / (1 - limiar));
+      c.lum[i] = limitar(l);
+      c.calor[i] = limitar(a.W * 1.6) * (o.calor ?? 1);
+      T.mat[i] = 0;
+    }
+  }
+  return {
+    v,
+    esc: 1 / v.vh,
+    para: (x: number, y: number) => {
+      const m = v.paraMundo(x, y);
+      return { x: m.X, y: m.Y };
+    },
+  };
+};
+
+// limita a luminância final em 0–1 (depois de luzes e figuras somadas por cima)
+export const fechar = (c: Campo) => {
+  for (let i = 0; i < c.lum.length; i++) c.lum[i] = limitar(c.lum[i]);
+  return c;
+};
+
+// --- partículas por cima das imagens ----------------------------------------------------
+
+// acende a célula que contém o ponto (x, y) do mundo
+export const pontoMundo = (T: Tela, x: number, y: number, L: number, calor = 0) => {
+  const cx = Math.round((x / T.A) * T.cols - 0.5);
+  const cy = Math.round(y * T.rows - 0.5);
+  if (cx >= 0 && cy >= 0 && cx < T.cols && cy < T.rows) acender(T, cy * T.cols + cx, L, calor);
+};
+
+// fagulhas subindo de um fogo em (x, y): `alt` é até onde chegam, `larg` quanto se espalham
+export const fagulhas = (T: Tela, x: number, y: number, t: number, n: number, alt: number, larg: number, forca = 1) => {
+  for (let k = 0; k < n; k++) {
+    const vida = (t * (0.35 + 0.3 * ruido(k, 7)) + ruido(k, 3)) % 1;
+    const fx = x + (ruido(k, 5) - 0.5) * larg + Math.sin(t * 2 + k) * larg * 0.6 * vida;
+    const fy = y - vida * alt;
+    pontoMundo(T, fx, fy, (0.95 - 0.6 * vida) * forca, 1);
+  }
+};
+
+// fumaça subindo de (x, y): coluna que alarga e se desfaz, arrastada pelo vento
+export const fumaca = (T: Tela, x: number, y: number, t: number, alt: number, larg: number, I = 0.12) =>
+  cada(
+    T,
+    (X, Y, i) => {
+      const k = (y - Y) / alt;
+      if (k < 0 || k > 1) return;
+      const cx = x + k * k * larg * 1.5 + Math.sin(k * 5 - t * 0.8) * larg * 0.25 * k;
+      const d = Math.abs(X - cx) / (larg * (0.25 + k));
+      if (d > 1) return;
+      const dens = passo(0.4, 0.75, fbm(X * 30, Y * 18 + t * 0.6, 3)) * (1 - d) * (1 - k);
+      T.c.lum[i] += dens * I;
+    },
+    { x0: x - larg * 0.5, x1: x + larg * 2.5, y0: y - alt, y1: y },
+  );
+
+// poeira flutuando num feixe de luz: pontos fracos que derivam devagar dentro da caixa
+export const poeira = (T: Tela, x0: number, x1: number, y0: number, y1: number, t: number, n: number, I = 0.4, calor = 0.6) => {
+  for (let k = 0; k < n; k++) {
+    const fx = x0 + ((ruido(k, 11) + t * 0.01 * (0.5 + ruido(k, 2))) % 1) * (x1 - x0);
+    const fy = y0 + ((ruido(k, 13) + Math.sin(t * 0.3 + k) * 0.05 + 1) % 1) * (y1 - y0);
+    const b = 0.5 + 0.5 * Math.sin(t * (0.8 + ruido(k, 4)) + k);
+    pontoMundo(T, fx, fy, I * b, calor);
+  }
+};
+
+// dados das cenas feitas de imagem: a fonte chega pelo AsciiCanvas
+export interface DadosImagem {
+  fonte?: Fonte;
+}
+
+// balanço de chama: desloca a amostragem da imagem dentro de uma chama (x, y é a base, alt a
+// altura, em coordenadas da imagem), então a própria chama fotografada tremula e se inclina
+export const balancar = (ix: number, iy: number, chamas: { x: number; y: number; alt: number; larg: number }[], t: number) => {
+  for (const c of chamas) {
+    const k = (c.y - iy) / c.alt;
+    if (k < -0.1 || k > 1.2 || Math.abs(ix - c.x) > c.larg) continue;
+    return (Math.sin(t * 11 + iy * 90 + c.x * 50) * 0.6 + Math.sin(t * 17 + c.x * 9) * 0.4) * c.larg * 0.35 * Math.max(0, k);
+  }
+  return 0;
 };
