@@ -134,8 +134,8 @@ const AsciiCanvas = ({
     };
     const bloco = canvas.closest("[data-revelar]");
     // cliques e acionamentos de fora entram pelo mesmo caminho; o primeiro marca data-tocado
-    const registrar = (q: Ponto) => {
-      mouse = q;
+    const registrar = (q: Ponto, moverLuz = true) => {
+      if (moverLuz) mouse = q;
       total++;
       const t = agoraT();
       cliques = [...cliques.filter((c) => t - c.t < 8), { ...q, t }];
@@ -145,7 +145,7 @@ const AsciiCanvas = ({
       const q = ponto(e);
       if (q) registrar(q);
     };
-    const acionar = () => registrar(mouse ?? { u: 0.5, v: 0.5 });
+    const acionar = () => registrar(mouse ?? { u: 0.5, v: 0.5 }, false);
     // data-foco: índice que a seção de fora passa para a cena (na estrada, o marco da trajetória
     // em foco, contado do mais antigo)
     const lerFoco = () => {
@@ -239,7 +239,7 @@ const AsciiCanvas = ({
       montarAtlas();
     };
 
-    const desenhar = (t: number, p = progresso()) => {
+    const desenhar = (t: number, p = reduzir.matches && rolagem ? 1 : progresso()) => {
       // na revelação, a grade muda com a rolagem: refaz medidas e atlas quando muda
       if (revelar !== undefined && m.cols) {
         const g = grades!.find((x) => matchMedia(x.mq).matches) ?? grades!.at(-1)!;
@@ -291,7 +291,7 @@ const AsciiCanvas = ({
     const sincronizar = () => {
       cancelAnimationFrame(raf);
       if (reduzir.matches || !visivel || document.hidden) {
-        desenhar(quadroParado, reduzir.matches && rolagem ? 1 : undefined);
+        desenhar(quadroParado);
         return;
       }
       raf = requestAnimationFrame(laco);
