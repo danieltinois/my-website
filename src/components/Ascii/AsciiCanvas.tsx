@@ -146,7 +146,8 @@ const AsciiCanvas = ({
       if (q) registrar(q);
     };
     const acionar = () => registrar(mouse ?? { u: 0.5, v: 0.5 });
-    // data-foco: ponto de interesse (0–1) que a seção de fora passa para a cena
+    // data-foco: índice que a seção de fora passa para a cena (na estrada, o marco da trajetória
+    // em foco, contado do mais antigo)
     const lerFoco = () => {
       const bruto = bloco?.getAttribute("data-foco");
       const n = bruto ? Number(bruto) : NaN;

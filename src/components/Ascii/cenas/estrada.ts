@@ -9,8 +9,9 @@
 // respira e a lanterna segue balançando de leve, iluminando a estrada em volta. Cada marco é um
 // poste com lampião que acende com um clarão e fagulhas quando ele chega, e o ano em cima
 // brilha. Passar o cursor (ou o foco) por uma linha da trajetória (data-foco) acende o poste
-// daquele ano e um rastro de luz fraca pela estrada até ele. Em tela estreita o enquadramento
-// acompanha o viajante.
+// daquele ano e um rastro de luz fraca pela estrada até ele (com movimento reduzido, não). No
+// desktop cada poste tem o seu ano; em tela estreita o enquadramento acompanha o viajante e os
+// anos repetidos aparecem uma vez só.
 
 import { TRAJETORIA } from "../../../data/site.ts";
 import {
@@ -46,9 +47,9 @@ const CASTELO = { x: 0.942, y: 0.4 };
 const INICIO = 0.06;
 const FIM = 0.86;
 const POSTE = 0.2; // altura de um poste, em alturas da imagem
-const ALTURA = 0.13; // altura do viajante
+const ALTURA = 0.16; // altura do viajante (o poste é 1,25 vez mais alto)
 const ixPoste = (k: number) => INICIO + 0.03 + (k / (ANOS.length - 1)) * (FIM - INICIO - 0.03);
-const ESTREITA = 2.6; // abaixo dessa proporção o enquadramento segue o viajante
+const ESTREITA = 2.6; // abaixo dessa proporção o quadro segue o viajante e os anos repetidos se juntam
 
 // a folha do viajante (1024×576, fundo verde), medida em pixels; na folha, x e y vão em alturas
 const F = (x: number, y: number) => ({ x: x / 576, y: y / 576 });
@@ -127,7 +128,7 @@ const brasa = (T: Tela, x: number, y: number, r: number, I: number) =>
   );
 
 // Interativa: anda com a rolagem; o cursor é um lampião e o clique solta faíscas.
-export const estrada = ({ cols, rows, t, p, dados, parado, mouse, cliques, foco }: Entrada<DadosImagem>): Campo => {
+export const estrada = ({ cols, rows, t, p, dados, parado, mouse, cliques, foco: focoLinha }: Entrada<DadosImagem>): Campo => {
   const T = tela(cols, rows);
   const { A } = T;
   const f = dados?.fonte;
@@ -136,6 +137,8 @@ export const estrada = ({ cols, rows, t, p, dados, parado, mouse, cliques, foco 
     return fechar(T.c);
   }
   const surgir = parado ? 1 : passo(0, 0.8, t - (dados?.chegou ?? -9));
+  // com movimento reduzido a cena não responde ao ponteiro: o foco das linhas não acende nada
+  const foco = parado ? null : focoLinha;
 
   // a rolagem chega aos saltos: o viajante a segue suavizada e, sem rolagem por PARA segundos,
   // assenta (anda vai a 0 devagar); um salto no relógio (aba escondida, primeiro quadro) recomeça
@@ -168,13 +171,14 @@ export const estrada = ({ cols, rows, t, p, dados, parado, mouse, cliques, foco 
     if (M.rastro === 0) M.foco = foco;
   }
 
+  const estreita = A < ESTREITA;
   // em tela estreita a imagem não cabe inteira: o quadro acompanha o viajante e, com uma linha em
   // foco, desliza até o meio do caminho entre ele e o poste (enquadrar segura as bordas)
   const olhar = M.foco === null ? vx : vx + (ixPoste(M.foco) - vx) * 0.5 * passo(0, 1, M.rastro);
 
   const { para, esc } = fundoImagem(T, f, ASPECTO, {
     surgir,
-    fx: A < ESTREITA ? olhar : 0.5,
+    fx: estreita ? olhar : 0.5,
     fy: 0.5,
     gama: 0.68,
     ajuste: ({ i, ix, iy, l, w, destaque }) => {
@@ -198,7 +202,6 @@ export const estrada = ({ cols, rows, t, p, dados, parado, mouse, cliques, foco 
   estrelasEspera(T, t, 0.35 * (1 - surgir));
   const e = (n: number) => n * esc;
   const px = Math.max(1, Math.round(rows / 45)); // pixel da fonte dos anos, em células
-  const largo = A > 3.5;
 
   // marcos: postes ao longo da estrada; acendem quando ele chega (ou quando a linha do ano está
   // em foco), com um clarão e fagulhas
@@ -226,7 +229,7 @@ export const estrada = ({ cols, rows, t, p, dados, parado, mouse, cliques, foco 
     const n = Math.max(1, Math.round(Math.abs(ate - de) / 0.02));
     for (let j = 0; j <= n; j++) {
       const ix = de + ((ate - de) * j) / n;
-      const onda = parado ? 1 : 0.75 + 0.25 * Math.sin(j * 0.9 - t * 3);
+      const onda = 0.75 + 0.25 * Math.sin(j * 0.9 - t * 3);
       const r = para(ix, meio(ix) - 0.004);
       brasa(T, r.x, r.y, e(0.03), 0.12 * M.rastro * onda);
     }
@@ -301,11 +304,11 @@ export const estrada = ({ cols, rows, t, p, dados, parado, mouse, cliques, foco 
     luz(T, vela.x, vela.y, e(0.1) * tl, 0.7 * tl);
   }
 
-  // os anos em cima dos postes; em tela estreita só no primeiro marco de cada ano, que acende (e
-  // brilha no clarão) com qualquer poste daquele ano
+  // os anos em cima dos postes: no desktop cada poste tem o seu; em tela estreita só o primeiro
+  // marco de cada ano, que acende (e brilha no clarão) com qualquer poste daquele ano
   postes.forEach(({ ano, pe, topo }, k) => {
-    if (!largo && ANOS[k - 1] === ano) return;
-    const acesos = (largo ? [postes[k]] : postes.filter((o) => o.ano === ano)).filter((o) => o.aceso);
+    if (estreita && ANOS[k - 1] === ano) return;
+    const acesos = (estreita ? postes.filter((o) => o.ano === ano) : [postes[k]]).filter((o) => o.aceso);
     const clarao = Math.max(0, ...acesos.map((o) => o.clarao));
     escrever(T, pe.x - e(0.03), topo - e(0.08) - (5 * px) / rows, ano, acesos.length ? 0.95 + 0.05 * clarao : 0.35, px, acesos.length ? 0.3 : 0);
   });
