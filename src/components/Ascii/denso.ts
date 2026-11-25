@@ -389,3 +389,65 @@ export const faiscas = (T: Tela, cliques: Clique[], t: number, n = 22) => {
 
 // o último clique (ou null)
 export const ultimo = (cliques: Clique[]) => (cliques.length ? cliques[cliques.length - 1] : null);
+
+// --- cenas a partir de imagem -----------------------------------------------------------
+// Uma imagem (decodificada no navegador) vira dois mapas, brilho e calor (o laranja das janelas
+// e do fogo), guardados como tabelas de soma acumulada: a média de qualquer retângulo sai em
+// tempo constante, então cada célula amostra a sua área exata em qualquer resolução.
+
+export interface Fonte {
+  w: number;
+  h: number;
+  satL: Float64Array; // (w+1)×(h+1)
+  satW: Float64Array;
+}
+
+export const prepararFonte = (rgba: Uint8ClampedArray, w: number, h: number): Fonte => {
+  const satL = new Float64Array((w + 1) * (h + 1));
+  const satW = new Float64Array((w + 1) * (h + 1));
+  for (let y = 0; y < h; y++) {
+    let somaL = 0;
+    let somaW = 0;
+    for (let x = 0; x < w; x++) {
+      const k = (y * w + x) * 4;
+      const r = rgba[k] / 255;
+      const g = rgba[k + 1] / 255;
+      const b = rgba[k + 2] / 255;
+      somaL += 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      // laranja: vermelho bem acima do azul, e claro o bastante para ser luz
+      somaW += limitar((r - b) * 2.2) * limitar((r - 0.25) * 2.5);
+      const j = (y + 1) * (w + 1) + (x + 1);
+      satL[j] = satL[j - (w + 1)] + somaL;
+      satW[j] = satW[j - (w + 1)] + somaW;
+    }
+  }
+  return { w, h, satL, satW };
+};
+
+// média de brilho e calor no retângulo [x0,x1)×[y0,y1) em coordenadas normalizadas da imagem
+export const amostrar = (f: Fonte, x0: number, y0: number, x1: number, y1: number) => {
+  const a = Math.max(0, Math.min(f.w - 1, Math.floor(x0 * f.w)));
+  const b = Math.max(0, Math.min(f.h - 1, Math.floor(y0 * f.h)));
+  const c = Math.max(a + 1, Math.min(f.w, Math.ceil(x1 * f.w)));
+  const d = Math.max(b + 1, Math.min(f.h, Math.ceil(y1 * f.h)));
+  const W = f.w + 1;
+  const n = (c - a) * (d - b);
+  const soma = (s: Float64Array) => s[d * W + c] - s[b * W + c] - s[d * W + a] + s[b * W + a];
+  return { L: soma(f.satL) / n, W: soma(f.satW) / n };
+};
+
+// enquadramento "cover" da imagem numa cena de proporção A, com zoom z em torno do foco (fx, fy)
+export const enquadrar = (A: number, aspecto: number, z: number, fx: number, fy: number) => {
+  const vh = Math.min(1, aspecto / A) / z;
+  const vw = (vh * A) / aspecto;
+  const cx = Math.min(1 - vw / 2, Math.max(vw / 2, fx));
+  const cy = Math.min(1 - vh / 2, Math.max(vh / 2, fy));
+  return {
+    // mundo (X de 0 a A, Y de 0 a 1) → imagem (0 a 1)
+    paraImagem: (X: number, Y: number) => ({ x: cx + (X / A - 0.5) * vw, y: cy + (Y - 0.5) * vh }),
+    // imagem → mundo
+    paraMundo: (x: number, y: number) => ({ X: ((x - cx) / vw + 0.5) * A, Y: (y - cy) / vh + 0.5 }),
+    vw,
+    vh,
+  };
+};
