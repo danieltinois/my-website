@@ -1,4 +1,5 @@
 import AsciiCanvas from "@/src/components/Ascii/AsciiCanvas";
+import Dica from "@/src/components/Ascii/Dica";
 import ContributionStats from "@/src/components/ContributionStats";
 import Decifrar from "@/src/components/Decifrar";
 import EmailCta from "@/src/components/EmailCta";
@@ -52,15 +53,23 @@ const Hero = () => {
         </div>
 
         <div data-revelar className="mt-8 h-[200svh] motion-reduce:h-auto lg:col-start-1 lg:row-start-1 lg:mt-0 lg:h-[260svh]">
-          <div
-            className="sticky top-24 -mx-6 h-[calc(100svh-6rem)] lg:-mx-12"
-            role="img"
-            aria-label="Cena em ASCII quase realista: um castelo iluminado sobre um penhasco à noite, com uma cachoeira caindo num lago que reflete a lua cheia, floresta de pinheiros ao redor e, de vez em quando, um dragão cruzando o céu. Ao rolar a página, a cena ganha cada vez mais caracteres e detalhe."
-          >
-            <AsciiCanvas cena="castelo" imagem="/cenas/castelo.webp" grades={GRADES} revelar={0.15} interativa />
-            <span className="pointer-events-none absolute right-6 bottom-2 left-6 text-right text-caption text-muted lg:right-12">
-              role para revelar<span className="hidden sm:inline"> · clique no céu ou no lago</span>
-            </span>
+          <div className="sticky top-24 -mx-6 h-[calc(100svh-6rem)] lg:-mx-12">
+            <div
+              className="h-full"
+              role="img"
+              aria-label="Cena em ASCII quase realista: um castelo iluminado sobre um penhasco à noite, com uma cachoeira caindo num lago que reflete a lua cheia, floresta de pinheiros ao redor e, de vez em quando, um dragão cruzando o céu. Ao rolar a página, a cena ganha cada vez mais caracteres e detalhe."
+            >
+              <AsciiCanvas cena="castelo" imagem="/cenas/castelo.webp" grades={GRADES} revelar={0.15} interativa />
+            </div>
+            {/* o botão fica fora do role="img" (os filhos dele são apresentacionais) */}
+            <p className="pointer-events-none absolute right-6 bottom-2 left-6 text-right text-caption text-muted lg:right-12">
+              <span className="dica">role para revelar</span>
+              <span className="dica hidden sm:inline motion-reduce:hidden" aria-hidden="true">
+                {" "}
+                ·{" "}
+              </span>
+              <Dica texto="clique no céu ou no lago" className="hidden sm:inline" />
+            </p>
           </div>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import AsciiCanvas from "@/src/components/Ascii/AsciiCanvas";
+import Dica from "@/src/components/Ascii/Dica";
 import type { NomeCena } from "@/src/components/Ascii/cenas";
 import type { Projeto } from "@/src/data/site";
 
@@ -45,21 +46,26 @@ const Project = ({ projeto, n }: { projeto: Projeto; n: string }) => {
       className="surgir scroll-mt-24 border bg-paper"
     >
       <div className="noite relative border-b">
-        <div data-revelar className="aspect-[2/1] lg:aspect-[3/1]" role="img" aria-label={CENAS[projeto.id].descricao}>
-          <AsciiCanvas
-            cena={CENAS[projeto.id].cena}
-            imagem={`/cenas/${CENAS[projeto.id].cena}.webp`}
-            figuras={CENAS[projeto.id].figuras}
-            fps={CENAS[projeto.id].fps}
-            grades={GRADE}
-            revelar={0.25}
-            interativa
-          />
+        <div data-revelar className="relative aspect-[2/1] lg:aspect-[3/1]">
+          <div className="h-full" role="img" aria-label={CENAS[projeto.id].descricao}>
+            <AsciiCanvas
+              cena={CENAS[projeto.id].cena}
+              imagem={`/cenas/${CENAS[projeto.id].cena}.webp`}
+              figuras={CENAS[projeto.id].figuras}
+              fps={CENAS[projeto.id].fps}
+              grades={GRADE}
+              revelar={0.25}
+              interativa
+            />
+          </div>
+          <p className="pointer-events-none absolute right-4 bottom-3 hidden text-caption text-muted sm:block">
+            <span className="dica motion-reduce:hidden" aria-hidden="true">
+              ilustração:{" "}
+            </span>
+            <Dica texto={CENAS[projeto.id].dica} />
+          </p>
         </div>
         <span className="pointer-events-none absolute top-3 left-4 text-caption font-stretch-condensed tabular-nums text-muted">[{n}]</span>
-        <span className="pointer-events-none absolute right-4 bottom-3 hidden text-caption text-muted sm:inline">
-          ilustração: {CENAS[projeto.id].dica}
-        </span>
       </div>
 
       <div className="grid gap-8 p-6 lg:grid-cols-12 lg:p-8">

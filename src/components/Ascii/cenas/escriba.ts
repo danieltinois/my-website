@@ -8,11 +8,13 @@
 import {
   balancar,
   fbm,
+  fagulhas,
   fechar,
   fumaca,
   fundoImagem,
   lampiao,
   luz,
+  noMundo,
   passo,
   poeira,
   ruido,
@@ -162,6 +164,14 @@ export const escriba = ({ cols, rows, t, p, dados, parado, mouse, cliques, total
   luz(T, v.x, v.y - e(0.05), e(0.14) * tremor, 0.3 * tremor);
   fumaca(T, v.x, v.y - e(0.13), t, e(0.25), e(0.015), 0.05);
   poeira(T, v.x - e(0.15), v.x + e(0.5), v.y - e(0.15), v.y + e(0.35), t, 30, 0.3);
+
+  // respingo de tinta no ponto clicado, no mesmo quadro do clique (a troca de vaga demora a aparecer)
+  for (const q of cliques) {
+    const idade = t - q.t;
+    if (idade < 0 || idade > 1) continue;
+    const { x, y } = noMundo(T, q);
+    fagulhas(T, x, y, idade, 6, 0.05, 0.04, 1 - idade, 0);
+  }
 
   lampiao(T, mouse, 0.3, 0.1);
   return fechar(T.c);

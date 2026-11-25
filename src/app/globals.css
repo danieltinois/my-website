@@ -212,7 +212,25 @@
   }
 }
 
+/* dica: some depois da primeira interação com a cena (AsciiCanvas marca data-tocado) e fica
+   inerte, mas volta ao receber o foco do teclado, para o botão nunca ficar invisível sob o foco */
+.dica {
+  transition: opacity 0.6s;
+}
+[data-tocado] .dica {
+  opacity: 0;
+}
+[data-tocado] .dica:not(:focus-visible) {
+  pointer-events: none;
+}
+.dica:focus-visible {
+  opacity: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .dica {
+    transition: none;
+  }
   *,
   ::before,
   ::after {

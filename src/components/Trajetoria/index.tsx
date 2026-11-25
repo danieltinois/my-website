@@ -36,7 +36,7 @@ const Trajetoria = () => {
         aria-label="Ilustração: sob a Via Láctea, um viajante de capa e capuz, com cajado e uma lanterna acesa balançando na mão, anda por uma estrada de 2020 a 2026 conforme a página rola, acendendo o lampião de cada marco da trajetória listada abaixo, rumo a um castelo no fim do caminho."
       >
         <AsciiCanvas cena="estrada" imagem="/cenas/estrada.webp" grades={GRADE_ESTRADA} figuras={FIGURAS} fps={30} revelar={0.3} rolagem interativa />
-        <span className="pointer-events-none absolute right-3 bottom-2 text-caption text-muted">role a página</span>
+        <span className="dica pointer-events-none absolute right-3 bottom-2 text-caption text-muted">role a página</span>
       </div>
       <ol className="border-t border-l">
         {TRAJETORIA.map((t, i) => (

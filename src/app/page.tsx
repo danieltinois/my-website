@@ -1,4 +1,5 @@
 import AsciiCanvas from "@/src/components/Ascii/AsciiCanvas";
+import Dica from "@/src/components/Ascii/Dica";
 import EmailCta from "@/src/components/EmailCta";
 import Hero from "@/src/components/Hero";
 import Project from "@/src/components/Project";
@@ -56,11 +57,17 @@ export default function Home() {
             <div
               data-revelar
               className="noite relative aspect-[11/5] border"
-              role="img"
-              aria-label="Ilustração: sob uma lua cheia enorme, um corvo-mensageiro cruza o céu batendo as asas com uma carta no bico, pousa num poste com lampião, solta a carta na caixa de correio, olha em volta e vai embora."
             >
-              <AsciiCanvas cena="corvo" imagem="/cenas/corvo.webp" grades={GRADE_CORVO} figuras={FIGURAS_CORVO} fps={30} revelar={0.3} interativa />
-              <span className="pointer-events-none absolute right-3 bottom-2 text-caption text-muted">clique para soltar o corvo</span>
+              <div
+                className="h-full"
+                role="img"
+                aria-label="Ilustração: sob uma lua cheia enorme, um corvo-mensageiro cruza o céu batendo as asas com uma carta no bico, pousa num poste com lampião, solta a carta na caixa de correio, olha em volta e vai embora."
+              >
+                <AsciiCanvas cena="corvo" imagem="/cenas/corvo.webp" grades={GRADE_CORVO} figuras={FIGURAS_CORVO} fps={30} revelar={0.3} interativa />
+              </div>
+              <p className="pointer-events-none absolute right-3 bottom-2">
+                <Dica texto="clique para soltar o corvo" />
+              </p>
             </div>
           </div>
         </Section>

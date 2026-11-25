@@ -491,12 +491,13 @@ export const pontoMundo = (T: Tela, x: number, y: number, L: number, calor = 0) 
 };
 
 // fagulhas subindo de um fogo em (x, y): `alt` é até onde chegam, `larg` quanto se espalham
-export const fagulhas = (T: Tela, x: number, y: number, t: number, n: number, alt: number, larg: number, forca = 1) => {
+// (`calor` 0 dá pontos sem laranja, como respingos de tinta)
+export const fagulhas = (T: Tela, x: number, y: number, t: number, n: number, alt: number, larg: number, forca = 1, calor = 1) => {
   for (let k = 0; k < n; k++) {
     const vida = (t * (0.35 + 0.3 * ruido(k, 7)) + ruido(k, 3)) % 1;
     const fx = x + (ruido(k, 5) - 0.5) * larg + Math.sin(t * 2 + k) * larg * 0.6 * vida;
     const fy = y - vida * alt;
-    pontoMundo(T, fx, fy, (0.95 - 0.6 * vida) * forca, 1);
+    pontoMundo(T, fx, fy, (0.95 - 0.6 * vida) * forca, calor);
   }
 };
 
