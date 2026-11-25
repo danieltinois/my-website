@@ -105,8 +105,8 @@ export interface OpcoesFigura {
   // do mundo, como um perfil que gira (k = 1 é de lado; perto de 0, de frente ou de costas)
   giro?: { x: number; k: number };
   // contorno escuro (0..1): as células de fundo coladas na silhueta (fora dela, com uma vizinha
-  // dentro) escurecem por esse fator, para a figura se separar de um fundo do mesmo tom. Não
-  // escurece células de outra figura já desenhada.
+  // dentro) escurecem por esse fator, para a figura se separar de um fundo do mesmo tom. Só pula
+  // as células de material 5 (de outra figura já desenhada); as demais podem escurecer.
   contorno?: number;
   // expoente da cobertura de cada célula: abaixo de 1 engrossa o que é mais fino que uma célula
   // (um cabo de vassoura), para não sumir em grades pequenas

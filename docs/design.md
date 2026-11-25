@@ -199,21 +199,21 @@ ponteiro e revela o escuro. Cada banner diz em uma linha o que o clique faz.
 | torre | solta um pombo com uma carta do ponto clicado; dois cliques a menos de 1,5s são a mesma entrega duas vezes, e a repetida queima no braseiro (a deduplicação do webhook, na mão) |
 | escriba | respingo de tinta no ponto; troca a vaga (react/node/flutter ↔ java/spring): as linhas se reordenam e a pena reescreve |
 | estrada | faíscas (o viajante anda com a rolagem) |
-| corvo | o corvo levanta voo na hora, mesmo no meio da aterrissagem |
+| corvo | o corvo levanta voo: na hora se já entregou a carta, ou logo depois de entregá-la se ainda chega |
 
 **Dicas e teclado.** Cada dica de clique é um botão (`Dica`, `src/components/Ascii/Dica.tsx`), não
 a arte focável: um `role="img"` com ação seria anunciado errado, e o botão é anunciado como botão.
 Ele fica dentro do `[data-revelar]` da cena, fora do `role="img"`, e ao ser ativado (Enter ou
 espaço) dispara `cena:acionar` no bloco, que o `AsciiCanvas` trata como um clique (no último ponto
-do ponteiro ou no centro). As dicas só informativas ("role para revelar", "role a página") são
-`span` com a classe `dica`.
+do ponteiro ou no centro). As dicas só informativas ("role para revelar") e a nota "role a página" da estrada são
+texto (`span` com a classe `dica`), não botões.
 
 - Na primeira interação o `AsciiCanvas` marca `data-tocado` no bloco, e as dicas (`.dica`) somem
   com uma transição de 0,6s e deixam de receber clique.
 - Ao receber o foco do teclado a dica volta (`.dica:focus-visible`), com o contorno global de 2px,
   então quem navega por Tab nunca perde o botão de vista.
-- Com `prefers-reduced-motion` não há `cena:acionar` (a cena fica parada): os botões somem e não
-  há transição.
+- Com `prefers-reduced-motion` não há `cena:acionar` (a cena fica parada): os botões somem em qualquer largura
+  (`motion-safe:` nas classes de largura) e não há transição.
 
 As brasas do fundo desviam do cursor. Com `prefers-reduced-motion` não há interação: as cenas ficam
 paradas. A interação é um extra: todo o conteúdo está no texto ao lado, para teclado e leitor de
@@ -237,7 +237,7 @@ tela.
 - Brasas sobem atrás da página (só no tema escuro); o quadrado da faixa de status pulsa; o
   relógio de São Paulo se atualiza.
 - `prefers-reduced-motion: reduce`: cada cena desenha um quadro parado na resolução máxima (a
-  estrada aparece completa e o trecho alto do hero encolhe); os personagens ficam em repouso;
+  estrada aparece completa e o trecho alto do hero encolhe em qualquer largura); os personagens ficam em repouso;
   títulos não se decifram e nada surge; as dicas de clique somem.
 
 ## 8. Qualidade verificada (25 nov 2026)
@@ -252,8 +252,9 @@ Lighthouse 12 contra a build servida pelo `wrangler dev`:
 LCP 2,3s no celular (simulado) e 0,5s no desktop; CLS 0; TBT 80ms no celular, com as seis cenas
 feitas de imagem (as dos banners só carregam perto da tela).
 
-Esses números são de antes dos personagens de imagem (três folhas de sprites a mais, carregadas
-junto com a cena de cada um): a medir de novo.
+Medido de novo com os personagens de imagem, no build de produção servido pelo wrangler
+(Lighthouse 12): celular 98 / 100 / 100 / 100, desktop 100 / 100 / 100 / 100, CLS 0, TBT 80ms e
+LCP 2,3s no celular.
 
 - **Teclado:** o primeiro Tab mostra "Pular para o conteúdo"; a ordem segue a leitura (índice, tema,
   CTA, links, dados, repositórios, contato). Foco com contorno de 2px. `scroll-padding-top` evita que
