@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { tela } from "./denso.ts";
+import { estrelasEspera } from "./estrelas.ts";
 import { amostrarSprite, encaixar, figura, prepararSprite, type Colocada, type Parte } from "./figura.ts";
 
 type Px = [number, number, number];
@@ -107,5 +108,15 @@ describe("encaixar", () => {
     assert.ok(Math.abs(p.x - 2) < 1e-9 && Math.abs(p.y - 1) < 1e-9);
     const f = encaixar(c, { x: 1, y: 0.5 }, { esc: 2, flip: true });
     assert.ok(Math.abs(f.x - 0) < 1e-9 && Math.abs(f.y - 1) < 1e-9);
+  });
+});
+
+describe("estrelasEspera", () => {
+  it("lights a sparse field", () => {
+    const T = tela(120, 40);
+    estrelasEspera(T, 3);
+    const acesas = T.c.lum.filter((l) => l > 0).length;
+    assert.ok(acesas >= 40 && acesas <= 160, `${acesas} células`);
+    assert.ok(maxLum(T) <= 0.5, `max ${maxLum(T)}`);
   });
 });

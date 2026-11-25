@@ -25,6 +25,7 @@ import {
   type Entrada,
   type Tela,
 } from "../denso.ts";
+import { estrelasEspera } from "../estrelas.ts";
 
 // pontos da imagem (coordenadas normalizadas), medidos no arquivo
 const ASPECTO = 3;
@@ -83,10 +84,14 @@ const pena = (T: Tela, x: number, y: number, e: (n: number) => number) => {
 };
 
 // Interativa: cada clique troca a vaga; as linhas se reordenam para ela e a pena reescreve.
-export const escriba = ({ cols, rows, t, p, dados, mouse, cliques, total }: Entrada<DadosImagem>): Campo => {
+export const escriba = ({ cols, rows, t, p, dados, parado, mouse, cliques, total }: Entrada<DadosImagem>): Campo => {
   const T = tela(cols, rows);
   const f = dados?.fonte;
-  if (!f) return T.c;
+  if (!f) {
+    estrelasEspera(T, t);
+    return fechar(T.c);
+  }
+  const surgir = parado ? 1 : passo(0, 0.8, t - (dados?.chegou ?? -9));
 
   const uc = ultimo(cliques);
   // depois de um clique a animação começa no desbotar e para com o currículo escrito
@@ -116,6 +121,7 @@ export const escriba = ({ cols, rows, t, p, dados, mouse, cliques, total }: Entr
 
   const tremor = 0.8 + 0.2 * ruido(t * 7, 1) + 0.06 * Math.sin(t * 19);
   const { para, esc } = fundoImagem(T, f, ASPECTO, {
+    surgir,
     fx: 0.5,
     limiar: 0.35 * (1 - passo(0, 1, p)),
     gama: 0.68,
@@ -140,6 +146,7 @@ export const escriba = ({ cols, rows, t, p, dados, mouse, cliques, total }: Entr
       return l;
     },
   });
+  estrelasEspera(T, t, 0.35 * (1 - surgir));
   const e = (n: number) => n * esc;
 
   // a pena de código escreve a linha do currículo

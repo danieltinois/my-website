@@ -32,6 +32,7 @@ import {
   type Entrada,
   type Tela,
 } from "../denso.ts";
+import { estrelasEspera } from "../estrelas.ts";
 
 // pontos da imagem (coordenadas normalizadas), medidos no arquivo
 const ASPECTO = 3;
@@ -67,14 +68,19 @@ const saco = (T: Tela, x: number, pe: number, r: number, L: number) => {
 };
 
 // Interativa: o cursor é um lampião (o porão é escuro) e um clique recomeça a limpeza.
-export const porao = ({ cols, rows, t, p, dados, mouse, cliques }: Entrada<DadosImagem>): Campo => {
+export const porao = ({ cols, rows, t, p, dados, parado, mouse, cliques }: Entrada<DadosImagem>): Campo => {
   const T = tela(cols, rows);
   const f = dados?.fonte;
-  if (!f) return T.c;
+  if (!f) {
+    estrelasEspera(T, t);
+    return fechar(T.c);
+  }
+  const surgir = parado ? 1 : passo(0, 0.8, t - (dados?.chegou ?? -9));
 
   // cada tocha tremula no seu ritmo; a luz quente das paredes pulsa com a tocha mais perto
   const tremor = TOCHAS.map((_k, n) => 0.75 + 0.25 * ruido(t * 9 + n * 5, 2) + 0.1 * Math.sin(t * 23 + n));
   const { para, esc } = fundoImagem(T, f, ASPECTO, {
+    surgir,
     fx: 0.6,
     limiar: 0.35 * (1 - passo(0, 1, p)),
     gama: 0.75,
@@ -88,6 +94,7 @@ export const porao = ({ cols, rows, t, p, dados, mouse, cliques }: Entrada<Dados
       return l;
     },
   });
+  estrelasEspera(T, t, 0.35 * (1 - surgir));
   const e = (n: number) => n * esc;
   const chao = para(0, CHAO).y;
   const X = (x: number) => para(x, 0).x;
@@ -126,7 +133,7 @@ export const porao = ({ cols, rows, t, p, dados, mouse, cliques }: Entrada<Dados
   ];
   const vx = trilha(c, chaves);
   const indo = trilha(c + 0.05, chaves) >= vx;
-  const parado = c > 10.4;
+  const quieto = c > 10.4;
 
   // o saco de review, com o "?", fica onde está
   saco(T, X(REVIEW), chao, e(r), 0.6);
@@ -168,8 +175,8 @@ export const porao = ({ cols, rows, t, p, dados, mouse, cliques }: Entrada<Dados
   }
 
   // o varredor com a vassoura, com a borda acesa pela tocha
-  const dir = indo || parado ? 1 : -1;
-  const mao = pessoa(T, X(vx), chao, e(ALTURA), parado ? 0 : t * 8, dir, 0.3, 0.75);
+  const dir = indo || quieto ? 1 : -1;
+  const mao = pessoa(T, X(vx), chao, e(ALTURA), quieto ? 0 : t * 8, dir, 0.3, 0.75);
   const cabo = { x: mao.x + dir * e(0.05), y: chao - e(0.02) };
   traco(T, mao.x - dir * e(0.02), mao.y - e(0.03), cabo.x, cabo.y, e(0.004), 0.45);
   traco(T, cabo.x - e(0.016), chao - e(0.008), cabo.x + e(0.016), chao - e(0.008), e(0.008), 0.55);

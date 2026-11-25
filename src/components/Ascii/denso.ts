@@ -2,6 +2,8 @@
 // (luminância 0–1 e calor 0–1 por célula) que vira caracteres por uma rampa de densidade.
 // Módulo puro; o AsciiCanvas desenha com um atlas de glifos e o terminal com ANSI.
 
+import type { Sprite } from "./figura.ts";
+
 export interface Campo {
   cols: number;
   rows: number;
@@ -288,6 +290,8 @@ export interface Entrada<D = undefined> {
   mouse: Ponto | null;
   cliques: Clique[];
   total: number; // cliques desde que a página abriu
+  parado: boolean; // reduced motion: personagens em repouso (ângulos 0, sem balanço)
+  foco: number | null; // data-foco do [data-revelar] mais próximo (null sem ele)
 }
 
 export const noMundo = (T: Tela, q: Ponto) => ({ x: q.u * T.A, y: q.v });
@@ -420,6 +424,8 @@ export interface OpcoesImagem {
   desloca?: (ix: number, iy: number) => number;
   ajuste?: (c: Celula) => number;
   calor?: number;
+  // 0..1: quanto da imagem já surgiu (multiplica o brilho); sem ele, a imagem aparece inteira
+  surgir?: number;
 }
 export const fundoImagem = (T: Tela, f: Fonte, aspecto: number, o: OpcoesImagem = {}) => {
   const { cols, rows, A, c } = T;
@@ -427,6 +433,7 @@ export const fundoImagem = (T: Tela, f: Fonte, aspecto: number, o: OpcoesImagem 
   const limiar = o.limiar ?? 0;
   const gama = o.gama ?? 0.7;
   const nitidez = o.nitidez ?? 0.8;
+  const surgir = o.surgir ?? 1;
   const tom = o.tom ?? ((l: number) => Math.pow(limitar((l - f.lo) / (f.hi - f.lo)), gama));
   const cw = v.vw / cols;
   const ch = v.vh / rows;
@@ -453,7 +460,7 @@ export const fundoImagem = (T: Tela, f: Fonte, aspecto: number, o: OpcoesImagem 
       cel.destaque = destaque;
       if (o.ajuste) l = o.ajuste(cel);
       l = Math.max(0, (l - limiar) / (1 - limiar));
-      c.lum[i] = limitar(l);
+      c.lum[i] = limitar(l) * surgir;
       c.calor[i] = limitar(a.W * 1.6) * (o.calor ?? 1);
       T.mat[i] = 0;
     }
@@ -522,6 +529,8 @@ export const poeira = (T: Tela, x0: number, x1: number, y0: number, y1: number, 
 // dados das cenas feitas de imagem: a fonte chega pelo AsciiCanvas
 export interface DadosImagem {
   fonte?: Fonte;
+  figuras?: Record<string, Sprite>;
+  chegou?: number; // instante t em que a imagem de fundo terminou de decodificar
 }
 
 // balanço de chama: desloca a amostragem da imagem dentro de uma chama (x, y é a base, alt a

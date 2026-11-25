@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { CENAS, type NomeCena } from "./cenas";
-import { K, prepararFonte, RAMPA } from "./denso";
+import { K, prepararFonte, RAMPA, type DadosImagem } from "./denso";
+import { prepararSprite } from "./figura";
 
 // Desenha uma cena em ASCII num canvas, com a fonte do site e as cores do tema (lidas do
 // próprio canvas, então dentro de .noite valem as cores da noite). Só anima enquanto aparece
@@ -18,6 +19,11 @@ import { K, prepararFonte, RAMPA } from "./denso";
 // o fundo, que não recebe eventos). Com reduced motion não há interação: a cena fica parada.
 // Imagem: `imagem` é a URL de uma imagem-fonte; ela é decodificada aqui e chega à cena como
 // `dados.fonte` (brilho e calor em tabelas de soma acumulada).
+// Figuras: `figuras` (nome → URL) são folhas de sprites sobre fundo verde, decodificadas em
+// paralelo com a imagem e entregues à cena em `dados.figuras`. `dados.chegou` é o instante t em
+// que a imagem de fundo chegou (a cena faz a imagem surgir a partir daí). `fps` é a taxa de quadros.
+// Primeira interação: marca `data-tocado` no [data-revelar] mais próximo. O evento `cena:acionar`
+// nesse mesmo elemento faz o mesmo que um clique (no último ponto do ponteiro ou no centro).
 // Revelação: com `revelar` (fração inicial, de 0 a 1), a resolução vai dessa fração da grade até
 // a grade inteira conforme a pessoa rola pelo ancestral [data-revelar], e as linhas acompanham a
 // proporção do contêiner (o canvas pode ter qualquer altura).
@@ -39,6 +45,8 @@ interface Props {
   interativa?: boolean;
   global?: boolean;
   imagem?: string;
+  figuras?: Record<string, string>;
+  fps?: number;
   revelar?: number;
 }
 
@@ -49,8 +57,6 @@ export interface Ponto {
 export interface Clique extends Ponto {
   t: number;
 }
-
-const FPS = 20;
 
 // começa devagar e acelera: os primeiros passos da rolagem já mostram mudança, sem pular etapas
 const passoSuave = (p: number) => 1 - (1 - p) * (1 - p);
@@ -66,6 +72,8 @@ const AsciiCanvas = ({
   interativa = false,
   global = false,
   imagem,
+  figuras,
+  fps = 20,
   revelar,
 }: Props) => {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -84,6 +92,8 @@ const AsciiCanvas = ({
       mouse: Ponto | null;
       cliques: Clique[];
       total: number;
+      parado: boolean;
+      foco: number | null;
     }) => {
       ch?: string[];
       co?: Uint8Array;
@@ -122,13 +132,25 @@ const AsciiCanvas = ({
     const sair = () => {
       mouse = null;
     };
-    const clicar = (e: PointerEvent) => {
-      const q = ponto(e);
-      if (!q) return;
+    const bloco = canvas.closest("[data-revelar]");
+    // cliques e acionamentos de fora entram pelo mesmo caminho; o primeiro marca data-tocado
+    const registrar = (q: Ponto) => {
       mouse = q;
       total++;
       const t = agoraT();
       cliques = [...cliques.filter((c) => t - c.t < 8), { ...q, t }];
+      bloco?.setAttribute("data-tocado", "");
+    };
+    const clicar = (e: PointerEvent) => {
+      const q = ponto(e);
+      if (q) registrar(q);
+    };
+    const acionar = () => registrar(mouse ?? { u: 0.5, v: 0.5 });
+    // data-foco: ponto de interesse (0–1) que a seção de fora passa para a cena
+    const lerFoco = () => {
+      const bruto = bloco?.getAttribute("data-foco");
+      const n = bruto ? Number(bruto) : NaN;
+      return Number.isNaN(n) ? null : n;
     };
 
     const lerCores = () => {
@@ -224,7 +246,7 @@ const AsciiCanvas = ({
       }
       const { cols, rows, w, h, fonte, linha, dpr } = m;
       if (!cols) return;
-      const g = quadro({ cols, rows, t, p, dados: dadosVivos, mouse, cliques, total });
+      const g = quadro({ cols, rows, t, p, dados: dadosVivos, mouse, cliques, total, parado: reduzir.matches, foco: lerFoco() });
       if (g.lum) {
         // modo denso: copia do atlas o caractere e o tom de cada célula
         ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -258,7 +280,7 @@ const AsciiCanvas = ({
 
     const laco = (agora: number) => {
       raf = requestAnimationFrame(laco);
-      if (agora - ultimo < 1000 / FPS) return;
+      if (agora - ultimo < 1000 / fps) return;
       ultimo = agora;
       desenhar(agoraT());
     };
@@ -287,28 +309,42 @@ const AsciiCanvas = ({
     });
 
     let vivo = true;
-    // imagem-fonte: carrega quando o canvas chega perto da tela, decodifica fora da tela e vira
-    // brilho e calor para a cena
-    const carregar = () => {
+    // imagem-fonte e folhas de figuras: carregam quando o canvas chega perto da tela, decodificam
+    // fora da tela e chegam à cena cada uma no seu tempo (o fundo vira brilho e calor; as folhas,
+    // sprites)
+    const decodificar = async (url: string) => {
       const img = new Image();
       img.decoding = "async";
-      img.src = imagem!;
-      img
-        .decode()
-        .then(() => {
+      img.src = url;
+      await img.decode();
+      const off = document.createElement("canvas");
+      off.width = img.naturalWidth;
+      off.height = img.naturalHeight;
+      const o = off.getContext("2d", { willReadFrequently: true })!;
+      o.drawImage(img, 0, 0);
+      return o.getImageData(0, 0, off.width, off.height);
+    };
+    const atualizar = (extra: Partial<DadosImagem>) => {
+      dadosVivos = { ...(dadosVivos as object), ...extra };
+      desenhar(reduzir.matches ? quadroParado : agoraT());
+    };
+    // sem uma imagem a cena fica vazia (ou sem a figura); o texto ao lado continua lá
+    const carregar = () => {
+      decodificar(imagem!)
+        .then(({ data, width, height }) => {
           if (!vivo) return;
-          const off = document.createElement("canvas");
-          off.width = img.naturalWidth;
-          off.height = img.naturalHeight;
-          const o = off.getContext("2d", { willReadFrequently: true })!;
-          o.drawImage(img, 0, 0);
-          const { data } = o.getImageData(0, 0, off.width, off.height);
-          dadosVivos = { ...(dados as object), fonte: prepararFonte(data, off.width, off.height) };
-          desenhar(reduzir.matches ? quadroParado : agoraT());
+          atualizar({ fonte: prepararFonte(data, width, height), chegou: agoraT() });
         })
-        .catch(() => {
-          // sem a imagem a cena fica vazia; o texto ao lado continua lá
-        });
+        .catch(() => {});
+      for (const [nome, url] of Object.entries(figuras ?? {})) {
+        decodificar(url)
+          .then(({ data, width, height }) => {
+            if (!vivo) return;
+            const atuais = (dadosVivos as DadosImagem).figuras;
+            atualizar({ figuras: { ...atuais, [nome]: prepararSprite(data, width, height) } });
+          })
+          .catch(() => {});
+      }
     };
     const perto = new IntersectionObserver(
       ([e]) => {
@@ -337,6 +373,7 @@ const AsciiCanvas = ({
           canvas.addEventListener("pointerleave", sair);
           if (interativa) canvas.addEventListener("pointerdown", clicar);
         }
+        if (interativa) bloco?.addEventListener("cena:acionar", acionar);
       }
     });
 
@@ -353,8 +390,9 @@ const AsciiCanvas = ({
       canvas.removeEventListener("pointermove", mover as EventListener);
       canvas.removeEventListener("pointerleave", sair);
       canvas.removeEventListener("pointerdown", clicar);
+      bloco?.removeEventListener("cena:acionar", acionar);
     };
-  }, [cena, dados, grades, celula, rolagem, quadroParado, interativa, global, imagem, revelar]);
+  }, [cena, dados, grades, celula, rolagem, quadroParado, interativa, global, imagem, figuras, fps, revelar]);
 
   return (
     <canvas

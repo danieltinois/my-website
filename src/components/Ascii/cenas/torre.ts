@@ -28,6 +28,7 @@ import {
   type Entrada,
   type Tela,
 } from "../denso.ts";
+import { estrelasEspera } from "../estrelas.ts";
 
 // pontos da imagem (coordenadas normalizadas), medidos no arquivo
 const ASPECTO = 3;
@@ -58,11 +59,15 @@ const pombo = (T: Tela, x: number, y: number, t: number, fase: number, s: number
 // Interativa: cada clique solta um pombo do ponto clicado. Um clique a menos de 1,5s do anterior
 // é a mesma entrega chegando de novo (o GitHub entrega "pelo menos uma vez"): vai para o braseiro.
 // Sem cliques recentes, a cena roda sozinha em ciclo.
-export const torre = ({ cols, rows, t, p, dados, mouse, cliques }: Entrada<DadosImagem>): Campo => {
+export const torre = ({ cols, rows, t, p, dados, parado, mouse, cliques }: Entrada<DadosImagem>): Campo => {
   const T = tela(cols, rows);
   const { A } = T;
   const f = dados?.fonte;
-  if (!f) return T.c;
+  if (!f) {
+    estrelasEspera(T, t);
+    return fechar(T.c);
+  }
+  const surgir = parado ? 1 : passo(0, 0.8, t - (dados?.chegou ?? -9));
 
   // as entregas deste quadro: dos cliques recentes ou, sem eles, do ciclo automático
   type Voo = { saida: number; de: { x: number; y: number } | null; repetida: boolean; k: number };
@@ -84,6 +89,7 @@ export const torre = ({ cols, rows, t, p, dados, mouse, cliques }: Entrada<Dados
   const fogo = 0.75 + 0.25 * ruido(t * 9, 4);
 
   const { para, esc } = fundoImagem(T, f, ASPECTO, {
+    surgir,
     fx: 0.45,
     fy: 0.45,
     limiar: 0.35 * (1 - passo(0, 1, p)),
@@ -110,6 +116,7 @@ export const torre = ({ cols, rows, t, p, dados, mouse, cliques }: Entrada<Dados
       return l;
     },
   });
+  estrelasEspera(T, t, 0.35 * (1 - surgir));
   const e = (n: number) => n * esc;
 
   // fumaça das chaminés da vila

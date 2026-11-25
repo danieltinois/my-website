@@ -25,6 +25,7 @@ import {
   type DadosImagem,
   type Entrada,
 } from "../denso.ts";
+import { estrelasEspera } from "../estrelas.ts";
 
 const ANOS = [...TRAJETORIA].reverse().map((m) => m.quando.slice(0, 4));
 
@@ -38,14 +39,19 @@ const POSTE = 0.2; // altura de um poste, em alturas da imagem
 const ALTURA = 0.13; // altura do viajante
 
 // Interativa: anda com a rolagem; o cursor é um lampião e o clique solta faíscas.
-export const estrada = ({ cols, rows, t, p, dados, mouse, cliques }: Entrada<DadosImagem>): Campo => {
+export const estrada = ({ cols, rows, t, p, dados, parado, mouse, cliques }: Entrada<DadosImagem>): Campo => {
   const T = tela(cols, rows);
   const { A } = T;
   const f = dados?.fonte;
-  if (!f) return T.c;
+  if (!f) {
+    estrelasEspera(T, t);
+    return fechar(T.c);
+  }
+  const surgir = parado ? 1 : passo(0, 0.8, t - (dados?.chegou ?? -9));
 
   const q = Math.max(0, Math.min(1, p));
   const { para, esc } = fundoImagem(T, f, ASPECTO, {
+    surgir,
     fx: 0.5,
     fy: 0.5,
     gama: 0.68,
@@ -59,6 +65,7 @@ export const estrada = ({ cols, rows, t, p, dados, mouse, cliques }: Entrada<Dad
       return l;
     },
   });
+  estrelasEspera(T, t, 0.35 * (1 - surgir));
   const e = (n: number) => n * esc;
   const px = Math.max(1, Math.round(rows / 45)); // pixel da fonte dos anos, em células
   const largo = A > 3.5;

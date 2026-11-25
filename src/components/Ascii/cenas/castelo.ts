@@ -26,6 +26,7 @@ import {
   type DadosImagem,
   type Entrada,
 } from "../denso.ts";
+import { estrelasEspera } from "../estrelas.ts";
 
 // pontos da imagem (coordenadas normalizadas), medidos no arquivo
 const ASPECTO = 800 / 450;
@@ -38,11 +39,15 @@ const TORRE = { x: 0.66, y: 0.13 }; // a torre mais alta, onde os morcegos ronda
 // a imagem é noturna (brilho mediano 0,07): níveis e gama abrem as sombras para a rampa
 const tom = (l: number) => Math.pow(limitar((l - 0.01) / 0.5), 0.7);
 
-export const castelo = ({ cols, rows, t, p, dados, mouse, cliques }: Entrada<DadosImagem>): Campo => {
+export const castelo = ({ cols, rows, t, p, dados, parado, mouse, cliques }: Entrada<DadosImagem>): Campo => {
   const T = tela(cols, rows);
   const { A } = T;
   const f = dados?.fonte;
-  if (!f) return T.c;
+  if (!f) {
+    estrelasEspera(T, t);
+    return fechar(T.c);
+  }
+  const surgir = parado ? 1 : passo(0, 0.8, t - (dados?.chegou ?? -9));
 
   const r = passo(0, 1, p);
   const largo = A > 1.5;
@@ -76,6 +81,7 @@ export const castelo = ({ cols, rows, t, p, dados, mouse, cliques }: Entrada<Dad
   };
 
   const { para, esc } = fundoImagem(T, f, ASPECTO, {
+    surgir,
     z,
     fx: FOCO.x,
     fy: FOCO.y,
@@ -116,6 +122,7 @@ export const castelo = ({ cols, rows, t, p, dados, mouse, cliques }: Entrada<Dad
       return l;
     },
   });
+  estrelasEspera(T, t, 0.35 * (1 - surgir));
 
   // morcegos: rondam a torre mais alta em elipses, batendo as asas
   const torre = para(TORRE.x, TORRE.y);
