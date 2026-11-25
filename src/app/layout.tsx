@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import "@fontsource-variable/roboto-mono";
+import "@fontsource-variable/archivo/wdth.css";
 import { ThemeProvider } from "next-themes";
 import Waves from "../components/layout/Waves";
 import { SoundProvider } from "../context/SoundContext";
