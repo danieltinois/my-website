@@ -52,7 +52,7 @@ const Hero = () => {
           </div>
         </div>
 
-        <div data-revelar className="mt-8 h-[200svh] motion-reduce:h-auto lg:col-start-1 lg:row-start-1 lg:mt-0 lg:h-[260svh]">
+        <div data-revelar className="mt-8 h-[200svh] motion-reduce:h-auto lg:col-start-1 lg:row-start-1 lg:mt-0 lg:h-[260svh] lg:motion-reduce:h-auto">
           <div className="sticky top-24 -mx-6 h-[calc(100svh-6rem)] lg:-mx-12">
             <div
               className="h-full"
