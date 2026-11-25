@@ -118,6 +118,8 @@
   }
 
   html {
+    /* o cabeçalho fixo não cobre o alvo de âncoras nem o elemento focado */
+    scroll-padding-top: var(--spacing-24);
     background-color: var(--color-paper);
     color: var(--color-ink);
     font-family: var(--font-mono);

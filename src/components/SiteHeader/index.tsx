@@ -23,7 +23,9 @@ const SiteHeader = () => (
             {SECOES.map((s) => (
               <li key={s.id}>
                 <a href={`#${s.id}`} className="no-underline hover:underline">
-                  <span className="mr-2 font-stretch-condensed tabular-nums text-muted">[{s.n}]</span>
+                  <span className="mr-2 font-stretch-condensed tabular-nums text-muted" aria-hidden="true">
+                    [{s.n}]
+                  </span>
                   {s.titulo.toLowerCase()}
                 </a>
               </li>

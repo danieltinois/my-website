@@ -1,8 +1,8 @@
 import type { CSSProperties } from "react";
 import s from "./art.module.css";
 
-// Uma arte por projeto, feita do próprio assunto dele. São ilustrações (aria-hidden): o
-// que cada projeto faz está escrito no card ao lado.
+// Uma arte por projeto, feita do próprio assunto dele. São ilustrações: o que cada projeto
+// faz está escrito no card ao lado, e o leitor de tela ouve só a descrição curta.
 
 const v = (vars: Record<string, string | number>) => vars as CSSProperties;
 
@@ -51,10 +51,8 @@ const EVENTOS = [
 
 const PatoArt = () => (
   <div className={s.panel} aria-hidden="true">
-    <div className={s.muted}>
-      {PIPELINE.replace("inbox", "")}
-      <span className={s.faint}>inbox</span>
-    </div>
+    {/* a caixa de entrada ainda não existe: o "?" marca o próximo marco */}
+    <div className={s.muted}>{PIPELINE}?</div>
     <div className={s.track}>
       {EVENTOS.map((e) => (
         <span key={e.d} className={s.lane} style={v({ "--d": e.d, "--x": e.x })}>
@@ -117,4 +115,15 @@ const ARTES: Record<string, React.ReactNode> = {
   "resume-tailor": <ResumeArt />,
 };
 
-export const ProjectArt = ({ id }: { id: string }) => <div className={s.frame}>{ARTES[id]}</div>;
+// descrição para leitor de tela; role="img" também tira os caracteres decorativos da checagem de contraste
+const DESCRICOES: Record<string, string> = {
+  devclean: "Ilustração: o DevClean lista caches de ferramentas de dev e move para a Lixeira só os que são seguros.",
+  "pato-commit": "Ilustração: eventos do GitHub passam por webhook, fila e worker; a entrega repetida é descartada no webhook.",
+  "resume-tailor": "Ilustração: experiências reordenadas pela aderência a uma vaga de React, Node e Flutter.",
+};
+
+export const ProjectArt = ({ id }: { id: string }) => (
+  <div className={s.frame} role="img" aria-label={DESCRICOES[id]}>
+    {ARTES[id]}
+  </div>
+);

@@ -43,7 +43,7 @@ export default function RootLayout({
       <body>
         <a
           href="#conteudo"
-          className="sr-only bg-ink px-4 py-2 text-paper focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-10"
+          className="sr-only bg-ink px-4 py-2 text-paper focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-20"
         >
           Pular para o conteúdo
         </a>
