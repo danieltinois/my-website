@@ -16,6 +16,7 @@ const GRADE_CORVO = [
   { mq: "all", cols: 130, rows: 0 },
 ];
 const CELULA_BRASAS = { w: 14, h: 24 };
+const FIGURAS_CORVO = { corvo: "/cenas/figuras/corvo.webp" };
 
 export default function Home() {
   return (
@@ -56,9 +57,9 @@ export default function Home() {
               data-revelar
               className="noite relative aspect-[11/5] border"
               role="img"
-              aria-label="Ilustração: sob uma lua cheia enorme, um corvo-mensageiro cruza o céu com uma carta, pousa num poste com lampião e a solta na caixa de correio."
+              aria-label="Ilustração: sob uma lua cheia enorme, um corvo-mensageiro cruza o céu batendo as asas com uma carta no bico, pousa num poste com lampião, solta a carta na caixa de correio, olha em volta e vai embora."
             >
-              <AsciiCanvas cena="corvo" imagem="/cenas/corvo.webp" grades={GRADE_CORVO} revelar={0.3} interativa />
+              <AsciiCanvas cena="corvo" imagem="/cenas/corvo.webp" grades={GRADE_CORVO} figuras={FIGURAS_CORVO} fps={30} revelar={0.3} interativa />
               <span className="pointer-events-none absolute right-3 bottom-2 text-caption text-muted">clique para soltar o corvo</span>
             </div>
           </div>
