@@ -1,9 +1,11 @@
 # Sistema de design
 
-O site parece **o painel de um dev ao vivo**: escuro, uma fonte mono, uma cor de destaque e uma
-peça grande que se mexe com dados reais. A referência de energia é o hackbrasil.com; o que separa
-este site dele é o conteúdo (as contribuições e os projetos do Daniel viram a arte), a cor
-(laranja de segurança, não verde) e a fonte (Martian Mono, não JetBrains Mono).
+O site é **um mundo medieval à noite, desenhado em ASCII**, dentro de uma interface de dev
+(escura, uma fonte mono, um destaque). Cada parte do site é um lugar desse mundo, renderizado como
+imagem de luz feita de caracteres, no nível de detalhe de um jogo em ASCII: o castelo do hero, o
+porão do DevClean, a torre do correio do Pato Commit, o escriba do resume-tailor, a estrada da
+trajetória e o corvo do contato. A história de origem (plugins de Minecraft em 2020) justifica o
+mundo; o conteúdo continua em texto, legível para recrutador e buscador.
 
 Os tokens vivem em `src/app/globals.css` (`@theme`). O `@theme` zera os namespaces padrão do
 Tailwind (`--color-*`, `--text-*`, `--spacing-*`, `--radius-*`, `--shadow-*`...), então **só o que
@@ -111,40 +113,132 @@ compartilham borda (`border-t border-l` no contêiner, `border-r border-b` nas c
 ## 5. Motivos recorrentes
 
 1. **Marcadores entre colchetes.** Seções `[01]`, `[02]`, `[03]` no título e no índice; projetos
-   `[1.1]`, `[1.2]`, `[1.3]` no canto da arte.
-2. **Arte feita de caracteres, com tema do próprio dono.** O campo de contribuições e as três artes
-   dos projetos usam só caracteres da fonte; cada uma ilustra o que o projeto faz (DevClean varre
-   caches, Pato Commit descarta entregas repetidas, resume-tailor reordena experiências). As artes
-   dos projetos levam o rótulo "ilustração".
-3. **Grade de dados em caixas de 1px.** Estatísticas do hero, especificações, parâmetros dos
-   projetos e trajetória usam a mesma grade de células.
+   `[1.1]`, `[1.2]`, `[1.3]` no canto do banner da cena.
+2. **Janelas para a noite.** Toda cena fica num bloco `.noite`: sempre noturno, inclusive no tema
+   claro, onde vira um retângulo escuro dentro da página clara.
+3. **Grade de dados em caixas de 1px.** Estatísticas, especificações, parâmetros e trajetória.
+4. **Fogo é o laranja.** Dentro das cenas, o `signal` só aparece como luz de fogo: tochas, janelas,
+   fogueira, vela, braseiro, lampiões.
 
-## 6. Peça-assinatura: o campo de contribuições
+## 6. As cenas e a técnica
 
-As contribuições públicas no GitHub dos últimos 12 meses viram um campo de caracteres de 53
-colunas (semanas) por 20 linhas.
+**Técnica: cada cena é uma imagem convertida em ASCII a cada quadro.** Para chegar perto do
+realista, nenhuma cena desenha o cenário com formas: cada uma parte de uma imagem noturna
+(`public/cenas/*.webp`, geradas no Figma) e a converte em caracteres. A saída é 100% ASCII; a
+imagem nunca aparece.
 
-- **Dados reais, sem token.** `scripts/update-contributions.mts` lê o HTML público do GitHub
-  (cada dia tem a contagem no tooltip) e grava `src/data/contributions.json`. Roda no `prebuild`;
-  se o GitHub falhar ou o HTML mudar de formato, mantém o snapshot anterior e a build segue.
-- **Desenho (`toField` em `src/lib/contributions.ts`):** a altura da coluna é proporcional às
-  contribuições da semana; dentro dela o caractere fica mais denso perto do topo
-  (`@ # * + = - :`), e acima só há pontos em `faint`. O topo de cada coluna fica em `ink`.
-- **Uma marca em `signal`:** a semana de 24–29 set, quando começam os três projetos
-  (`src/data/curva.ts`), com rótulo e linha de chamada. Some sozinha quando sai da janela.
-- **Embaixo:** quatro números calculados (total, dias com contribuição, maior sequência, semana
-  mais intensa) e a tabela completa em "ver os dados por semana", para leitor de tela e conferência.
-- **Zero JavaScript.** É componente de servidor; o campo sai pronto da build.
+- O `AsciiCanvas` carrega a imagem quando o canvas chega perto da tela, decodifica fora da tela e
+  a passa à cena como tabelas de soma acumulada de brilho e de calor (laranja = luz de fogo), então
+  a média de qualquer retângulo custa quatro leituras, em qualquer resolução.
+- `fundoImagem` (`src/components/Ascii/denso.ts`) enquadra a imagem em modo cover, aplica níveis
+  automáticos (percentis 1 e 97) e gama, reforça a diferença de cada célula para a vizinhança
+  (nitidez) e chama o `ajuste` da cena, onde entram os efeitos.
+- A luminância escolhe o caractere numa rampa alfanumérica (` .,:;i1?7tPO09#@`) e o tom de cinza;
+  o calor puxa o tom para o laranja. O canvas desenha com um atlas de glifos (cada caractere em
+  cada tom é pintado uma vez), então cada quadro é só cópia de pedaços.
+- **O que se mexe é código por cima da imagem:** a própria chama da foto balança (`balancar`
+  desloca a amostragem dentro da chama), a luz das paredes pulsa com o fogo, e partículas
+  (`fagulhas`, `fumaca`, `poeira`), luzes, figuras (pombo, dragão) e dígitos em pixel-font 3×5
+  entram por cima.
 
-## 7. Movimento
+**Personagens de imagem (sprites).** O velho do porão, o viajante da estrada e o corvo não são
+formas desenhadas em código: cada um vem de uma folha de partes (corpo, braço, perna, cabeça,
+asas...) feita no Figma sobre fundo verde (`public/cenas/figuras/*.webp`).
 
-- **Varredura do campo:** cada coluna acende e apaga devagar, em sequência da esquerda para a
-  direita, em loop de 6s. Só `opacity`, que a GPU compõe.
-- **Artes dos projetos:** loops curtos só com `transform`, `opacity` e `clip-path`.
-- **Indicador ao vivo:** o quadrado `signal` da faixa de status pulsa.
-- **Relógio:** a hora de São Paulo se atualiza (o único JavaScript da página, junto com o botão de tema).
-- `prefers-reduced-motion: reduce`: nada se mexe. Cada arte para num estado que faz sentido
-  (campo aceso, eventos espalhados pelo caminho, experiências já na ordem da vaga).
+- O `AsciiCanvas` baixa as folhas junto com a imagem de fundo (`figuras`, nome → URL) e as entrega
+  à cena em `dados.figuras`. `figura.ts` (módulo puro, sem DOM) tira o fundo verde (chroma key, com
+  corte do verde que sobra nas bordas) e guarda brilho, calor e opacidade em tabelas de soma
+  acumulada, como a imagem de fundo.
+- A cena compõe cada parte na grade girando em torno do seu pivô, e cada célula amostra a área
+  exata da folha, então a figura fica nítida em qualquer resolução. Os ossos são código: o velho
+  varre, o viajante balança a lanterna e anda, o corvo bate as asas e vira a cabeça.
+- As células da figura ganham `mat` 5 (superfície): o `lampiao` e as luzes de fogo as iluminam
+  como a qualquer parte da imagem.
+- `fps` por cena: as cenas com personagem animam a 30 quadros por segundo, as outras a 20.
+- **Espera:** enquanto a imagem de fundo decodifica, a cena mostra um campo de estrelas fraco
+  (`estrelas.ts`) que some conforme a imagem surge, em vez de um quadro vazio.
+- **Reduced motion:** com `parado`, as figuras aparecem em repouso (ângulos 0, sem balanço).
+
+| Cena | Onde | Colunas (desktop) | Imagem | O que se mexe |
+|---|---|---|---|---|
+| `castelo` | hero | até 360 | castelo no penhasco, cachoeira, lago | água, janelas, cachoeira com espuma, estrelas e estrela cadente, nuvens, névoa, luar na água, morcegos, vaga-lumes, dragão a cada 18s |
+| `porao` | DevClean | até 340 | abóbada de pedra, duas tochas, carroça | tochas com fagulhas e fumaça, luz pulsando, poeira; o velho (sprite) varre os três sacos seguros até a carroça, o "?" fica; um rato a cada 15s |
+| `torre` | Pato Commit | até 340 | torre com janela acesa, braseiro, lua, vila | nuvens, estrelas, janelas da vila, fumaça das chaminés, braseiro; pombos entregam cartas e a repetida queima |
+| `escriba` | resume-tailor | até 340 | mesa à luz de vela, pergaminho, livros | vela e luz pulsando, fumaça, poeira, nuvens na janela; as linhas se reordenam e a pena sai do tinteiro para escrever |
+| `estrada` | trajetória | até 340 | estrada sob a Via Láctea, castelo ao fundo | estrelas, estrela cadente, névoa nos vales, vaga-lumes; o viajante de capa (sprite) com lanterna balançando anda com a rolagem e acende os marcos |
+| `corvo` | contato | até 220 | lua cheia enorme, poste com lampião e caixa de correio | nuvens na lua, neblina, árvore ao vento, mariposas no lampião; o corvo (sprite) bate as asas, pousa, solta a carta na caixa, olha em volta e vai embora |
+
+**Revelação pela rolagem.** Toda cena começa com poucos caracteres grandes e ganha resolução
+conforme a rolagem: o limiar de luz também baixa, então primeiro aparece só o que brilha.
+
+- No hero, um trecho alto (`[data-revelar]`, 260svh no desktop) prende a cena na tela (`sticky`);
+  a grade vai de 15% até 360 colunas (120 no celular) e o enquadramento abre do castelo para a
+  paisagem.
+- Nos banners, a grade vai de 25–30% até a máxima entre o banner entrar pela base da tela e o topo
+  dele chegar a um quarto da altura.
+- As linhas seguem a proporção do contêiner (`aspect-ratio`), reservada antes do JavaScript
+  (CLS 0). Cálculo de 3 a 6 ms por quadro na grade máxima. Sem movimento, tudo aparece inteiro.
+
+**Dados reais.** `scripts/update-contributions.mts` lê o HTML público do GitHub e grava
+`src/data/contributions.json` no `prebuild` (mantém o snapshot anterior se falhar). Os números
+abaixo do hero e a imagem de compartilhamento saem daí.
+
+**Hero no desktop.** O texto fica preso por cima do céu, à esquerda, durante a revelação; a cena
+apaga quase tudo atrás dele. No celular o texto vem antes e a cena fica presa logo abaixo.
+
+## 7. Interação
+
+As cenas respondem ao ponteiro (mouse ou toque); o `AsciiCanvas` passa a posição e os cliques
+recentes em coordenadas do mundo. Em todas, **o cursor é um lampião**: uma luz quente que segue o
+ponteiro e revela o escuro. Cada banner diz em uma linha o que o clique faz.
+
+| Cena | O clique faz |
+|---|---|
+| castelo | faíscas no ponto; no lago, um anel de onda (passar o mouse na água também ondula) |
+| porão | o velho recomeça a limpeza |
+| torre | solta um pombo com uma carta do ponto clicado; dois cliques a menos de 1,5s são a mesma entrega duas vezes, e a repetida queima no braseiro (a deduplicação do webhook, na mão) |
+| escriba | respingo de tinta no ponto; troca a vaga (react/node/flutter ↔ java/spring): as linhas se reordenam e a pena reescreve |
+| estrada | faíscas (o viajante anda com a rolagem) |
+| corvo | o corvo levanta voo: na hora se já entregou a carta, ou logo depois de entregá-la se ainda chega |
+
+**Dicas e teclado.** Cada dica de clique é um botão (`Dica`, `src/components/Ascii/Dica.tsx`), não
+a arte focável: um `role="img"` com ação seria anunciado errado, e o botão é anunciado como botão.
+Ele fica dentro do `[data-revelar]` da cena, fora do `role="img"`, e ao ser ativado (Enter ou
+espaço) dispara `cena:acionar` no bloco, que o `AsciiCanvas` trata como um clique (no último ponto
+do ponteiro ou no centro). As dicas só informativas ("role para revelar") e a nota "role a página" da estrada são
+texto (`span` com a classe `dica`), não botões.
+
+- Na primeira interação o `AsciiCanvas` marca `data-tocado` no bloco, e as dicas (`.dica`) somem
+  com uma transição de 0,6s e deixam de receber clique.
+- Ao receber o foco do teclado a dica volta (`.dica:focus-visible`), com o contorno global de 2px,
+  então quem navega por Tab nunca perde o botão de vista.
+- Com `prefers-reduced-motion` não há `cena:acionar` (a cena fica parada): os botões somem em qualquer largura
+  (`motion-safe:` nas classes de largura) e não há transição.
+
+As brasas do fundo desviam do cursor. Com `prefers-reduced-motion` não há interação: as cenas ficam
+paradas. A interação é um extra: todo o conteúdo está no texto ao lado, para teclado e leitor de
+tela.
+
+## 7b. Movimento
+
+- Cada cena anima a 20 quadros por segundo (30 as que têm personagem de imagem: porão, estrada e
+  corvo) só enquanto aparece na tela e a aba está visível (`IntersectionObserver` e
+  `visibilitychange`).
+- Os personagens se movem por ossos em código sobre partes de imagem (`figura.ts`): o velho varre
+  e se encurva, o viajante balança a lanterna, o corvo bate as asas, vira a cabeça, pousa e
+  levanta voo (a aterrissagem, a decolagem e o clique em pleno voo são suaves, sem salto).
+- As dicas de clique somem depois da primeira interação e voltam com o foco do teclado (seção 7).
+- A estrada não anda com o tempo: anda com a rolagem. Todas as cenas ganham resolução com a
+  rolagem.
+- Títulos se decifram em ASCII ao entrar na tela (`Decifrar`): cada letra passa pela rampa e
+  assenta, da esquerda para a direita. O texto real fica no DOM para leitor de tela e buscador.
+- Cards de projeto, títulos e marcos da trajetória sobem e aparecem com a rolagem (`.surgir`,
+  `animation-timeline: view()`, só CSS; sem suporte, ficam parados).
+- Brasas sobem atrás da página (só no tema escuro); o quadrado da faixa de status pulsa; o
+  relógio de São Paulo se atualiza.
+- `prefers-reduced-motion: reduce`: cada cena desenha um quadro parado na resolução máxima (a
+  estrada aparece completa e o trecho alto do hero encolhe em qualquer largura); os personagens ficam em repouso;
+  títulos não se decifram e nada surge; as dicas de clique somem.
 
 ## 8. Qualidade verificada (25 nov 2026)
 
@@ -155,13 +249,19 @@ Lighthouse 12 contra a build servida pelo `wrangler dev`:
 | Celular | 98 | 100 | 100 | 100 |
 | Desktop | 100 | 100 | 100 | 100 |
 
-LCP 2,5s no celular (simulado) e 0,5s no desktop; CLS 0; TBT ≤ 10ms.
+LCP 2,3s no celular (simulado) e 0,5s no desktop; CLS 0; TBT 80ms no celular, com as seis cenas
+feitas de imagem (as dos banners só carregam perto da tela).
+
+Medido de novo com os personagens de imagem, no build de produção servido pelo wrangler
+(Lighthouse 12): celular 98 / 100 / 100 / 100, desktop 100 / 100 / 100 / 100, CLS 0, TBT 80ms e
+LCP 2,3s no celular.
 
 - **Teclado:** o primeiro Tab mostra "Pular para o conteúdo"; a ordem segue a leitura (índice, tema,
   CTA, links, dados, repositórios, contato). Foco com contorno de 2px. `scroll-padding-top` evita que
   o cabeçalho fixo cubra o elemento focado.
 - **Artes:** cada uma é `role="img"` com descrição; os caracteres decorativos não entram na árvore
-  de acessibilidade.
+  de acessibilidade. As dicas de clique são botões fora do `role="img"`, alcançáveis por Tab, com
+  foco visível mesmo depois de terem desaparecido.
 - **Metadados:** título, descrição, canonical, Open Graph e Twitter; imagem de compartilhamento
   gerada na build (`src/app/opengraph-image.tsx`) com o mesmo campo de contribuições; `robots.txt` e
   `sitemap.xml`. O `public/_headers` serve a imagem como `image/png`, porque o export do Next a
@@ -169,13 +269,25 @@ LCP 2,5s no celular (simulado) e 0,5s no desktop; CLS 0; TBT ≤ 10ms.
 
 ## 9. Histórico
 
-A primeira versão deste sistema era uma "ficha técnica" clara e estática (Archivo, fundo branco,
-curva em SVG). Foi rejeitada porque perdia a energia da referência: tinha a disciplina, mas não o
-impacto. Ficaram dela a regra de um destaque, a linha de 1px, raio 0 e os dados reais.
+1. "Ficha técnica" clara e estática (Archivo, fundo branco): rejeitada, sem a energia da referência.
+2. "Painel de dev ao vivo" (escuro, mono, campo de contribuições em caracteres): aprovado, mas o
+   pedido seguinte foi um tema e um ASCII de jogo.
+3. Mundo medieval em ASCII de contorno (`|`, `_`, `/`): rejeitado por ser simples demais.
+4. Mundo medieval em ASCII denso, como imagem renderizada em caracteres, tudo desenhado em código:
+   aprovado, mas o pedido seguinte foi um hero "quase realista".
+5. Castelo convertido de uma imagem gerada no Figma, revelado pela rolagem (de poucos caracteres
+   grandes a milhares de pequenos), com as outras cenas ainda em código: o pedido seguinte foi o
+   mesmo detalhe em todas e mais animação.
+6. As seis cenas feitas de imagem e reveladas pela rolagem, com a história de cada uma em código
+   por cima, títulos que se decifram e blocos que surgem: o pedido seguinte foi que os personagens
+   parecessem de verdade, e não formas de código.
+7. Personagens de imagem: o velho do porão, o viajante da estrada e o corvo viram folhas de partes
+   feitas no Figma, compostas na grade por ossos em código, com 30 quadros por segundo, estrelas
+   de espera, dicas que são botões e somem depois da primeira interação: a versão atual.
 
 ## 10. Fora do sistema (removido)
 
 Tokens: `cn-*`, cores de redes sociais, sombras `bump`/`flat`, `docker-*`, `wave-*`, cursores,
 Roboto Mono e Archivo. Componentes: desktop, janelas, terminal, celular, Craft, Konami, sons,
-a curva em SVG e o diagrama de blocos. Dependências: `framer-motion`, `react-draggable`,
+a curva em SVG, o diagrama de blocos, o campo de caracteres em CSS e as artes de contorno dos projetos. Dependências: `framer-motion`, `react-draggable`,
 `use-sound`, `three`, `@hugeicons/*`, `next-themes`. Deploy: o Worker de `/api/github/contributions`.

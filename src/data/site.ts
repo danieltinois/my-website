@@ -88,33 +88,34 @@ export const PROJETOS: Projeto[] = [
   },
 ];
 
+// curto: o rótulo do marco na estrada em ASCII da trajetória
 export const TRAJETORIA = [
-  { quando: "2026", titulo: "Verzel", texto: "Dev full stack pleno." },
+  { quando: "2026", titulo: "Verzel", curto: "verzel", texto: "Dev full stack pleno." },
   {
     quando: "2026",
-    titulo: "LBA Capital, freela",
+    titulo: "LBA Capital, freela", curto: "lba",
     texto: "Filas e webhook para destravar o processamento e a atualização de boletos. Node, Supabase, PostgreSQL.",
   },
   {
     quando: "2025",
-    titulo: "1º lugar no FIAP NEXT",
+    titulo: "1º lugar no FIAP NEXT", curto: "fiap next",
     texto: "Desafio da Astéria: controle de caixa para pequenos supermercados, do protótipo ao pitch para banca C-level.",
   },
   {
     quando: "2025–2026",
-    titulo: "Swift",
+    titulo: "Swift", curto: "swift",
     texto: "1 ano e 7 meses no time de integrações: web com React, mobile com Flutter, APIs para e-commerce.",
   },
-  { quando: "2024", titulo: "FIAP", texto: "Engenharia de Software, formatura em 2027." },
+  { quando: "2024", titulo: "FIAP", curto: "fiap", texto: "Engenharia de Software, formatura em 2027." },
   {
     quando: "2021–2025",
-    titulo: "Freelancer",
+    titulo: "Freelancer", curto: "freela",
     texto: "Quatro anos de e-commerces, landing pages e sistemas sob medida, sozinho do contrato ao deploy.",
   },
-  { quando: "2021", titulo: "Primeiro site", texto: "Voluntário, para orientar pacientes de UPA depois do atendimento." },
+  { quando: "2021", titulo: "Primeiro site", curto: "upa", texto: "Voluntário, para orientar pacientes de UPA depois do atendimento." },
   {
     quando: "2020",
-    titulo: "Plugins de Minecraft",
+    titulo: "Plugins de Minecraft", curto: "plugins",
     texto: "Java, onde programar virou coisa que outras pessoas usam.",
   },
 ];

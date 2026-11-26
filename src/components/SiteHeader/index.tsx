@@ -12,7 +12,7 @@ export const SECOES = [
 
 // cabeçalho fixo: nome, índice e tema; embaixo, a faixa de status com dados ao vivo e reais
 const SiteHeader = () => (
-  <header className="sticky top-0 z-10 -mx-6 border-b bg-paper px-6 text-caption lg:-mx-12 lg:px-12">
+  <header className="sticky top-0 z-30 -mx-6 border-b bg-paper px-6 text-caption lg:-mx-12 lg:px-12">
     <div className="flex items-baseline justify-between gap-6 py-4">
       <a href="#" className="font-semibold no-underline hover:underline">
         {PERFIL.nome.toLowerCase()}
