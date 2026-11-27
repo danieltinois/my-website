@@ -2,8 +2,6 @@
 // (luminância 0–1 e calor 0–1 por célula) que vira caracteres por uma rampa de densidade.
 // Módulo puro; o AsciiCanvas desenha com um atlas de glifos e o terminal com ANSI.
 
-import type { Sprite } from "./figura.ts";
-
 export interface Campo {
   cols: number;
   rows: number;
@@ -137,21 +135,7 @@ export const luz = (T: Tela, x: number, y: number, r: number, I: number) =>
     { x0: x - r * 2, x1: x + r * 2, y0: y - r * 2, y1: y + r * 2 },
   );
 
-// chama: língua de fogo que sobe de (x, y), feita de ruído
-export const chama = (T: Tela, x: number, y: number, alt: number, larg: number, t: number, fase = 0) =>
-  cada(
-    T,
-    (X, Y, i) => {
-      const sobe = (y - Y) / alt;
-      if (sobe < 0 || sobe > 1) return;
-      const forma = 1 - Math.abs(X - x) / (larg * (1 - sobe * 0.8) + 1e-6);
-      const f = forma * (0.6 + 0.6 * fbm((X - x) * 80 + fase, (y - Y) * 50 - t * 7, 2)) - sobe * 0.6;
-      if (f > 0.15) acender(T, i, 0.55 + f * 0.6, 1);
-    },
-    { x0: x - larg, x1: x + larg, y0: y - alt, y1: y },
-  );
-
-// cápsula (segmento grosso): membros, cajado, cabo de vassoura, pernas
+// cápsula (segmento grosso): asas e corpo dos morcegos e do dragão
 export const traco = (T: Tela, x0: number, y0: number, x1: number, y1: number, esp: number, L: number, mat = 7) =>
   cada(
     T,
@@ -167,88 +151,7 @@ export const traco = (T: Tela, x0: number, y0: number, x1: number, y1: number, e
     { x0: Math.min(x0, x1) - esp, x1: Math.max(x0, x1) + esp, y0: Math.min(y0, y1) - esp, y1: Math.max(y0, y1) + esp },
   );
 
-// elipse preenchida; `sombra` escolhe o brilho em função da posição normalizada (u, v) de -1 a 1
-export const elipse = (
-  T: Tela,
-  x: number,
-  y: number,
-  rx: number,
-  ry: number,
-  sombra: (u: number, v: number) => number,
-  mat = 7,
-) =>
-  cada(
-    T,
-    (X, Y, i) => {
-      const u = (X - x) / rx;
-      const v = (Y - y) / ry;
-      if (u * u + v * v <= 1) {
-        T.c.lum[i] = sombra(u, v);
-        T.mat[i] = mat;
-      }
-    },
-    { x0: x - rx, x1: x + rx, y0: y - ry, y1: y + ry },
-  );
-
-// dígitos e alguns sinais em pixel-font 3×5, desenhados com a própria luminância
-const FONTE: Record<string, string[]> = {
-  "0": ["###", "#.#", "#.#", "#.#", "###"],
-  "1": [".#.", "##.", ".#.", ".#.", "###"],
-  "2": ["###", "..#", "###", "#..", "###"],
-  "3": ["###", "..#", ".##", "..#", "###"],
-  "4": ["#.#", "#.#", "###", "..#", "..#"],
-  "5": ["###", "#..", "###", "..#", "###"],
-  "6": ["###", "#..", "###", "#.#", "###"],
-  "7": ["###", "..#", ".#.", ".#.", ".#."],
-  "8": ["###", "#.#", "###", "#.#", "###"],
-  "9": ["###", "#.#", "###", "..#", "###"],
-  "?": ["###", "..#", ".##", "...", ".#."],
-};
-
-// escreve com pixels de `px` células de largura; (x, y) é o canto superior esquerdo, em mundo
-export const escrever = (T: Tela, x: number, y: number, s: string, L: number, px = 1, calor = 0) => {
-  const cw = T.A / T.cols;
-  const ch = 1 / T.rows;
-  [...s].forEach((letra, k) => {
-    const g = FONTE[letra];
-    if (!g) return;
-    g.forEach((linha, gy) =>
-      [...linha].forEach((p, gx) => {
-        if (p !== "#") return;
-        for (let a = 0; a < px; a++)
-          for (let b = 0; b < px; b++) {
-            const cx = Math.round(((x + ((k * 4 + gx) * px + a) * cw) / T.A) * T.cols - 0.5);
-            const cy = Math.round((y + (gy * px + b) * ch) * T.rows - 0.5);
-            if (cx >= 0 && cy >= 0 && cx < T.cols && cy < T.rows) acender(T, cy * T.cols + cx, L, calor);
-          }
-      }),
-    );
-  });
-};
-
-// figura humana em silhueta: cabeça, tronco, braços e pernas que alternam com `fase`.
-// (x, pe) é o ponto entre os pés; `dir` 1 olha para a direita, -1 para a esquerda.
-// Devolve a posição da mão da frente, para prender vassoura, cajado etc.
-export const pessoa = (T: Tela, x: number, pe: number, alt: number, fase: number, dir: number, L: number, luzBorda = 0) => {
-  const e = alt / 10;
-  const quadril = pe - alt * 0.45;
-  const ombro = pe - alt * 0.78;
-  const passada = Math.sin(fase) * e * 1.6;
-  traco(T, x, quadril, x + passada, pe, e * 0.45, L); // perna da frente
-  traco(T, x, quadril, x - passada, pe, e * 0.45, L); // perna de trás
-  traco(T, x, quadril, x + dir * e * 0.3, ombro, e * 0.75, L); // tronco
-  const mao = { x: x + dir * e * 2.4, y: quadril - e * 0.6 };
-  traco(T, x + dir * e * 0.3, ombro + e * 0.3, mao.x, mao.y, e * 0.35, L); // braço da frente
-  traco(T, x + dir * e * 0.3, ombro + e * 0.3, x - dir * e * 1.2 - passada * 0.5, quadril - e * 0.2, e * 0.35, L); // braço de trás
-  elipse(T, x + dir * e * 0.5, ombro - e * 1.3, e * 0.95, e * 1.05, () => L); // cabeça
-  if (luzBorda > 0) {
-    // contorno iluminado do lado da luz (dir oposto à sombra): uma linha fina nas costas
-    traco(T, x - dir * e * 0.45, quadril, x - dir * e * 0.2, ombro, e * 0.18, luzBorda);
-  }
-  return mao;
-};
-
-// triângulo preenchido (asas, telhados, bicos)
+// triângulo preenchido (a asa do dragão)
 export const triangulo = (
   T: Tela,
   a: { x: number; y: number },
@@ -290,8 +193,7 @@ export interface Entrada<D = undefined> {
   mouse: Ponto | null;
   cliques: Clique[];
   total: number; // cliques desde que a página abriu
-  parado: boolean; // reduced motion: personagens em repouso (ângulos 0, sem balanço)
-  foco: number | null; // data-foco do [data-revelar] mais próximo (null sem ele)
+  parado: boolean; // reduced motion: a cena aparece parada
 }
 
 export const noMundo = (T: Tela, q: Ponto) => ({ x: q.u * T.A, y: q.v });
@@ -321,9 +223,6 @@ export const faiscas = (T: Tela, cliques: Clique[], t: number, n = 22) => {
     }
   }
 };
-
-// o último clique (ou null)
-export const ultimo = (cliques: Clique[]) => (cliques.length ? cliques[cliques.length - 1] : null);
 
 // --- cenas a partir de imagem -----------------------------------------------------------
 // Uma imagem (decodificada no navegador) vira dois mapas, brilho e calor (o laranja das janelas
@@ -475,7 +374,7 @@ export const fundoImagem = (T: Tela, f: Fonte, aspecto: number, o: OpcoesImagem 
   };
 };
 
-// limita a luminância final em 0–1 (depois de luzes e figuras somadas por cima)
+// limita a luminância final em 0–1 (depois de luzes e traços somados por cima)
 export const fechar = (c: Campo) => {
   for (let i = 0; i < c.lum.length; i++) c.lum[i] = limitar(c.lum[i]);
   return c;
@@ -490,57 +389,8 @@ export const pontoMundo = (T: Tela, x: number, y: number, L: number, calor = 0) 
   if (cx >= 0 && cy >= 0 && cx < T.cols && cy < T.rows) acender(T, cy * T.cols + cx, L, calor);
 };
 
-// fagulhas subindo de um fogo em (x, y): `alt` é até onde chegam, `larg` quanto se espalham
-// (`calor` 0 dá pontos sem laranja, como respingos de tinta)
-export const fagulhas = (T: Tela, x: number, y: number, t: number, n: number, alt: number, larg: number, forca = 1, calor = 1) => {
-  for (let k = 0; k < n; k++) {
-    const vida = (t * (0.35 + 0.3 * ruido(k, 7)) + ruido(k, 3)) % 1;
-    const fx = x + (ruido(k, 5) - 0.5) * larg + Math.sin(t * 2 + k) * larg * 0.6 * vida;
-    const fy = y - vida * alt;
-    pontoMundo(T, fx, fy, (0.95 - 0.6 * vida) * forca, calor);
-  }
-};
-
-// fumaça subindo de (x, y): coluna que alarga e se desfaz, arrastada pelo vento
-export const fumaca = (T: Tela, x: number, y: number, t: number, alt: number, larg: number, I = 0.12) =>
-  cada(
-    T,
-    (X, Y, i) => {
-      const k = (y - Y) / alt;
-      if (k < 0 || k > 1) return;
-      const cx = x + k * k * larg * 1.5 + Math.sin(k * 5 - t * 0.8) * larg * 0.25 * k;
-      const d = Math.abs(X - cx) / (larg * (0.25 + k));
-      if (d > 1) return;
-      const dens = passo(0.4, 0.75, fbm(X * 30, Y * 18 + t * 0.6, 3)) * (1 - d) * (1 - k);
-      T.c.lum[i] += dens * I;
-    },
-    { x0: x - larg * 0.5, x1: x + larg * 2.5, y0: y - alt, y1: y },
-  );
-
-// poeira flutuando num feixe de luz: pontos fracos que derivam devagar dentro da caixa
-export const poeira = (T: Tela, x0: number, x1: number, y0: number, y1: number, t: number, n: number, I = 0.4, calor = 0.6) => {
-  for (let k = 0; k < n; k++) {
-    const fx = x0 + ((ruido(k, 11) + t * 0.01 * (0.5 + ruido(k, 2))) % 1) * (x1 - x0);
-    const fy = y0 + ((ruido(k, 13) + Math.sin(t * 0.3 + k) * 0.05 + 1) % 1) * (y1 - y0);
-    const b = 0.5 + 0.5 * Math.sin(t * (0.8 + ruido(k, 4)) + k);
-    pontoMundo(T, fx, fy, I * b, calor);
-  }
-};
-
 // dados das cenas feitas de imagem: a fonte chega pelo AsciiCanvas
 export interface DadosImagem {
   fonte?: Fonte;
-  figuras?: Record<string, Sprite>;
   chegou?: number; // instante t em que a imagem de fundo terminou de decodificar
 }
-
-// balanço de chama: desloca a amostragem da imagem dentro de uma chama (x, y é a base, alt a
-// altura, em coordenadas da imagem), então a própria chama fotografada tremula e se inclina
-export const balancar = (ix: number, iy: number, chamas: { x: number; y: number; alt: number; larg: number }[], t: number) => {
-  for (const c of chamas) {
-    const k = (c.y - iy) / c.alt;
-    if (k < -0.1 || k > 1.2 || Math.abs(ix - c.x) > c.larg) continue;
-    return (Math.sin(t * 11 + iy * 90 + c.x * 50) * 0.6 + Math.sin(t * 17 + c.x * 9) * 0.4) * c.larg * 0.35 * Math.max(0, k);
-  }
-  return 0;
-};

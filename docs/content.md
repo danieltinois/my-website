@@ -1,6 +1,8 @@
 # Conteúdo do site
 
-Fonte única dos textos do portfólio. O layout lê daqui; se um texto mudar, muda aqui primeiro.
+Fonte única dos textos do portfólio, em português. O site lê de `src/data/textos/pt.ts`; inglês,
+espanhol e japonês (`en.ts`, `es.ts`, `ja.ts`) são traduções dele. Se um texto mudar, muda aqui
+primeiro, depois no `pt.ts` e nas traduções.
 Marcações `[?]` são lacunas que só o Daniel preenche.
 
 Regras de escrita:
@@ -29,7 +31,7 @@ perde evento, não inventa dado e não apaga o que não deve.
 - CTA principal: **me@danieltinois.dev** (mailto)
 - Secundários: GitHub, LinkedIn
 
-À direita: o campo de contribuições (ver `docs/design.md`, seção 6).
+Atrás do texto (no celular, abaixo): o castelo em ASCII (ver `docs/design.md`, seção 6). Abaixo do hero, as estatísticas de contribuições.
 
 Abaixo, grade de especificações:
 
@@ -57,7 +59,6 @@ Abaixo, grade de especificações:
 - **Papel:** projeto solo.
 - **Stack:** TypeScript · Bun · Swift · SwiftUI · JavaScriptCore
 - **Links:** github.com/danieltinois/dev-macos-clean
-- **Ilustração:** a varredura de caches em caracteres (valores do exemplo do README)
 
 ### 1.2 Pato Commit
 
@@ -70,7 +71,6 @@ Abaixo, grade de especificações:
 - **Papel:** projeto solo, do ADR ao CI.
 - **Stack:** Java 25 · Spring Boot 4 · PostgreSQL 18 · Flyway · Next.js 16
 - **Links:** github.com/danieltinois/pato-commit
-- **Ilustração:** eventos andando pelo pipeline, com a entrega repetida descartada no webhook
 
 ### 1.3 resume-tailor
 
@@ -83,7 +83,6 @@ Abaixo, grade de especificações:
 - **Papel:** projeto solo.
 - **Stack:** Java 21 · Spring Boot · Angular · PostgreSQL · Typst · Playwright
 - **Links:** github.com/danieltinois/job-resume-generator
-- **Ilustração:** experiências reordenadas pela aderência à vaga
 
 ---
 
@@ -102,10 +101,10 @@ Abaixo, grade de especificações:
 
 ## 3. Contato
 
-**Vamos conversar.**
+**Leu até aqui? Vamos conversar.**
 O caminho mais rápido é o e-mail.
 
-- me@danieltinois.dev
-- LinkedIn · GitHub
+- me@danieltinois.dev (mailto) · copiar
+- GitHub · LinkedIn
 
 Rodapé: © 2026 Daniel Tinois · São Paulo

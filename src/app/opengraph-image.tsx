@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import snapshot from "@/src/data/contributions.json";
 import { MARCA } from "@/src/data/curva";
-import { PERFIL } from "@/src/data/site";
+import { NOME, TEXTOS } from "@/src/data/site";
 import { formatNumber, toField, toWeeks, VAZIO, type Snapshot } from "@/src/lib/contributions";
 
 // export estático (output: "export"): a rota é gerada uma vez, na build
@@ -12,7 +12,10 @@ export const dynamic = "force-static";
 // Imagem de compartilhamento (1200×630), gerada na build com os mesmos dados do campo da home.
 // O ImageResponse não lê woff2: usa a Martian Mono estática em woff (devDependency).
 
-export const alt = `${PERFIL.nome}: ${PERFIL.cargo}`;
+// a mesma imagem para todos os idiomas, com os textos do português
+const { cargo } = TEXTOS.pt.perfil;
+
+export const alt = `${NOME}: ${cargo}`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -50,9 +53,9 @@ export default function Image() {
       >
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ fontSize: 88, fontWeight: 600, letterSpacing: "-0.05em", lineHeight: 1 }}>
-            {PERFIL.nome}
+            {NOME}
           </div>
-          <div style={{ marginTop: 24, fontSize: 30, fontWeight: 600 }}>{PERFIL.cargo}</div>
+          <div style={{ marginTop: 24, fontSize: 30, fontWeight: 600 }}>{cargo}</div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", fontSize: 25, lineHeight: 1.1 }}>

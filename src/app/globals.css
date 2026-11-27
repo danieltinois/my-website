@@ -3,7 +3,7 @@
 /*
  * Sistema de design: painel de dev ao vivo. Regras e motivos em docs/design.md.
  * Os namespaces padrão do Tailwind são zerados: só existe o que está aqui.
- * Escuro é o padrão (valores do @theme); o claro sobrescreve em [data-theme="light"].
+ * O site só tem o tema escuro (os valores do @theme).
  */
 
 @theme {
@@ -98,37 +98,10 @@
   color-scheme: dark;
 }
 
-:root[data-theme="light"] {
-  --color-paper: #ffffff;
-  --color-plate: #f1f2f3;
-  --color-rule: #d5d8dc;
-  --color-faint: #b8bdc4;
-  --color-muted: #575d66;
-  --color-ink: #15181c;
-  --color-signal: #f25400;
-  --color-on-signal: #15181c;
-  color-scheme: light;
-}
-
-/* Janela para a noite: as cenas em ASCII são sempre noturnas. Dentro de .noite valem as
-   cores do tema escuro (os mesmos valores do @theme), inclusive quando a página está clara. */
-.noite {
-  --color-paper: #0b0c0e;
-  --color-plate: #131519;
-  --color-rule: #2a2e34;
-  --color-faint: #3a3f47;
-  --color-muted: #8d939c;
-  --color-ink: #e9ebee;
-  --color-signal: #ff6a13;
-  --color-on-signal: #0b0c0e;
-  color-scheme: dark;
-  background-color: var(--color-paper);
-  color: var(--color-ink);
-}
-
-/* as brasas do fundo só existem na noite da página escura */
-:root[data-theme="light"] .brasas {
-  display: none;
+/* japonês: a Martian Mono não tem os glifos; as fontes japonesas do sistema entram antes do
+   fallback genérico, para kana e kanji saírem no traço certo (o latim continua na Martian) */
+:lang(ja) {
+  font-family: var(--font-martian), "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
 }
 
 @layer base {
@@ -210,6 +183,34 @@
       animation-range: entry 0% entry 70%;
     }
   }
+}
+
+/* hero: as bordas da cena dissolvem no fundo. Os lados só dissolvem quando a janela passa da coluna
+   da página (o quadro tem borda dos lados); abaixo disso ele ocupa a largura toda */
+.bordas {
+  mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
+}
+@media (min-width: 80rem) {
+  .bordas {
+    mask-image:
+      linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent),
+      linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+    mask-composite: intersect;
+  }
+}
+
+/* degradê do hero sob o texto (desktop): o fundo da noite sai da esquerda e vai sumindo até 45% da
+   largura, onde o texto acaba; um resto bem fraco vai até a metade, para não marcar a linha onde
+   termina (o castelo, à direita, fica fora) */
+.veu-hero {
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--color-paper) 85%, transparent),
+    color-mix(in srgb, var(--color-paper) 75%, transparent) 25%,
+    color-mix(in srgb, var(--color-paper) 45%, transparent) 36%,
+    color-mix(in srgb, var(--color-paper) 12%, transparent) 45%,
+    transparent 50%
+  );
 }
 
 /* dica: some depois da primeira interação com a cena (AsciiCanvas marca data-tocado) e fica

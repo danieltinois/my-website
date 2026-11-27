@@ -114,12 +114,15 @@ export const toField = (weeks: Week[], rows: number): Coluna[] => {
 
 const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 
-export const formatDate = (date: string, withYear = true): string => {
+// datas e números: pt-BR à mão ("25 nov 2026", sem ponto no mês); os outros idiomas pelo Intl
+export const formatDate = (date: string, withYear = true, formato = "pt-BR"): string => {
   const d = new Date(toUtc(date));
+  if (formato !== "pt-BR")
+    return new Intl.DateTimeFormat(formato, { day: "numeric", month: "short", year: withYear ? "numeric" : undefined, timeZone: "UTC" }).format(d);
   const base = `${d.getUTCDate()} ${MESES[d.getUTCMonth()]}`;
   return withYear ? `${base} ${d.getUTCFullYear()}` : base;
 };
 
 export const monthLabel = (date: string): string => MESES[new Date(toUtc(date)).getUTCMonth()];
 
-export const formatNumber = (n: number): string => n.toLocaleString("pt-BR");
+export const formatNumber = (n: number, formato = "pt-BR"): string => n.toLocaleString(formato);
