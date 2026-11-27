@@ -322,6 +322,11 @@
   }
 }
 
+/* o alvo de uma âncora recebe o foco ao chegar, sem o contorno na seção inteira */
+section[tabindex="-1"]:focus {
+  outline: none;
+}
+
 /* dica: some depois da primeira interação com a cena (AsciiCanvas marca data-tocado) e fica
    inerte, mas volta ao receber o foco do teclado, para o botão nunca ficar invisível sob o foco */
 .dica {

@@ -7,6 +7,7 @@ import CopiarEmail from "@/src/components/CopiarEmail";
 import Decifrar from "@/src/components/Decifrar";
 import EmailCta from "@/src/components/EmailCta";
 import Hero from "@/src/components/Hero";
+import Navegacao from "@/src/components/Navegacao";
 import Project from "@/src/components/Project";
 import Section from "@/src/components/Section";
 import SiteHeader, { SECOES } from "@/src/components/SiteHeader";
@@ -39,6 +40,9 @@ const Pagina = ({ lang }: { lang: Idioma }) => {
       <VagaLumes />
       <Lampiao />
       <Faiscas />
+
+      {/* navegação animada dentro da página */}
+      <Navegacao />
 
       <SiteHeader lang={lang} />
 

@@ -28,7 +28,7 @@ const Hero = ({ lang }: { lang: Idioma }) => {
   const [primeiro, ...resto] = NOME.split(" ");
 
   return (
-    <section aria-labelledby="hero-nome" className="-mx-6 px-6 pb-16 lg:-mx-12 lg:px-12 lg:pb-24">
+    <section id="inicio" aria-labelledby="hero-nome" className="-mx-6 px-6 pb-16 lg:-mx-12 lg:px-12 lg:pb-24">
       <div className="relative lg:grid lg:grid-cols-[minmax(0,1fr)]">
         {/* no desktop texto e cena dividem a mesma célula da grade: o texto fica preso sobre o céu
             enquanto a cena se revela, e os dois saem juntos (abaixo de lg o texto vem antes) */}

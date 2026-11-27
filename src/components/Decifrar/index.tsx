@@ -4,7 +4,9 @@ import { useEffect, useRef } from "react";
 import { registrarTextoVivo } from "@/src/lib/textoVivo";
 
 // Título vivo: quando entra na tela, cada letra passa por caracteres da rampa e assenta na certa,
-// da esquerda para a direita; depois, as letras perto do cursor engordam e alargam (textoVivo).
+// da esquerda para a direita, e de novo quando a navegação da página chega à seção dele
+// (evento navegar:chegou, Navegacao); depois, as letras perto do cursor engordam e alargam
+// (textoVivo).
 // O texto real está no DOM desde o servidor (o leitor de tela e o buscador leem só ele); o que se
 // vê é uma letra por <span>, para a animação trocar uma de cada vez. Com reduced motion, nada
 // acontece.
@@ -26,7 +28,7 @@ const Decifrar = ({ texto, atraso = 0 }: { texto: string; atraso?: number }) => 
     const el = ref.current;
     // só alfabeto latino: num caractere de largura dupla (japonês) a troca por um sinal ASCII
     // mudaria a largura da linha
-    if (!el || /[^\u0000-ɏ -⁯]/.test(texto) || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!el || /[^\u0000-\u024f\u2000-\u206f]/.test(texto) || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const spans = el.children as HTMLCollectionOf<HTMLElement>;
     const reais = [...texto];
     let raf = 0;
@@ -57,10 +59,19 @@ const Decifrar = ({ texto, atraso = 0 }: { texto: string; atraso?: number }) => 
       );
       io.observe(el);
     });
+    // a navegação chegou à seção deste título: decifra de novo
+    const chegou = (e: Event) => {
+      const id = (e as CustomEvent<{ id: string }>).detail?.id;
+      if (!id || !el.closest(`#${CSS.escape(id)}`)) return;
+      cancelAnimationFrame(raf);
+      rodar();
+    };
+    window.addEventListener("navegar:chegou", chegou);
     return () => {
       ativo = false;
       io?.disconnect();
       cancelAnimationFrame(raf);
+      window.removeEventListener("navegar:chegou", chegou);
     };
   }, [texto, atraso]);
 
