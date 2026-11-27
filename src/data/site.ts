@@ -56,6 +56,7 @@ export interface Textos {
     cidade: string;
     contribuicoes12m: string; // "{n}" vira o total
     revisao: string;
+    rolar: string;
     dica: string;
     cena: string;
     stats: {

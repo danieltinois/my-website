@@ -14,6 +14,7 @@ export const es: Textos = {
     cidade: "são paulo",
     contribuicoes12m: "{n} contribuciones en 12 meses",
     revisao: "rev.",
+    rolar: "desplázate para revelar",
     dica: "haz clic en el cielo o en el lago",
     cena: "Escena en ASCII casi fotográfica: un castillo iluminado sobre un acantilado de noche, con una cascada que cae a un lago donde se refleja la luna llena, un bosque de pinos alrededor y, de vez en cuando, un dragón que cruza el cielo.",
     stats: {

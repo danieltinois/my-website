@@ -14,6 +14,7 @@ export const en: Textos = {
     cidade: "são paulo",
     contribuicoes12m: "{n} contributions in 12 months",
     revisao: "rev.",
+    rolar: "scroll to reveal",
     dica: "click the sky or the lake",
     cena: "Near-photographic ASCII scene: a lit castle on a cliff at night, with a waterfall falling into a lake that reflects the full moon, pine forest all around and, every now and then, a dragon crossing the sky.",
     stats: {

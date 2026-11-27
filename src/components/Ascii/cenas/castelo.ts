@@ -4,9 +4,9 @@
 // névoa, a trilha de luar, morcegos em volta da torre, vaga-lumes na margem, o dragão a cada 18s
 // e a interação (lampião, faíscas, ondas no lago).
 //
-// Revelação (p de 0 a 1, nos primeiros segundos depois que a imagem chega): o AsciiCanvas aumenta
-// a resolução, e aqui o enquadramento abre do castelo para a paisagem e o limiar de luz baixa:
-// primeiro só o que brilha (lua, janelas), depois a pedra, a floresta e o lago.
+// Revelação pela rolagem (p de 0 a 1): o AsciiCanvas aumenta a resolução, e aqui o enquadramento
+// abre do castelo para a paisagem e o limiar de luz baixa: primeiro só o que brilha (lua,
+// janelas), depois a pedra, a floresta e o lago.
 
 import {
   faiscas,

@@ -14,7 +14,8 @@ import { K, prepararFonte, RAMPA, type Campo, type DadosImagem } from "./denso";
 // `dados.fonte` (brilho e calor em tabelas de soma acumulada). `dados.chegou` é o instante t em
 // que ela chegou (a cena faz a imagem surgir a partir daí). `fps` é a taxa de quadros.
 // Revelação: com `revelar` (fração inicial, de 0 a 1), a grade vai dessa fração até a grade
-// inteira em REVELACAO segundos depois que a imagem chega, e a cena recebe esse progresso em p.
+// inteira conforme a pessoa rola pelo [data-cena] (um trecho mais alto que a tela, com a cena
+// presa nele), e a cena recebe esse progresso em p.
 // Interação: a cena recebe a posição do ponteiro (`mouse`, u e v de 0 a 1 na área do canvas) e os
 // cliques recentes com o instante de cada um. Com reduced motion não há interação nem revelação: a
 // cena aparece inteira e parada.
@@ -45,10 +46,7 @@ export interface Clique extends Ponto {
   t: number;
 }
 
-// segundos da revelação, contados de quando a imagem chega
-const REVELACAO = 1.8;
-
-// começa rápido e assenta devagar: a cena já muda no primeiro instante e pousa sem tranco
+// começa rápido e assenta devagar: os primeiros passos da rolagem já mostram mudança
 const passoSuave = (p: number) => 1 - (1 - p) * (1 - p);
 
 const AsciiCanvas = ({ cena, grades, imagem, quadroParado = 5, className = "", interativa = false, fps = 20, revelar }: Props) => {
@@ -147,11 +145,11 @@ const AsciiCanvas = ({ cena, grades, imagem, quadroParado = 5, className = "", i
         }
     };
 
-    // revelação: 0 até a imagem chegar, 1 depois de REVELACAO segundos (sem revelação, sempre 1)
+    // revelação: o quanto já se rolou pelo trecho alto do [data-cena] (sem revelação, sempre 1)
     const revelacao = () => {
-      if (revelar === undefined || reduzir.matches) return 1;
-      if (dados.chegou === undefined) return 0;
-      return Math.max(0, Math.min(1, (agoraT() - dados.chegou) / REVELACAO));
+      if (revelar === undefined || reduzir.matches || !bloco) return 1;
+      const r = bloco.getBoundingClientRect();
+      return Math.max(0, Math.min(1, -r.top / Math.max(1, r.height - innerHeight)));
     };
     const grade = () => grades.find((x) => matchMedia(x.mq).matches) ?? grades.at(-1)!;
     const colunas = () => {

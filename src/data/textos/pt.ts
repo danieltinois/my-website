@@ -14,6 +14,7 @@ export const pt: Textos = {
     cidade: "são paulo",
     contribuicoes12m: "{n} contribuições em 12 meses",
     revisao: "rev.",
+    rolar: "role para revelar",
     dica: "clique no céu ou no lago",
     cena: "Cena em ASCII quase realista: um castelo iluminado sobre um penhasco à noite, com uma cachoeira caindo num lago que reflete a lua cheia, floresta de pinheiros ao redor e, de vez em quando, um dragão cruzando o céu.",
     stats: {
