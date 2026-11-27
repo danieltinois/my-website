@@ -1,11 +1,11 @@
 # Sistema de design
 
-O site é **um mundo medieval à noite, desenhado em ASCII**, dentro de uma interface de dev
-(escura, uma fonte mono, um destaque). Cada parte do site é um lugar desse mundo, renderizado como
-imagem de luz feita de caracteres, no nível de detalhe de um jogo em ASCII: o castelo do hero, o
-porão do DevClean, a torre do correio do Pato Commit, o escriba do resume-tailor, a estrada da
-trajetória e o corvo do contato. A história de origem (plugins de Minecraft em 2020) justifica o
-mundo; o conteúdo continua em texto, legível para recrutador e buscador.
+O site é **uma interface de dev com uma única janela para a noite**: escura, uma fonte mono, um
+destaque, linhas de 1px, e no hero um castelo medieval desenhado em ASCII quase realista. O castelo é
+a única cena e a única peça-assinatura; o resto da página é tipografia e grade, no espírito de sites
+como hackbrasil.com e abacatepay.com: uma ideia por bloco, um botão, nada sobrando. A história de
+origem (plugins de Minecraft em 2020) justifica o castelo; o conteúdo continua em texto, legível
+para recrutador e buscador.
 
 Os tokens vivem em `src/app/globals.css` (`@theme`). O `@theme` zera os namespaces padrão do
 Tailwind (`--color-*`, `--text-*`, `--spacing-*`, `--radius-*`, `--shadow-*`...), então **só o que
@@ -51,18 +51,18 @@ Regras:
 
 ## 2. Cor
 
-**Escuro é o padrão.** O claro existe e é escolhido no botão do cabeçalho.
+**Só escuro.** O tema claro saiu em 27 nov: a noite do castelo é a identidade do site.
 
-| Token | Escuro (padrão) | Claro | Papel |
-|---|---|---|---|
-| `paper` | `#0B0C0E` | `#FFFFFF` | fundo |
-| `plate` | `#131519` | `#F1F2F3` | painel das artes |
-| `rule` | `#2A2E34` | `#D5D8DC` | linhas finas, bordas dos cards |
-| `faint` | `#3A3F47` | `#B8BDC4` | caracteres de fundo das artes (decorativo) |
-| `muted` | `#8D939C` | `#575D66` | texto secundário, rótulos |
-| `ink` | `#E9EBEE` | `#15181C` | texto, topo das colunas, foco |
-| `signal` | `#FF6A13` | `#F25400` | o destaque: laranja de segurança |
-| `on-signal` | `#0B0C0E` | `#15181C` | texto sobre `signal` |
+| Token | Valor | Papel |
+|---|---|---|
+| `paper` | `#0B0C0E` | fundo |
+| `plate` | `#131519` | painel (reservado) |
+| `rule` | `#2A2E34` | linhas finas, bordas dos cards |
+| `faint` | `#3A3F47` | caracteres de fundo (decorativo) |
+| `muted` | `#8D939C` | texto secundário, rótulos |
+| `ink` | `#E9EBEE` | texto, foco |
+| `signal` | `#FF6A13` | o destaque: laranja de segurança |
+| `on-signal` | `#0B0C0E` | texto sobre `signal` |
 
 ### Onde o `signal` pode aparecer
 
@@ -70,19 +70,18 @@ Regras:
 2. **Na marca do campo de contribuições** (a semana de 24–29 set).
 3. **No indicador "ao vivo"** da faixa de status (o quadrado que pulsa).
 
-Em nenhum outro lugar: nem hover, nem foco, nem seleção, nem borda. Nunca como cor de texto
-pequeno (no tema claro ele não passa AA em 12–15px).
+Em nenhum outro lugar: nem hover, nem foco, nem seleção, nem borda, nem texto.
 
 ### Contraste verificado (WCAG 2.1)
 
-| Par | Escuro | Claro | Exigido |
-|---|---|---|---|
-| `ink` sobre `paper` | 16,38 | 17,81 | 4,5 |
-| `ink` sobre `plate` | 15,30 | 15,89 | 4,5 |
-| `muted` sobre `paper` | 6,32 | 6,64 | 4,5 |
-| `muted` sobre `plate` | 5,91 | 5,92 | 4,5 |
-| `on-signal` sobre `signal` (CTA) | 6,82 | 5,12 | 4,5 |
-| `signal` sobre `paper` (marca gráfica) | 6,82 | 3,47 | 3,0 |
+| Par | Contraste | Exigido |
+|---|---|---|
+| `ink` sobre `paper` | 16,38 | 4,5 |
+| `ink` sobre `plate` | 15,30 | 4,5 |
+| `muted` sobre `paper` | 6,32 | 4,5 |
+| `muted` sobre `plate` | 5,91 | 4,5 |
+| `on-signal` sobre `signal` (CTA) | 6,82 | 4,5 |
+| `signal` sobre `paper` (marca gráfica) | 6,82 | 3,0 |
 
 `rule` e `faint` são decorativos: nunca são a única coisa que identifica algo.
 
@@ -102,166 +101,121 @@ compartilham borda (`border-t border-l` no contêiner, `border-r border-b` nas c
 
 - Container `max-w-page` (80rem), 24px de margem no mobile e 48px no desktop. Tudo à esquerda.
 - **Cabeçalho fixo** com duas linhas: nome, índice `[01] projetos [02] trajetória [03] contato`
-  e tema; embaixo, a **faixa de status** (`■ são paulo 10:38`, total de contribuições, revisão).
-- **Hero:** 5 colunas de texto (nome em duas linhas, cargo, resumo, CTA) e 7 colunas com o campo
-  de contribuições. Abaixo, a grade de especificações (local, stack, desde, formação).
-- **Projetos:** um card por projeto, a arte à esquerda (5 colunas, sobre `plate`) e o estudo de
-  caso à direita (problema, como funciona, o difícil e a grade de parâmetros).
-- **Tema:** um script inline no `<head>` (`src/lib/theme.ts`) aplica `data-theme` antes da pintura.
-  O HTML já sai com `data-theme="dark"`, então sem JavaScript vale o escuro.
+  e idioma (`pt en es ja`); embaixo, a **faixa de status** (`■ são paulo 10:38`, total de contribuições, revisão).
+- **Hero:** cabe em uma tela (`100svh` menos o cabeçalho). No desktop o texto (nome em duas linhas,
+  cargo, resumo, CTA) fica à esquerda, por cima do céu, e o castelo ocupa o bloco todo atrás dele;
+  no celular o texto vem antes e a cena fica logo abaixo (60svh). Abaixo, as estatísticas de
+  contribuições e a grade de especificações (local, stack, desde, formação).
+- **Projetos:** um card por projeto, uma caixa de 1px com o marcador `[1.1]` numa faixa no alto, o
+  estudo de caso à esquerda (resumo, problema, como funciona, o difícil) e a grade de parâmetros à
+  direita. Sem arte.
+- **Trajetória:** uma agenda: uma linha por marco, a data numa coluna estreita e linhas finas entre
+  elas.
+- **Contato:** o fechamento, uma caixa só com uma frase, o botão de e-mail, "copiar" e os atalhos.
+- **Idiomas:** português na raiz (`/`), inglês, espanhol e japonês em `/en`, `/es` e `/ja`
+  (`src/app/[lang]`, geradas na build). Os textos de cada um estão em `src/data/textos/<idioma>.ts`;
+  o português é a fonte (`docs/content.md`). O seletor no cabeçalho é um link por idioma; o atual
+  não é link. O `<html>` é o mesmo em todas (`lang="pt-BR"`); o idioma de cada página vai no
+  contêiner dela (`lang` em `src/components/Pagina`), e o `<head>` tem canonical e hreflang de todas.
+- **Japonês:** a Martian Mono não tem kana nem kanji; em `:lang(ja)` as fontes japonesas do sistema
+  (Hiragino, Noto Sans JP, Yu Gothic, Meiryo) entram antes do fallback, e o `Decifrar` não embaralha
+  texto que não é latino (a largura dupla mudaria a linha).
 
 ## 5. Motivos recorrentes
 
 1. **Marcadores entre colchetes.** Seções `[01]`, `[02]`, `[03]` no título e no índice; projetos
-   `[1.1]`, `[1.2]`, `[1.3]` no canto do banner da cena.
-2. **Janelas para a noite.** Toda cena fica num bloco `.noite`: sempre noturno, inclusive no tema
-   claro, onde vira um retângulo escuro dentro da página clara.
-3. **Grade de dados em caixas de 1px.** Estatísticas, especificações, parâmetros e trajetória.
-4. **Fogo é o laranja.** Dentro das cenas, o `signal` só aparece como luz de fogo: tochas, janelas,
-   fogueira, vela, braseiro, lampiões.
+   `[1.1]`, `[1.2]`, `[1.3]` na faixa do alto do card.
+2. **Grade de dados em caixas de 1px.** Estatísticas, especificações, parâmetros e o fechamento.
+3. **Fogo é o laranja.** Dentro do castelo, o `signal` só aparece como luz de fogo: janelas,
+   vaga-lumes, o sopro do dragão, faíscas do clique.
 
-## 6. As cenas e a técnica
+## 6. A cena e a técnica
 
-**Técnica: cada cena é uma imagem convertida em ASCII a cada quadro.** Para chegar perto do
-realista, nenhuma cena desenha o cenário com formas: cada uma parte de uma imagem noturna
-(`public/cenas/*.webp`, geradas no Figma) e a converte em caracteres. A saída é 100% ASCII; a
-imagem nunca aparece.
+**Técnica: a cena é uma imagem convertida em ASCII a cada quadro.** Para chegar perto do realista,
+o castelo não é desenhado com formas: ele parte de uma imagem noturna (`public/cenas/castelo.webp`,
+gerada no Figma) e a converte em caracteres. A saída é 100% ASCII; a imagem nunca aparece.
 
-- O `AsciiCanvas` carrega a imagem quando o canvas chega perto da tela, decodifica fora da tela e
-  a passa à cena como tabelas de soma acumulada de brilho e de calor (laranja = luz de fogo), então
-  a média de qualquer retângulo custa quatro leituras, em qualquer resolução.
+- O `AsciiCanvas` carrega a imagem logo ao montar, decodifica fora da tela e a passa à cena como
+  tabelas de soma acumulada de brilho e de calor (laranja = luz de fogo), então a média de qualquer
+  retângulo custa quatro leituras, em qualquer resolução.
 - `fundoImagem` (`src/components/Ascii/denso.ts`) enquadra a imagem em modo cover, aplica níveis
   automáticos (percentis 1 e 97) e gama, reforça a diferença de cada célula para a vizinhança
   (nitidez) e chama o `ajuste` da cena, onde entram os efeitos.
 - A luminância escolhe o caractere numa rampa alfanumérica (` .,:;i1?7tPO09#@`) e o tom de cinza;
   o calor puxa o tom para o laranja. O canvas desenha com um atlas de glifos (cada caractere em
   cada tom é pintado uma vez), então cada quadro é só cópia de pedaços.
-- **O que se mexe é código por cima da imagem:** a própria chama da foto balança (`balancar`
-  desloca a amostragem dentro da chama), a luz das paredes pulsa com o fogo, e partículas
-  (`fagulhas`, `fumaca`, `poeira`), luzes, figuras (pombo, dragão) e dígitos em pixel-font 3×5
-  entram por cima.
-
-**Personagens de imagem (sprites).** O velho do porão, o viajante da estrada e o corvo não são
-formas desenhadas em código: cada um vem de uma folha de partes (corpo, braço, perna, cabeça,
-asas...) feita no Figma sobre fundo verde (`public/cenas/figuras/*.webp`).
-
-- O `AsciiCanvas` baixa as folhas junto com a imagem de fundo (`figuras`, nome → URL) e as entrega
-  à cena em `dados.figuras`. `figura.ts` (módulo puro, sem DOM) tira o fundo verde (chroma key, com
-  corte do verde que sobra nas bordas) e guarda brilho, calor e opacidade em tabelas de soma
-  acumulada, como a imagem de fundo.
-- A cena compõe cada parte na grade girando em torno do seu pivô, e cada célula amostra a área
-  exata da folha, então a figura fica nítida em qualquer resolução. Os ossos são código: o velho
-  varre, o viajante balança a lanterna e anda, o corvo bate as asas e vira a cabeça.
-- As células da figura ganham `mat` 5 (superfície): o `lampiao` e as luzes de fogo as iluminam
-  como a qualquer parte da imagem.
-- `fps` por cena: as cenas com personagem animam a 30 quadros por segundo, as outras a 20.
-- **Espera:** enquanto a imagem de fundo decodifica, a cena mostra um campo de estrelas fraco
+- **O que se mexe é código por cima da imagem:** água, janelas, cachoeira com espuma, estrelas e
+  estrela cadente, nuvens, névoa, luar na água, morcegos, vaga-lumes e o dragão a cada 18s.
+- **Espera:** enquanto a imagem decodifica, a cena mostra um campo de estrelas fraco
   (`estrelas.ts`) que some conforme a imagem surge, em vez de um quadro vazio.
-- **Reduced motion:** com `parado`, as figuras aparecem em repouso (ângulos 0, sem balanço).
 
-| Cena | Onde | Colunas (desktop) | Imagem | O que se mexe |
-|---|---|---|---|---|
-| `castelo` | hero | até 360 | castelo no penhasco, cachoeira, lago | água, janelas, cachoeira com espuma, estrelas e estrela cadente, nuvens, névoa, luar na água, morcegos, vaga-lumes, dragão a cada 18s |
-| `porao` | DevClean | até 340 | abóbada de pedra, duas tochas, carroça | tochas com fagulhas e fumaça, luz pulsando, poeira; o velho (sprite) varre os três sacos seguros até a carroça, o "?" fica; um rato a cada 15s |
-| `torre` | Pato Commit | até 340 | torre com janela acesa, braseiro, lua, vila | nuvens, estrelas, janelas da vila, fumaça das chaminés, braseiro; pombos entregam cartas e a repetida queima |
-| `escriba` | resume-tailor | até 340 | mesa à luz de vela, pergaminho, livros | vela e luz pulsando, fumaça, poeira, nuvens na janela; as linhas se reordenam e a pena sai do tinteiro para escrever |
-| `estrada` | trajetória | até 340 | estrada sob a Via Láctea, castelo ao fundo | estrelas, estrela cadente, névoa nos vales, vaga-lumes; o viajante de capa (sprite) com lanterna balançando anda com a rolagem e acende os marcos |
-| `corvo` | contato | até 220 | lua cheia enorme, poste com lampião e caixa de correio | nuvens na lua, neblina, árvore ao vento, mariposas no lampião; o corvo (sprite) bate as asas, pousa, solta a carta na caixa, olha em volta e vai embora |
+**Revelação ao carregar.** Quando a imagem chega, a cena começa com poucos caracteres grandes (15%
+da grade) e em 1,8s chega à grade inteira (360 colunas no desktop, 120 no celular), enquanto o
+enquadramento abre do castelo para a paisagem e o limiar de luz baixa: primeiro aparece só o que
+brilha. A rolagem não mexe na cena. As linhas seguem a proporção do contêiner, reservada antes do
+JavaScript (CLS 0). Sem movimento, a cena aparece inteira de uma vez.
 
-**Revelação pela rolagem.** Toda cena começa com poucos caracteres grandes e ganha resolução
-conforme a rolagem: o limiar de luz também baixa, então primeiro aparece só o que brilha.
-
-- No hero, um trecho alto (`[data-revelar]`, 260svh no desktop) prende a cena na tela (`sticky`);
-  a grade vai de 15% até 360 colunas (120 no celular) e o enquadramento abre do castelo para a
-  paisagem.
-- Nos banners, a grade vai de 25–30% até a máxima entre o banner entrar pela base da tela e o topo
-  dele chegar a um quarto da altura.
-- As linhas seguem a proporção do contêiner (`aspect-ratio`), reservada antes do JavaScript
-  (CLS 0). Cálculo de 3 a 6 ms por quadro na grade máxima. Sem movimento, tudo aparece inteiro.
+**Bordas e véu.** O alto e a base do quadro dissolvem no fundo (`.bordas`; os lados também, quando a
+janela passa da coluna da página). No desktop, um degradê do fundo sai da esquerda por baixo do
+texto e some na metade (`.veu-hero`), e a própria cena apaga a área atrás dele.
 
 **Dados reais.** `scripts/update-contributions.mts` lê o HTML público do GitHub e grava
 `src/data/contributions.json` no `prebuild` (mantém o snapshot anterior se falhar). Os números
 abaixo do hero e a imagem de compartilhamento saem daí.
 
-**Hero no desktop.** O texto fica preso por cima do céu, à esquerda, durante a revelação; a cena
-apaga quase tudo atrás dele. No celular o texto vem antes e a cena fica presa logo abaixo.
-
 ## 7. Interação
 
-As cenas respondem ao ponteiro (mouse ou toque); o `AsciiCanvas` passa a posição e os cliques
-recentes em coordenadas do mundo. Em todas, **o cursor é um lampião**: uma luz quente que segue o
-ponteiro e revela o escuro. Cada banner diz em uma linha o que o clique faz.
+O castelo responde ao ponteiro (mouse ou toque); o `AsciiCanvas` passa a posição e os cliques
+recentes. **O cursor é um lampião**: uma luz quente que segue o ponteiro e revela o escuro. O clique
+solta faíscas no ponto e, no lago, faz um anel de onda (passar o mouse na água também ondula).
 
-| Cena | O clique faz |
-|---|---|
-| castelo | faíscas no ponto; no lago, um anel de onda (passar o mouse na água também ondula) |
-| porão | o velho recomeça a limpeza |
-| torre | solta um pombo com uma carta do ponto clicado; dois cliques a menos de 1,5s são a mesma entrega duas vezes, e a repetida queima no braseiro (a deduplicação do webhook, na mão) |
-| escriba | respingo de tinta no ponto; troca a vaga (react/node/flutter ↔ java/spring): as linhas se reordenam e a pena reescreve |
-| estrada | faíscas (o viajante anda com a rolagem) |
-| corvo | o corvo levanta voo: na hora se já entregou a carta, ou logo depois de entregá-la se ainda chega |
+**Dica e teclado.** A dica "clique no céu ou no lago" é um botão (`Dica`,
+`src/components/Ascii/Dica.tsx`), não a arte focável: um `role="img"` com ação seria anunciado
+errado. Ela fica dentro do `[data-cena]`, fora do `role="img"`, e ao ser ativada (Enter ou espaço)
+dispara `cena:acionar` no bloco, que o `AsciiCanvas` trata como um clique.
 
-**Dicas e teclado.** Cada dica de clique é um botão (`Dica`, `src/components/Ascii/Dica.tsx`), não
-a arte focável: um `role="img"` com ação seria anunciado errado, e o botão é anunciado como botão.
-Ele fica dentro do `[data-revelar]` da cena, fora do `role="img"`, e ao ser ativado (Enter ou
-espaço) dispara `cena:acionar` no bloco, que o `AsciiCanvas` trata como um clique (no último ponto
-do ponteiro ou no centro). As dicas só informativas ("role para revelar") e a nota "role a página" da estrada são
-texto (`span` com a classe `dica`), não botões.
+- Na primeira interação o `AsciiCanvas` marca `data-tocado` no bloco, e a dica (`.dica`) some com
+  uma transição de 0,6s e deixa de receber clique.
+- Ao receber o foco do teclado ela volta (`.dica:focus-visible`), com o contorno global de 2px.
+- Com `prefers-reduced-motion` não há interação (a cena fica parada) e a dica some.
 
-- Na primeira interação o `AsciiCanvas` marca `data-tocado` no bloco, e as dicas (`.dica`) somem
-  com uma transição de 0,6s e deixam de receber clique.
-- Ao receber o foco do teclado a dica volta (`.dica:focus-visible`), com o contorno global de 2px,
-  então quem navega por Tab nunca perde o botão de vista.
-- Com `prefers-reduced-motion` não há `cena:acionar` (a cena fica parada): os botões somem em qualquer largura
-  (`motion-safe:` nas classes de largura) e não há transição.
+**Copiar o e-mail.** Ao lado do botão de e-mail do contato, "copiar" vira uma carta em ASCII que se
+dobra (`[==]`, `[--]`, `[\/]`) e então "copiado", com aviso para o leitor de tela (`CopiarEmail`).
 
-As brasas do fundo desviam do cursor. Com `prefers-reduced-motion` não há interação: as cenas ficam
-paradas. A interação é um extra: todo o conteúdo está no texto ao lado, para teclado e leitor de
-tela.
+A interação é um extra: todo o conteúdo está no texto, para teclado e leitor de tela.
 
 ## 7b. Movimento
 
-- Cada cena anima a 20 quadros por segundo (30 as que têm personagem de imagem: porão, estrada e
-  corvo) só enquanto aparece na tela e a aba está visível (`IntersectionObserver` e
-  `visibilitychange`).
-- Os personagens se movem por ossos em código sobre partes de imagem (`figura.ts`): o velho varre
-  e se encurva, o viajante balança a lanterna, o corvo bate as asas, vira a cabeça, pousa e
-  levanta voo (a aterrissagem, a decolagem e o clique em pleno voo são suaves, sem salto).
-- As dicas de clique somem depois da primeira interação e voltam com o foco do teclado (seção 7).
-- A estrada não anda com o tempo: anda com a rolagem. Todas as cenas ganham resolução com a
-  rolagem.
+- O castelo anima a 20 quadros por segundo só enquanto aparece na tela e a aba está visível
+  (`IntersectionObserver` e `visibilitychange`).
+- A dica de clique some depois da primeira interação e volta com o foco do teclado (seção 7).
 - Títulos se decifram em ASCII ao entrar na tela (`Decifrar`): cada letra passa pela rampa e
   assenta, da esquerda para a direita. O texto real fica no DOM para leitor de tela e buscador.
-- Cards de projeto, títulos e marcos da trajetória sobem e aparecem com a rolagem (`.surgir`,
-  `animation-timeline: view()`, só CSS; sem suporte, ficam parados).
-- Brasas sobem atrás da página (só no tema escuro); o quadrado da faixa de status pulsa; o
-  relógio de São Paulo se atualiza.
-- `prefers-reduced-motion: reduce`: cada cena desenha um quadro parado na resolução máxima (a
-  estrada aparece completa e o trecho alto do hero encolhe em qualquer largura); os personagens ficam em repouso;
-  títulos não se decifram e nada surge; as dicas de clique somem.
+- Cards de projeto, títulos, marcos da trajetória e o fechamento sobem e aparecem com a rolagem
+  (`.surgir`, `animation-timeline: view()`, só CSS; sem suporte, ficam parados).
+- O quadrado da faixa de status pulsa; o relógio de São Paulo se atualiza.
+- `prefers-reduced-motion: reduce`: o castelo desenha um quadro parado na resolução máxima; títulos
+  não se decifram e nada surge; a dica de clique some.
 
 ## 8. Qualidade verificada (25 nov 2026)
 
-Lighthouse 12 contra a build servida pelo `wrangler dev`:
+Lighthouse 12 contra a build servida pelo `wrangler dev`, ainda com as seis cenas (antes da
+simplificação de 27 nov; não medido de novo depois dela):
 
 | | Desempenho | Acessibilidade | Boas práticas | SEO |
 |---|---|---|---|---|
 | Celular | 98 | 100 | 100 | 100 |
 | Desktop | 100 | 100 | 100 | 100 |
 
-LCP 2,3s no celular (simulado) e 0,5s no desktop; CLS 0; TBT 80ms no celular, com as seis cenas
-feitas de imagem (as dos banners só carregam perto da tela).
+LCP 2,3s no celular (simulado) e 0,5s no desktop; CLS 0; TBT 80ms no celular. Com uma cena só, a
+página baixa 8 imagens a menos e roda um canvas em vez de sete.
 
-Medido de novo com os personagens de imagem, no build de produção servido pelo wrangler
-(Lighthouse 12): celular 98 / 100 / 100 / 100, desktop 100 / 100 / 100 / 100, CLS 0, TBT 80ms e
-LCP 2,3s no celular.
-
-- **Teclado:** o primeiro Tab mostra "Pular para o conteúdo"; a ordem segue a leitura (índice, tema,
+- **Teclado:** o primeiro Tab mostra "Pular para o conteúdo"; a ordem segue a leitura (índice, idioma,
   CTA, links, dados, repositórios, contato). Foco com contorno de 2px. `scroll-padding-top` evita que
   o cabeçalho fixo cubra o elemento focado.
-- **Artes:** cada uma é `role="img"` com descrição; os caracteres decorativos não entram na árvore
-  de acessibilidade. As dicas de clique são botões fora do `role="img"`, alcançáveis por Tab, com
-  foco visível mesmo depois de terem desaparecido.
+- **Arte:** o castelo é `role="img"` com descrição; os caracteres decorativos não entram na árvore
+  de acessibilidade. A dica de clique é um botão fora do `role="img"`, alcançável por Tab, com foco
+  visível mesmo depois de ter desaparecido.
 - **Metadados:** título, descrição, canonical, Open Graph e Twitter; imagem de compartilhamento
   gerada na build (`src/app/opengraph-image.tsx`) com o mesmo campo de contribuições; `robots.txt` e
   `sitemap.xml`. O `public/_headers` serve a imagem como `image/png`, porque o export do Next a
@@ -283,9 +237,18 @@ LCP 2,3s no celular.
    parecessem de verdade, e não formas de código.
 7. Personagens de imagem: o velho do porão, o viajante da estrada e o corvo viram folhas de partes
    feitas no Figma, compostas na grade por ossos em código, com 30 quadros por segundo, estrelas
-   de espera, dicas que são botões e somem depois da primeira interação: a versão atual.
+   de espera, dicas que são botões e somem depois da primeira interação.
+8. Simplificação (27 nov): mundo demais, seis peças-assinatura competindo e um hero de três telas
+   antes do primeiro projeto. Fica só o castelo, revelado ao carregar num hero de uma tela; projetos,
+   trajetória e contato voltam a ser tipografia e grade de 1px, no espírito do hackbrasil.com e do
+   abacatepay.com. O tema claro sai e o site ganha inglês, espanhol e japonês: a versão atual.
 
 ## 10. Fora do sistema (removido)
+
+Cenas: porão, torre, escriba, estrada, corvo e as brasas do fundo, com os personagens de imagem
+(`figura.ts`, `public/cenas/figuras/`), o modo de contorno (`engine.ts`) e a revelação pela rolagem.
+
+Tema claro: o botão, o script do `<head>` (`src/lib/theme.ts`) e os valores claros dos tokens.
 
 Tokens: `cn-*`, cores de redes sociais, sombras `bump`/`flat`, `docker-*`, `wave-*`, cursores,
 Roboto Mono e Archivo. Componentes: desktop, janelas, terminal, celular, Craft, Konami, sons,
