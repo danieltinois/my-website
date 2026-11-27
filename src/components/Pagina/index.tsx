@@ -1,3 +1,5 @@
+import Lampiao from "@/src/components/Aconchego/Lampiao";
+import VagaLumes from "@/src/components/Aconchego/VagaLumes";
 import CopiarEmail from "@/src/components/CopiarEmail";
 import EmailCta from "@/src/components/EmailCta";
 import Hero from "@/src/components/Hero";
@@ -22,6 +24,10 @@ const Pagina = ({ lang }: { lang: Idioma }) => {
       >
         {t.ui.pular}
       </a>
+
+      {/* aconchego: vaga-lumes atrás de tudo e o lampião do cursor por cima */}
+      <VagaLumes />
+      <Lampiao />
 
       <SiteHeader lang={lang} />
 
