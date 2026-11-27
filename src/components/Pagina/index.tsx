@@ -3,6 +3,7 @@ import Dica from "@/src/components/Ascii/Dica";
 import Lampiao from "@/src/components/Aconchego/Lampiao";
 import VagaLumes from "@/src/components/Aconchego/VagaLumes";
 import CopiarEmail from "@/src/components/CopiarEmail";
+import Decifrar from "@/src/components/Decifrar";
 import EmailCta from "@/src/components/EmailCta";
 import Hero from "@/src/components/Hero";
 import Project from "@/src/components/Project";
@@ -59,7 +60,9 @@ const Pagina = ({ lang }: { lang: Idioma }) => {
               (no celular, a vela vem embaixo) */}
           <div className="surgir grid items-center gap-8 border p-6 sm:p-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-12 lg:p-16">
             <div>
-              <p className="text-h2">{t.contato.titulo}</p>
+              <p className="text-h2">
+                <Decifrar texto={t.contato.titulo} />
+              </p>
               <p className="mt-3 max-w-measure text-lead text-muted">{t.contato.texto}</p>
               <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
                 <EmailCta />

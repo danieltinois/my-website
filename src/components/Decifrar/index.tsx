@@ -1,36 +1,43 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { registrarTextoVivo } from "@/src/lib/textoVivo";
 
-// Texto que se decifra em ASCII: quando entra na tela, cada letra passa por caracteres da rampa
-// e assenta na certa, da esquerda para a direita. O texto real está no DOM desde o servidor (o
-// leitor de tela e o buscador leem só ele); a animação troca apenas o que se vê. Fonte mono,
-// então a largura não muda (CLS 0). Com reduced motion, nada acontece.
+// Título vivo: quando entra na tela, cada letra passa por caracteres da rampa e assenta na certa,
+// da esquerda para a direita; depois, as letras perto do cursor engordam e alargam (textoVivo).
+// O texto real está no DOM desde o servidor (o leitor de tela e o buscador leem só ele); o que se
+// vê é uma letra por <span>, para a animação trocar uma de cada vez. Com reduced motion, nada
+// acontece.
 
 const SINAIS = ".,:;i1?7tPO09#@";
 const DURACAO = 600;
 
 const Decifrar = ({ texto, atraso = 0 }: { texto: string; atraso?: number }) => {
   const ref = useRef<HTMLSpanElement>(null);
+  const letras = [...texto];
+
+  // as letras seguem o cursor
+  useEffect(() => {
+    const el = ref.current;
+    return el ? registrarTextoVivo(el) : undefined;
+  }, []);
 
   useEffect(() => {
     const el = ref.current;
     // só alfabeto latino: num caractere de largura dupla (japonês) a troca por um sinal ASCII
     // mudaria a largura da linha
-    if (!el || /[^\u0000-\u024f\u2000-\u206f]/.test(texto) || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!el || /[^\u0000-ɏ -⁯]/.test(texto) || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const spans = el.children as HTMLCollectionOf<HTMLElement>;
+    const reais = [...texto];
     let raf = 0;
     const rodar = () => {
       const inicio = performance.now() + atraso;
       const quadro = (agora: number) => {
         const k = Math.max(0, (agora - inicio) / DURACAO);
-        el.textContent = [...texto]
-          .map((c, i) => {
-            if (c === " " || k >= 1) return c;
-            const pronto = k * (texto.length + 6) - i;
-            if (pronto >= 6) return c;
-            return SINAIS[Math.floor(Math.random() * SINAIS.length)];
-          })
-          .join("");
+        reais.forEach((c, i) => {
+          const pronto = c === " " || k >= 1 || k * (reais.length + 6) - i >= 6;
+          spans[i].textContent = pronto ? c : SINAIS[Math.floor(Math.random() * SINAIS.length)];
+        });
         if (k < 1) raf = requestAnimationFrame(quadro);
       };
       raf = requestAnimationFrame(quadro);
@@ -61,7 +68,9 @@ const Decifrar = ({ texto, atraso = 0 }: { texto: string; atraso?: number }) => 
     <>
       <span className="sr-only">{texto}</span>
       <span ref={ref} aria-hidden="true">
-        {texto}
+        {letras.map((c, i) => (
+          <span key={i}>{c}</span>
+        ))}
       </span>
     </>
   );
