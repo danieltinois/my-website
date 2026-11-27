@@ -209,7 +209,8 @@ A interação é um extra: todo o conteúdo está no texto, para teclado e leito
 - O quadrado da faixa de status pulsa; o relógio de São Paulo se atualiza.
 - `prefers-reduced-motion: reduce`: o castelo desenha um quadro parado na resolução máxima e o
   trecho alto do hero encolhe; títulos não se decifram nem reagem ao cursor e nada surge; a dica
-  de clique some; sem lampião, faíscas e vaga-lumes; os números e os resumos já aparecem inteiros.
+  de clique some; sem lampião, faíscas e vaga-lumes; os números e os resumos já aparecem inteiros;
+  os links de âncora pulam direto.
 
 ## 7c. Aconchego
 
@@ -230,6 +231,13 @@ A estética não muda; o aconchego está no movimento: noite quente à luz de fo
 - **Escrita à pena** (`Escrita`): o resumo de cada projeto aparece palavra por palavra (45ms entre
   elas, 0,6s cada, saindo de um borrão leve) quando entra na tela; no japonês, por trechos entre
   `、` e `。`. Cada palavra já ocupa o lugar dela, então nada se move.
+- **Navegação animada** (`Navegacao`): os links para âncoras (índice do cabeçalho, nome, "voltar ao
+  topo") rolam com inércia em vez de pular, em 0,6 a 1,6s conforme a distância (cúbica, saindo e
+  chegando devagar). Na volta ao topo o castelo se desfaz e se refaz junto com a rolagem. Ao chegar,
+  o foco vai para o destino, o endereço ganha a âncora e o título da seção se decifra de novo
+  (evento `navegar:chegou`). Roda do mouse, toque ou tecla no caminho devolvem o controle.
+- **Voltar ao topo** (`VoltarTopo`): depois do hero, um botão no canto (`↑ topo [####····]`) mostra
+  quanto da página já foi lido em ASCII e sobe com a navegação animada; some perto do topo.
 - **Texto vivo** (`src/lib/textoVivo.ts`, via `Decifrar`): no nome do hero, nos títulos das seções
   e na frase do contato, as letras perto do cursor engordam e alargam (`font-variation-settings`
   `wght` até 800 e `wdth` até 112,5, numa onda de raio 1,8× o tamanho da fonte) e voltam devagar
