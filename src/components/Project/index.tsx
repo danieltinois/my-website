@@ -1,7 +1,8 @@
+import Escrita from "@/src/components/Escrita";
 import type { Projeto, Textos } from "@/src/data/site";
 
 // card de projeto: uma caixa de 1px com o marcador [1.1] no alto, o estudo de caso à esquerda e a
-// grade de parâmetros à direita
+// grade de parâmetros à direita. O resumo se escreve palavra por palavra ao entrar na tela.
 const Project = ({ projeto, n, rotulos }: { projeto: Projeto; n: string; rotulos: Textos["ui"]["projeto"] }) => {
   const repo = projeto.codigo.replace("https://github.com/", "");
 
@@ -14,7 +15,7 @@ const Project = ({ projeto, n, rotulos }: { projeto: Projeto; n: string; rotulos
           <h3 id={`${projeto.id}-nome`} className="text-h3">
             {projeto.nome}
           </h3>
-          <p className="mt-2 max-w-measure text-lead">{projeto.resumo}</p>
+          <Escrita texto={projeto.resumo} className="mt-2 max-w-measure text-lead" />
 
           <dl className="mt-8 max-w-measure space-y-6">
             {[

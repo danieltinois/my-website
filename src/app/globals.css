@@ -302,6 +302,26 @@
   text-shadow: 0 0 10px color-mix(in srgb, var(--color-signal) 60%, transparent);
 }
 
+/* escrita à pena (Escrita.tsx): com JavaScript (data-pronto), as palavras esperam apagadas e,
+   quando o parágrafo entra na tela (data-visivel), aparecem uma a uma, saindo de um leve borrão */
+.escrita[data-pronto] .palavra {
+  opacity: 0;
+}
+.escrita[data-visivel] .palavra {
+  animation: tinta 0.6s ease-out forwards;
+  animation-delay: calc(var(--i) * 45ms);
+}
+@keyframes tinta {
+  from {
+    opacity: 0;
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
 /* dica: some depois da primeira interação com a cena (AsciiCanvas marca data-tocado) e fica
    inerte, mas volta ao receber o foco do teclado, para o botão nunca ficar invisível sob o foco */
 .dica {
