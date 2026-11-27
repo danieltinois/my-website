@@ -70,8 +70,8 @@ Regras:
 1. **No CTA de e-mail** (fundo), com texto `on-signal`.
 2. **Na marca do campo de contribuições** (a semana de 24–29 set).
 3. **No indicador "ao vivo"** da faixa de status (o quadrado que pulsa).
-4. **Como fogo** (seção 7c): o lampião do cursor, os vaga-lumes do fundo e o ano de um marco da
-   trajetória sob o cursor.
+4. **Como fogo** (seção 7c): o lampião e as faíscas do cursor, os vaga-lumes do fundo e o ano de
+   um marco da trajetória sob o cursor.
 
 Em nenhum outro lugar: nem foco, nem seleção, nem borda, nem texto corrido.
 
@@ -209,7 +209,7 @@ A interação é um extra: todo o conteúdo está no texto, para teclado e leito
 - O quadrado da faixa de status pulsa; o relógio de São Paulo se atualiza.
 - `prefers-reduced-motion: reduce`: o castelo desenha um quadro parado na resolução máxima e o
   trecho alto do hero encolhe; títulos não se decifram nem reagem ao cursor e nada surge; a dica
-  de clique some; sem lampião e sem vaga-lumes.
+  de clique some; sem lampião, faíscas e vaga-lumes; os números e os resumos já aparecem inteiros.
 
 ## 7c. Aconchego
 
@@ -221,6 +221,15 @@ A estética não muda; o aconchego está no movimento: noite quente à luz de fo
 - **Vaga-lumes** (`Aconchego/VagaLumes.tsx`, `.vaga-lume`): 12 pontos de 3px com halo, atrás da
   página, cada um numa rota lenta (29–45s) e piscando no seu ritmo (3,6–6,3s). Só CSS.
 - **Trajetória:** passar por um marco acende o ano dele em `signal`, com brilho, em 0,6s.
+- **Faíscas do cursor** (`Aconchego/Faiscas.tsx`): um movimento rápido do mouse (acima de 1,6 px/ms)
+  solta de 1 a 3 faíscas em ASCII (`. , ' * ·`, em `signal`) que saltam para trás do movimento, caem
+  e se apagam em 0,9s; no máximo 36 vivas. Movimento lento não solta nada, e sobre as cenas também
+  não. Um canvas fixo, desenhado só enquanto há faísca.
+- **Números contando** (`Contador`): as quatro estatísticas do GitHub contam do zero ao valor em
+  1,4s quando entram na tela, assentando devagar no fim. O HTML já traz o valor final.
+- **Escrita à pena** (`Escrita`): o resumo de cada projeto aparece palavra por palavra (45ms entre
+  elas, 0,6s cada, saindo de um borrão leve) quando entra na tela; no japonês, por trechos entre
+  `、` e `。`. Cada palavra já ocupa o lugar dela, então nada se move.
 - **Texto vivo** (`src/lib/textoVivo.ts`, via `Decifrar`): no nome do hero, nos títulos das seções
   e na frase do contato, as letras perto do cursor engordam e alargam (`font-variation-settings`
   `wght` até 800 e `wdth` até 112,5, numa onda de raio 1,8× o tamanho da fonte) e voltam devagar
