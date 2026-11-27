@@ -44,6 +44,7 @@ export const ja: Textos = {
     },
     copiar: { acao: "コピー", copiado: "コピーしました", falhou: "コピーできませんでした", rotulo: "メールアドレスをコピー" },
     voltarTopo: "トップへ戻る",
+    topo: "トップ",
   },
   perfil: {
     cargo: "サンパウロの Verzel で働くフルスタック開発者（ミドル）。",

@@ -75,6 +75,7 @@ export interface Textos {
     projeto: { problema: string; comoFunciona: string; dificil: string; estado: string; papel: string; stack: string; codigo: string };
     copiar: { acao: string; copiado: string; falhou: string; rotulo: string };
     voltarTopo: string;
+    topo: string;
   };
   perfil: { cargo: string; resumo: string };
   especificacoes: { k: string; v: string }[];

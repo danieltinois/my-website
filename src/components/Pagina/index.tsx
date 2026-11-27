@@ -7,10 +7,12 @@ import CopiarEmail from "@/src/components/CopiarEmail";
 import Decifrar from "@/src/components/Decifrar";
 import EmailCta from "@/src/components/EmailCta";
 import Hero from "@/src/components/Hero";
+import Navegacao from "@/src/components/Navegacao";
 import Project from "@/src/components/Project";
 import Section from "@/src/components/Section";
 import SiteHeader, { SECOES } from "@/src/components/SiteHeader";
 import Trajetoria from "@/src/components/Trajetoria";
+import VoltarTopo from "@/src/components/VoltarTopo";
 import { idioma, LINKS, NOME, TEXTOS, type Idioma } from "@/src/data/site";
 
 const [projetos, trajetoria, contato] = SECOES;
@@ -39,6 +41,10 @@ const Pagina = ({ lang }: { lang: Idioma }) => {
       <VagaLumes />
       <Lampiao />
       <Faiscas />
+
+      {/* navegação animada dentro da página e o botão flutuante de voltar ao topo */}
+      <Navegacao />
+      <VoltarTopo rotulo={t.ui.topo} />
 
       <SiteHeader lang={lang} />
 
