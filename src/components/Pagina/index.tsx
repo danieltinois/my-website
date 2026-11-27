@@ -1,5 +1,6 @@
 import AsciiCanvas from "@/src/components/Ascii/AsciiCanvas";
 import Dica from "@/src/components/Ascii/Dica";
+import Faiscas from "@/src/components/Aconchego/Faiscas";
 import Lampiao from "@/src/components/Aconchego/Lampiao";
 import VagaLumes from "@/src/components/Aconchego/VagaLumes";
 import CopiarEmail from "@/src/components/CopiarEmail";
@@ -34,9 +35,10 @@ const Pagina = ({ lang }: { lang: Idioma }) => {
         {t.ui.pular}
       </a>
 
-      {/* aconchego: vaga-lumes atrás de tudo e o lampião do cursor por cima */}
+      {/* aconchego: vaga-lumes atrás de tudo; o lampião e as faíscas do cursor por cima */}
       <VagaLumes />
       <Lampiao />
+      <Faiscas />
 
       <SiteHeader lang={lang} />
 
