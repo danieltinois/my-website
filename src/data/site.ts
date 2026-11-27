@@ -59,6 +59,7 @@ export interface Textos {
     rolar: string;
     dica: string;
     cena: string;
+    vela: { cena: string; dica: string };
     stats: {
       legenda: string; // "{de}" e "{ate}" viram as datas
       total: string;

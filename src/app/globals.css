@@ -199,6 +199,14 @@
   }
 }
 
+/* vela: o quadro se apaga nos quatro lados, como a luz de uma vela num cômodo escuro */
+.vinheta {
+  mask-image:
+    linear-gradient(to right, transparent, #000 18%, #000 82%, transparent),
+    linear-gradient(to bottom, transparent, #000 14%, #000 80%, transparent);
+  mask-composite: intersect;
+}
+
 /* degradê do hero sob o texto (desktop): o fundo da noite sai da esquerda e vai sumindo até 45% da
    largura, onde o texto acaba; um resto bem fraco vai até a metade, para não marcar a linha onde
    termina (o castelo, à direita, fica fora) */
