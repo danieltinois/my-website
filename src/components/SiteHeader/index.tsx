@@ -1,5 +1,4 @@
 import Clock from "@/src/components/Clock";
-import ThemeToggle from "@/src/components/ThemeToggle";
 import snapshot from "@/src/data/contributions.json";
 import { PERFIL } from "@/src/data/site";
 import { formatDate, formatNumber } from "@/src/lib/contributions";
@@ -10,7 +9,7 @@ export const SECOES = [
   { id: "contato", n: "03", titulo: "Contato" },
 ];
 
-// cabeçalho fixo: nome, índice e tema; embaixo, a faixa de status com dados ao vivo e reais
+// cabeçalho fixo: nome e índice; embaixo, a faixa de status com dados ao vivo e reais
 const SiteHeader = () => (
   <header className="sticky top-0 z-30 -mx-6 border-b bg-paper px-6 text-caption lg:-mx-12 lg:px-12">
     <div className="flex items-baseline justify-between gap-6 py-4">
@@ -32,7 +31,6 @@ const SiteHeader = () => (
             ))}
           </ol>
         </nav>
-        <ThemeToggle />
       </div>
     </div>
     <div className="flex flex-wrap justify-between gap-x-6 gap-y-1 border-t py-2 text-muted">

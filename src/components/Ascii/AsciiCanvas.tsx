@@ -5,8 +5,8 @@ import { CENAS, type NomeCena } from "./cenas";
 import { K, prepararFonte, RAMPA, type Campo, type DadosImagem } from "./denso";
 
 // Desenha uma cena em ASCII num canvas, com a fonte do site e as cores do tema (lidas do
-// próprio canvas, então dentro de .noite valem as cores da noite). Só anima enquanto aparece
-// na tela e a aba está visível; com reduced motion desenha um quadro só.
+// próprio canvas). Só anima enquanto aparece na tela e a aba está visível; com reduced motion
+// desenha um quadro só.
 //
 // Tamanho da grade: `grades` dá as colunas por media query, na ordem (a primeira que casar vale).
 // As linhas seguem a proporção do contêiner, que já está reservada antes do JavaScript.
@@ -214,11 +214,6 @@ const AsciiCanvas = ({ cena, grades, imagem, quadroParado = 5, className = "", i
       raf = requestAnimationFrame(laco);
     };
 
-    const tema = new MutationObserver(() => {
-      lerCores();
-      medir();
-      desenhar(quadroParado);
-    });
     const tamanho = new ResizeObserver(() => {
       medir();
       desenhar(quadroParado);
@@ -254,7 +249,6 @@ const AsciiCanvas = ({ cena, grades, imagem, quadroParado = 5, className = "", i
       lerCores();
       medir();
       desenhar(quadroParado);
-      tema.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
       tamanho.observe(canvas);
       tela.observe(canvas);
       reduzir.addEventListener("change", sincronizar);
@@ -272,7 +266,6 @@ const AsciiCanvas = ({ cena, grades, imagem, quadroParado = 5, className = "", i
     return () => {
       vivo = false;
       cancelAnimationFrame(raf);
-      tema.disconnect();
       tamanho.disconnect();
       tela.disconnect();
       reduzir.removeEventListener("change", sincronizar);

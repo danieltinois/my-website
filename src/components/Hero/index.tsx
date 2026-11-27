@@ -6,8 +6,7 @@ import EmailCta from "@/src/components/EmailCta";
 import { ESPECIFICACOES, LINKS, PERFIL } from "@/src/data/site";
 
 // A primeira tela: o castelo à noite em ASCII, com quem eu sou, o que faço e como falar comigo
-// por cima do céu (no desktop) ou acima da cena (no celular). É a única cena do site, e é sempre
-// noite aqui, inclusive no tema claro (.noite).
+// por cima do céu (no desktop) ou acima da cena (no celular). É a única cena do site.
 //
 // O hero cabe em uma tela. A cena vem de uma imagem (public/cenas/castelo.webp) e se revela sozinha
 // quando a imagem chega: começa com poucos caracteres grandes e em menos de 2 segundos termina com
@@ -27,7 +26,7 @@ const Hero = () => {
   const [primeiro, ...resto] = PERFIL.nome.split(" ");
 
   return (
-    <section aria-labelledby="hero-nome" className="noite -mx-6 px-6 pb-16 lg:-mx-12 lg:px-12 lg:pb-24">
+    <section aria-labelledby="hero-nome" className="-mx-6 px-6 pb-16 lg:-mx-12 lg:px-12 lg:pb-24">
       <div className="relative lg:flex lg:h-[calc(100svh-6rem)] lg:min-h-[36rem] lg:items-center">
         <div className="relative z-10 pt-8 lg:pt-0">
           <div className="max-w-measure lg:max-w-[34rem]">

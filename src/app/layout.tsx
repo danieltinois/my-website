@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { SITE_URL } from "@/src/data/site";
-import { THEME_SCRIPT } from "@/src/lib/theme";
 import { mono } from "./fonts";
 
 const title = "Daniel Tinois, dev full stack";
@@ -26,7 +25,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#0b0c0e",
-  colorScheme: "dark light",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({
@@ -35,11 +34,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // escuro é o padrão; o script troca para o claro antes da pintura se a pessoa escolheu
-    <html lang="pt-BR" data-theme="dark" className={mono.variable} suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
-      </head>
+    <html lang="pt-BR" className={mono.variable}>
       <body>
         <a
           href="#conteudo"
