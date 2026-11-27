@@ -394,3 +394,42 @@ export interface DadosImagem {
   fonte?: Fonte;
   chegou?: number; // instante t em que a imagem de fundo terminou de decodificar
 }
+
+// --- fogo de vela ---------------------------------------------------------------------------
+
+// balanço de chama: desloca a amostragem da imagem dentro de uma chama (x, y é a base, alt a
+// altura, em coordenadas da imagem), então a própria chama fotografada tremula e se inclina
+export const balancar = (ix: number, iy: number, chamas: { x: number; y: number; alt: number; larg: number }[], t: number) => {
+  for (const c of chamas) {
+    const k = (c.y - iy) / c.alt;
+    if (k < -0.1 || k > 1.2 || Math.abs(ix - c.x) > c.larg) continue;
+    return (Math.sin(t * 11 + iy * 90 + c.x * 50) * 0.6 + Math.sin(t * 17 + c.x * 9) * 0.4) * c.larg * 0.35 * Math.max(0, k);
+  }
+  return 0;
+};
+
+// fumaça subindo de (x, y): coluna que alarga e se desfaz, arrastada pelo vento
+export const fumaca = (T: Tela, x: number, y: number, t: number, alt: number, larg: number, I = 0.12) =>
+  cada(
+    T,
+    (X, Y, i) => {
+      const k = (y - Y) / alt;
+      if (k < 0 || k > 1) return;
+      const cx = x + k * k * larg * 1.5 + Math.sin(k * 5 - t * 0.8) * larg * 0.25 * k;
+      const d = Math.abs(X - cx) / (larg * (0.25 + k));
+      if (d > 1) return;
+      const dens = passo(0.4, 0.75, fbm(X * 30, Y * 18 + t * 0.6, 3)) * (1 - d) * (1 - k);
+      T.c.lum[i] += dens * I;
+    },
+    { x0: x - larg * 0.5, x1: x + larg * 2.5, y0: y - alt, y1: y },
+  );
+
+// poeira flutuando na luz: pontos fracos e quentes que derivam devagar dentro da caixa
+export const poeira = (T: Tela, x0: number, x1: number, y0: number, y1: number, t: number, n: number, I = 0.4, calor = 0.6) => {
+  for (let k = 0; k < n; k++) {
+    const fx = x0 + ((ruido(k, 11) + t * 0.01 * (0.5 + ruido(k, 2))) % 1) * (x1 - x0);
+    const fy = y0 + ((ruido(k, 13) + Math.sin(t * 0.3 + k) * 0.05 + 1) % 1) * (y1 - y0);
+    const b = 0.5 + 0.5 * Math.sin(t * (0.8 + ruido(k, 4)) + k);
+    pontoMundo(T, fx, fy, I * b, calor);
+  }
+};

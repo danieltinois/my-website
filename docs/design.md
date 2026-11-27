@@ -1,9 +1,9 @@
 # Sistema de design
 
-O site é **uma interface de dev com uma única janela para a noite**: escura, uma fonte mono, um
-destaque, linhas de 1px, e no hero um castelo medieval desenhado em ASCII quase realista. O castelo é
-a única cena e a única peça-assinatura; o resto da página é tipografia e grade, no espírito de sites
-como hackbrasil.com e abacatepay.com: uma ideia por bloco, um botão, nada sobrando. A história de
+O site é **uma interface de dev com duas janelas para a noite**: escura, uma fonte mono, um
+destaque, linhas de 1px; no hero um castelo medieval e no fechamento uma vela acesa, ambos em ASCII
+quase realista. O castelo é a peça-assinatura e a vela fecha a página; o resto é tipografia e
+grade, no espírito de sites como hackbrasil.com e abacatepay.com: uma ideia por bloco, um botão, nada sobrando. A história de
 origem (plugins de Minecraft em 2020) justifica o castelo; o conteúdo continua em texto, legível
 para recrutador e buscador.
 
@@ -27,7 +27,8 @@ estática em woff (`@fontsource/martian-mono`, devDependency), porque o `ImageRe
 | 75% | `font-stretch-condensed` | rótulos, marcadores `[01]`, números, artes em caracteres |
 | 100% | (padrão) | todo o resto |
 
-**Pesos permitidos:** 400 (`font-regular`) e 600 (`font-semibold`).
+**Pesos permitidos:** 400 (`font-regular`) e 600 (`font-semibold`). A única exceção é o texto vivo
+(seção 7c): nos títulos, as letras perto do cursor vão até 800 de peso e 112,5% de largura.
 
 **Escala fixa** (px / entrelinha / tracking):
 
@@ -69,8 +70,10 @@ Regras:
 1. **No CTA de e-mail** (fundo), com texto `on-signal`.
 2. **Na marca do campo de contribuições** (a semana de 24–29 set).
 3. **No indicador "ao vivo"** da faixa de status (o quadrado que pulsa).
+4. **Como fogo** (seção 7c): o lampião e as faíscas do cursor, os vaga-lumes do fundo e o ano de
+   um marco da trajetória sob o cursor.
 
-Em nenhum outro lugar: nem hover, nem foco, nem seleção, nem borda, nem texto.
+Em nenhum outro lugar: nem foco, nem seleção, nem borda, nem texto corrido.
 
 ### Contraste verificado (WCAG 2.1)
 
@@ -102,16 +105,18 @@ compartilham borda (`border-t border-l` no contêiner, `border-r border-b` nas c
 - Container `max-w-page` (80rem), 24px de margem no mobile e 48px no desktop. Tudo à esquerda.
 - **Cabeçalho fixo** com duas linhas: nome, índice `[01] projetos [02] trajetória [03] contato`
   e idioma (`pt en es ja`); embaixo, a **faixa de status** (`■ são paulo 10:38`, total de contribuições, revisão).
-- **Hero:** cabe em uma tela (`100svh` menos o cabeçalho). No desktop o texto (nome em duas linhas,
-  cargo, resumo, CTA) fica à esquerda, por cima do céu, e o castelo ocupa o bloco todo atrás dele;
-  no celular o texto vem antes e a cena fica logo abaixo (60svh). Abaixo, as estatísticas de
-  contribuições e a grade de especificações (local, stack, desde, formação).
+- **Hero:** um trecho alto (`[data-cena]`, 200svh no desktop, 160svh no celular) com o castelo
+  preso na tela enquanto se revela. No desktop o texto (nome em duas linhas, cargo, resumo, CTA)
+  fica preso à esquerda, por cima do céu, e aparece inteiro desde o primeiro quadro; no celular o
+  texto vem antes e a cena fica presa logo abaixo. Abaixo, as estatísticas de contribuições e a
+  grade de especificações (local, stack, desde, formação).
 - **Projetos:** um card por projeto, uma caixa de 1px com o marcador `[1.1]` numa faixa no alto, o
   estudo de caso à esquerda (resumo, problema, como funciona, o difícil) e a grade de parâmetros à
   direita. Sem arte.
 - **Trajetória:** uma agenda: uma linha por marco, a data numa coluna estreita e linhas finas entre
   elas.
-- **Contato:** o fechamento, uma caixa só com uma frase, o botão de e-mail, "copiar" e os atalhos.
+- **Contato:** o fechamento, uma caixa só: à esquerda a frase, o botão de e-mail, "copiar" e os
+  atalhos; à direita (no celular, embaixo) a vela acesa, com as bordas apagando no escuro (`.vinheta`).
 - **Idiomas:** português na raiz (`/`), inglês, espanhol e japonês em `/en`, `/es` e `/ja`
   (`src/app/[lang]`, geradas na build). Os textos de cada um estão em `src/data/textos/<idioma>.ts`;
   o português é a fonte (`docs/content.md`). O seletor no cabeçalho é um link por idioma; o atual
@@ -126,10 +131,11 @@ compartilham borda (`border-t border-l` no contêiner, `border-r border-b` nas c
 1. **Marcadores entre colchetes.** Seções `[01]`, `[02]`, `[03]` no título e no índice; projetos
    `[1.1]`, `[1.2]`, `[1.3]` na faixa do alto do card.
 2. **Grade de dados em caixas de 1px.** Estatísticas, especificações, parâmetros e o fechamento.
-3. **Fogo é o laranja.** Dentro do castelo, o `signal` só aparece como luz de fogo: janelas,
-   vaga-lumes, o sopro do dragão, faíscas do clique.
+3. **Fogo é o laranja.** O `signal`, fora do CTA e do indicador, só aparece como luz de fogo: no
+   castelo (janelas, vaga-lumes, o sopro do dragão, faíscas do clique) e na página (o lampião do
+   cursor, os vaga-lumes do fundo, o ano aceso na trajetória).
 
-## 6. A cena e a técnica
+## 6. As cenas e a técnica
 
 **Técnica: a cena é uma imagem convertida em ASCII a cada quadro.** Para chegar perto do realista,
 o castelo não é desenhado com formas: ele parte de uma imagem noturna (`public/cenas/castelo.webp`,
@@ -149,11 +155,11 @@ gerada no Figma) e a converte em caracteres. A saída é 100% ASCII; a imagem nu
 - **Espera:** enquanto a imagem decodifica, a cena mostra um campo de estrelas fraco
   (`estrelas.ts`) que some conforme a imagem surge, em vez de um quadro vazio.
 
-**Revelação ao carregar.** Quando a imagem chega, a cena começa com poucos caracteres grandes (15%
-da grade) e em 1,8s chega à grade inteira (360 colunas no desktop, 120 no celular), enquanto o
-enquadramento abre do castelo para a paisagem e o limiar de luz baixa: primeiro aparece só o que
-brilha. A rolagem não mexe na cena. As linhas seguem a proporção do contêiner, reservada antes do
-JavaScript (CLS 0). Sem movimento, a cena aparece inteira de uma vez.
+**Revelação pela rolagem.** A cena começa com poucos caracteres grandes (15% da grade) e chega à
+grade inteira (360 colunas no desktop, 120 no celular) conforme a pessoa rola pelo trecho alto do
+hero, enquanto o enquadramento abre do castelo para a paisagem e o limiar de luz baixa: primeiro
+aparece só o que brilha. As linhas seguem a proporção do contêiner, reservada antes do JavaScript
+(CLS 0). Sem movimento, a cena aparece inteira de uma vez e o trecho alto encolhe.
 
 **Bordas e véu.** O alto e a base do quadro dissolvem no fundo (`.bordas`; os lados também, quando a
 janela passa da coluna da página). No desktop, um degradê do fundo sai da esquerda por baixo do
@@ -169,9 +175,16 @@ O castelo responde ao ponteiro (mouse ou toque); o `AsciiCanvas` passa a posiç�
 recentes. **O cursor é um lampião**: uma luz quente que segue o ponteiro e revela o escuro. O clique
 solta faíscas no ponto e, no lago, faz um anel de onda (passar o mouse na água também ondula).
 
-**Dica e teclado.** A dica "clique no céu ou no lago" é um botão (`Dica`,
-`src/components/Ascii/Dica.tsx`), não a arte focável: um `role="img"` com ação seria anunciado
-errado. Ela fica dentro do `[data-cena]`, fora do `role="img"`, e ao ser ativada (Enter ou espaço)
+**A vela** (`cenas/vela.ts`, `public/cenas/vela.webp`, a mesa do antigo escriba) usa a mesma
+técnica, com a câmera no canto da vela: a própria chama da foto tremula e se inclina (`balancar`),
+a luz da mesa pulsa com ela, sobe um fio de fumaça (`fumaca`), poeira dourada flutua na luz
+(`poeira`) e nuvens passam pela lua na janela. Revela-se quando o quadro sobe pela tela: começa
+fechada na chama e abre para a mesa. A imagem só carrega perto da tela. O clique é um sopro: a
+chama dança e se deita por uns segundos, a luz cai e saem faíscas.
+
+**Dicas e teclado.** Cada dica ("clique no céu ou no lago", "clique para soprar a vela") é um botão
+(`Dica`, `src/components/Ascii/Dica.tsx`), não a arte focável: um `role="img"` com ação seria
+anunciado errado. Ela fica dentro do `[data-cena]`, fora do `role="img"`, e ao ser ativada (Enter ou espaço)
 dispara `cena:acionar` no bloco, que o `AsciiCanvas` trata como um clique.
 
 - Na primeira interação o `AsciiCanvas` marca `data-tocado` no bloco, e a dica (`.dica`) some com
@@ -194,8 +207,34 @@ A interação é um extra: todo o conteúdo está no texto, para teclado e leito
 - Cards de projeto, títulos, marcos da trajetória e o fechamento sobem e aparecem com a rolagem
   (`.surgir`, `animation-timeline: view()`, só CSS; sem suporte, ficam parados).
 - O quadrado da faixa de status pulsa; o relógio de São Paulo se atualiza.
-- `prefers-reduced-motion: reduce`: o castelo desenha um quadro parado na resolução máxima; títulos
-  não se decifram e nada surge; a dica de clique some.
+- `prefers-reduced-motion: reduce`: o castelo desenha um quadro parado na resolução máxima e o
+  trecho alto do hero encolhe; títulos não se decifram nem reagem ao cursor e nada surge; a dica
+  de clique some; sem lampião, faíscas e vaga-lumes; os números e os resumos já aparecem inteiros.
+
+## 7c. Aconchego
+
+A estética não muda; o aconchego está no movimento: noite quente à luz de fogo, tudo devagar.
+
+- **Lampião** (`Aconchego/Lampiao.tsx`, `.lampiao`): uma luz quente e fraca (um círculo de 18rem
+  em `signal` a 9%, `mix-blend-mode: screen`) que segue o cursor com atraso, como chama que balança.
+  Só com mouse; acende e apaga em 1,2s, e some sobre o castelo, que tem o lampião dele.
+- **Vaga-lumes** (`Aconchego/VagaLumes.tsx`, `.vaga-lume`): 12 pontos de 3px com halo, atrás da
+  página, cada um numa rota lenta (29–45s) e piscando no seu ritmo (3,6–6,3s). Só CSS.
+- **Trajetória:** passar por um marco acende o ano dele em `signal`, com brilho, em 0,6s.
+- **Faíscas do cursor** (`Aconchego/Faiscas.tsx`): um movimento rápido do mouse (acima de 1,6 px/ms)
+  solta de 1 a 3 faíscas em ASCII (`. , ' * ·`, em `signal`) que saltam para trás do movimento, caem
+  e se apagam em 0,9s; no máximo 36 vivas. Movimento lento não solta nada, e sobre as cenas também
+  não. Um canvas fixo, desenhado só enquanto há faísca.
+- **Números contando** (`Contador`): as quatro estatísticas do GitHub contam do zero ao valor em
+  1,4s quando entram na tela, assentando devagar no fim. O HTML já traz o valor final.
+- **Escrita à pena** (`Escrita`): o resumo de cada projeto aparece palavra por palavra (45ms entre
+  elas, 0,6s cada, saindo de um borrão leve) quando entra na tela; no japonês, por trechos entre
+  `、` e `。`. Cada palavra já ocupa o lugar dela, então nada se move.
+- **Texto vivo** (`src/lib/textoVivo.ts`, via `Decifrar`): no nome do hero, nos títulos das seções
+  e na frase do contato, as letras perto do cursor engordam e alargam (`font-variation-settings`
+  `wght` até 800 e `wdth` até 112,5, numa onda de raio 1,8× o tamanho da fonte) e voltam devagar
+  quando ele se afasta. Um único `pointermove` para a página toda; cada letra anda 14% do caminho
+  até o alvo por quadro, e o laço para quando tudo assentou. Só com mouse e com movimento.
 
 ## 8. Qualidade verificada (25 nov 2026)
 
@@ -207,7 +246,7 @@ simplificação de 27 nov; não medido de novo depois dela):
 | Celular | 98 | 100 | 100 | 100 |
 | Desktop | 100 | 100 | 100 | 100 |
 
-LCP 2,3s no celular (simulado) e 0,5s no desktop; CLS 0; TBT 80ms no celular. Com uma cena só, a
+LCP 2,3s no celular (simulado) e 0,5s no desktop; CLS 0; TBT 80ms no celular. Com duas cenas em vez de seis, a
 página baixa 8 imagens a menos e roda um canvas em vez de sete.
 
 - **Teclado:** o primeiro Tab mostra "Pular para o conteúdo"; a ordem segue a leitura (índice, idioma,
@@ -242,6 +281,10 @@ página baixa 8 imagens a menos e roda um canvas em vez de sete.
    antes do primeiro projeto. Fica só o castelo, revelado ao carregar num hero de uma tela; projetos,
    trajetória e contato voltam a ser tipografia e grade de 1px, no espírito do hackbrasil.com e do
    abacatepay.com. O tema claro sai e o site ganha inglês, espanhol e japonês: a versão atual.
+9. O hero de uma tela ficou cru: a revelação pela rolagem volta (num trecho mais curto) e entra o
+   aconchego no movimento (lampião, vaga-lumes, anos acesos), sem mudar a estética. Regra: ASCII
+   novo só no nível do castelo (feito de imagem); uma vela de contorno foi trocada pela vela feita
+   da imagem da mesa do escriba.
 
 ## 10. Fora do sistema (removido)
 

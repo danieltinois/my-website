@@ -1,9 +1,10 @@
+import Contador from "@/src/components/Contador";
 import snapshot from "@/src/data/contributions.json";
 import { idioma, preencher, TEXTOS, type Idioma } from "@/src/data/site";
-import { formatDate, formatNumber, toStats, toWeeks, type Snapshot } from "@/src/lib/contributions";
+import { formatDate, toStats, toWeeks, type Snapshot } from "@/src/lib/contributions";
 
-// As contribuições no GitHub logo abaixo do castelo: legenda, quatro estatísticas e a tabela
-// semana a semana (para leitor de tela e para quem quer conferir).
+// As contribuições no GitHub logo abaixo do castelo: legenda, quatro estatísticas (que contam do
+// zero ao entrar na tela) e a tabela semana a semana (para leitor de tela e para quem quer conferir).
 const ContributionStats = ({ lang, data = snapshot as Snapshot }: { lang: Idioma; data?: Snapshot }) => {
   const t = TEXTOS[lang].ui.stats;
   const { formato } = idioma(lang);
@@ -23,10 +24,10 @@ const ContributionStats = ({ lang, data = snapshot as Snapshot }: { lang: Idioma
 
       <dl className="mt-6 grid grid-cols-2 border-t border-l md:grid-cols-4">
         {[
-          { k: t.total, v: formatNumber(stats.total, formato) },
-          { k: t.dias, v: `${stats.activeDays}/${stats.totalDays}` },
-          { k: t.sequencia, v: preencher(t.unidadeDias, { n: stats.longestStreak }) },
-          { k: t.semanaPico, v: `${stats.peakWeek.count}` },
+          { k: t.total, v: <Contador valor={stats.total} formato={formato} /> },
+          { k: t.dias, v: <Contador valor={stats.activeDays} formato={formato} modelo={`{n}/${stats.totalDays}`} /> },
+          { k: t.sequencia, v: <Contador valor={stats.longestStreak} formato={formato} modelo={t.unidadeDias} /> },
+          { k: t.semanaPico, v: <Contador valor={stats.peakWeek.count} formato={formato} /> },
         ].map(({ k, v }) => (
           <div key={k} className="border-r border-b p-4">
             <dt className="text-caption font-stretch-condensed text-muted">{k}</dt>

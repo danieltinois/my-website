@@ -199,6 +199,14 @@
   }
 }
 
+/* vela: o quadro se apaga nos quatro lados, como a luz de uma vela num cômodo escuro */
+.vinheta {
+  mask-image:
+    linear-gradient(to right, transparent, #000 18%, #000 82%, transparent),
+    linear-gradient(to bottom, transparent, #000 14%, #000 80%, transparent);
+  mask-composite: intersect;
+}
+
 /* degradê do hero sob o texto (desktop): o fundo da noite sai da esquerda e vai sumindo até 45% da
    largura, onde o texto acaba; um resto bem fraco vai até a metade, para não marcar a linha onde
    termina (o castelo, à direita, fica fora) */
@@ -211,6 +219,107 @@
     color-mix(in srgb, var(--color-paper) 12%, transparent) 45%,
     transparent 50%
   );
+}
+
+/* --- aconchego: tudo o que é quente é fogo, e se mexe devagar --------------------------- */
+
+/* lampião: a luz do cursor na página toda (Lampiao.tsx move --x e --y); acende e apaga devagar */
+.lampiao {
+  background: radial-gradient(
+    18rem circle at var(--x, 50%) var(--y, 50%),
+    color-mix(in srgb, var(--color-signal) 9%, transparent),
+    color-mix(in srgb, var(--color-signal) 3%, transparent) 45%,
+    transparent 70%
+  );
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+.lampiao[data-acesa] {
+  opacity: 1;
+}
+
+/* vaga-lumes: um ponto quente com halo, que anda numa rota lenta e pisca */
+.vaga-lume {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: var(--color-signal);
+  box-shadow:
+    0 0 6px 2px color-mix(in srgb, var(--color-signal) 55%, transparent),
+    0 0 18px 6px color-mix(in srgb, var(--color-signal) 15%, transparent);
+  animation-name: rota-1, piscar;
+  animation-timing-function: ease-in-out, ease-in-out;
+  animation-iteration-count: infinite, infinite;
+  animation-direction: alternate, normal;
+}
+.vaga-lume.rota-2 {
+  animation-name: rota-2, piscar;
+}
+.vaga-lume.rota-3 {
+  animation-name: rota-3, piscar;
+}
+@keyframes rota-1 {
+  to {
+    translate: 6vw -9vh;
+  }
+}
+@keyframes rota-2 {
+  50% {
+    translate: -4vw 5vh;
+  }
+  to {
+    translate: 3vw 11vh;
+  }
+}
+@keyframes rota-3 {
+  33% {
+    translate: 5vw 4vh;
+  }
+  to {
+    translate: -6vw -6vh;
+  }
+}
+@keyframes piscar {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  40%,
+  60% {
+    opacity: 0.85;
+  }
+}
+
+/* trajetória: passar por um marco acende o ano dele, como um lampião na estrada */
+.marco .ano {
+  transition:
+    color 0.6s ease,
+    text-shadow 0.6s ease;
+}
+.marco:hover .ano {
+  color: var(--color-signal);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--color-signal) 60%, transparent);
+}
+
+/* escrita à pena (Escrita.tsx): com JavaScript (data-pronto), as palavras esperam apagadas e,
+   quando o parágrafo entra na tela (data-visivel), aparecem uma a uma, saindo de um leve borrão */
+.escrita[data-pronto] .palavra {
+  opacity: 0;
+}
+.escrita[data-visivel] .palavra {
+  animation: tinta 0.6s ease-out forwards;
+  animation-delay: calc(var(--i) * 45ms);
+}
+@keyframes tinta {
+  from {
+    opacity: 0;
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
 }
 
 /* dica: some depois da primeira interação com a cena (AsciiCanvas marca data-tocado) e fica

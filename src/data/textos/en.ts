@@ -14,8 +14,13 @@ export const en: Textos = {
     cidade: "são paulo",
     contribuicoes12m: "{n} contributions in 12 months",
     revisao: "rev.",
+    rolar: "scroll to reveal",
     dica: "click the sky or the lake",
     cena: "Near-photographic ASCII scene: a lit castle on a cliff at night, with a waterfall falling into a lake that reflects the full moon, pine forest all around and, every now and then, a dragon crossing the sky.",
+    vela: {
+      cena: "Near-photographic ASCII scene: a lit candle in a brass holder on a wooden table at night, next to an inkwell with a quill and a stone window with the full moon. The flame flickers, a thread of smoke rises and dust glows in the light.",
+      dica: "click to blow on the candle",
+    },
     stats: {
       legenda: "My public GitHub contributions, from {de} to {ate}.",
       total: "contributions in 12 months",

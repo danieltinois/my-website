@@ -14,8 +14,13 @@ export const pt: Textos = {
     cidade: "são paulo",
     contribuicoes12m: "{n} contribuições em 12 meses",
     revisao: "rev.",
+    rolar: "role para revelar",
     dica: "clique no céu ou no lago",
     cena: "Cena em ASCII quase realista: um castelo iluminado sobre um penhasco à noite, com uma cachoeira caindo num lago que reflete a lua cheia, floresta de pinheiros ao redor e, de vez em quando, um dragão cruzando o céu.",
+    vela: {
+      cena: "Cena em ASCII quase realista: uma vela acesa num castiçal de latão, sobre uma mesa de madeira à noite, ao lado de um tinteiro com pena e de uma janela de pedra com a lua cheia. A chama tremula, um fio de fumaça sobe e a poeira brilha na luz.",
+      dica: "clique para soprar a vela",
+    },
     stats: {
       legenda: "Minhas contribuições públicas no GitHub, de {de} a {ate}.",
       total: "contribuições em 12 meses",

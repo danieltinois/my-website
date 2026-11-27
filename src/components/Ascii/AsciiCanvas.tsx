@@ -14,7 +14,10 @@ import { K, prepararFonte, RAMPA, type Campo, type DadosImagem } from "./denso";
 // `dados.fonte` (brilho e calor em tabelas de soma acumulada). `dados.chegou` é o instante t em
 // que ela chegou (a cena faz a imagem surgir a partir daí). `fps` é a taxa de quadros.
 // Revelação: com `revelar` (fração inicial, de 0 a 1), a grade vai dessa fração até a grade
-// inteira em REVELACAO segundos depois que a imagem chega, e a cena recebe esse progresso em p.
+// inteira conforme a rolagem, e a cena recebe esse progresso em p. Num [data-cena] mais alto que a
+// tela (o hero, com a cena presa nele) é o quanto já se rolou por ele; num menor (a vela), o quanto
+// ele já subiu: começa ao entrar pela base da tela e termina com o topo a um quarto da altura.
+// A imagem só carrega quando o canvas chega perto da tela.
 // Interação: a cena recebe a posição do ponteiro (`mouse`, u e v de 0 a 1 na área do canvas) e os
 // cliques recentes com o instante de cada um. Com reduced motion não há interação nem revelação: a
 // cena aparece inteira e parada.
@@ -45,10 +48,7 @@ export interface Clique extends Ponto {
   t: number;
 }
 
-// segundos da revelação, contados de quando a imagem chega
-const REVELACAO = 1.8;
-
-// começa rápido e assenta devagar: a cena já muda no primeiro instante e pousa sem tranco
+// começa rápido e assenta devagar: os primeiros passos da rolagem já mostram mudança
 const passoSuave = (p: number) => 1 - (1 - p) * (1 - p);
 
 const AsciiCanvas = ({ cena, grades, imagem, quadroParado = 5, className = "", interativa = false, fps = 20, revelar }: Props) => {
@@ -147,11 +147,12 @@ const AsciiCanvas = ({ cena, grades, imagem, quadroParado = 5, className = "", i
         }
     };
 
-    // revelação: 0 até a imagem chegar, 1 depois de REVELACAO segundos (sem revelação, sempre 1)
+    // revelação pela rolagem do [data-cena] (sem revelação, sempre 1)
     const revelacao = () => {
-      if (revelar === undefined || reduzir.matches) return 1;
-      if (dados.chegou === undefined) return 0;
-      return Math.max(0, Math.min(1, (agoraT() - dados.chegou) / REVELACAO));
+      if (revelar === undefined || reduzir.matches || !bloco) return 1;
+      const r = bloco.getBoundingClientRect();
+      const p = r.height > innerHeight ? -r.top / (r.height - innerHeight) : (innerHeight - r.top) / (innerHeight * 0.75);
+      return Math.max(0, Math.min(1, p));
     };
     const grade = () => grades.find((x) => matchMedia(x.mq).matches) ?? grades.at(-1)!;
     const colunas = () => {
@@ -241,7 +242,15 @@ const AsciiCanvas = ({ cena, grades, imagem, quadroParado = 5, className = "", i
       dados = { fonte: prepararFonte(data, width, height), chegou: agoraT() };
       desenhar(reduzir.matches ? quadroParado : agoraT());
     };
-    carregar().catch((erro) => console.warn("ascii: falha ao carregar", imagem, erro));
+    const perto = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting) return;
+        perto.disconnect();
+        carregar().catch((erro) => console.warn("ascii: falha ao carregar", imagem, erro));
+      },
+      { rootMargin: "800px 0px" },
+    );
+    perto.observe(canvas);
 
     document.fonts.ready.then(() => {
       if (!vivo) return;
@@ -265,6 +274,7 @@ const AsciiCanvas = ({ cena, grades, imagem, quadroParado = 5, className = "", i
 
     return () => {
       vivo = false;
+      perto.disconnect();
       cancelAnimationFrame(raf);
       tamanho.disconnect();
       tela.disconnect();
