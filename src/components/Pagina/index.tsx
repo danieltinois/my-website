@@ -12,6 +12,7 @@ import Project from "@/src/components/Project";
 import Section from "@/src/components/Section";
 import SiteHeader, { SECOES } from "@/src/components/SiteHeader";
 import Trajetoria from "@/src/components/Trajetoria";
+import VoltarTopo from "@/src/components/VoltarTopo";
 import { idioma, LINKS, NOME, TEXTOS, type Idioma } from "@/src/data/site";
 
 const [projetos, trajetoria, contato] = SECOES;
@@ -41,8 +42,9 @@ const Pagina = ({ lang }: { lang: Idioma }) => {
       <Lampiao />
       <Faiscas />
 
-      {/* navegação animada dentro da página */}
+      {/* navegação animada dentro da página e o botão flutuante de voltar ao topo */}
       <Navegacao />
+      <VoltarTopo rotulo={t.ui.topo} />
 
       <SiteHeader lang={lang} />
 

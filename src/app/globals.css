@@ -322,7 +322,25 @@
   }
 }
 
-/* o alvo de uma âncora recebe o foco ao chegar, sem o contorno na seção inteira */
+/* voltar ao topo: entra subindo e saindo do transparente depois do hero; fora disso não recebe
+   clique. O alvo de uma âncora recebe o foco ao chegar, sem o contorno na seção inteira */
+.voltar-topo {
+  opacity: 0;
+  translate: 0 0.75rem;
+  pointer-events: none;
+  transition:
+    opacity 0.5s ease,
+    translate 0.5s ease;
+}
+.voltar-topo[data-visivel] {
+  opacity: 1;
+  translate: 0 0;
+  pointer-events: auto;
+}
+.voltar-topo:focus-visible {
+  opacity: 1;
+  translate: 0 0;
+}
 section[tabindex="-1"]:focus {
   outline: none;
 }

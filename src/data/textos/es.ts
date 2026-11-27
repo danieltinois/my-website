@@ -44,6 +44,7 @@ export const es: Textos = {
     },
     copiar: { acao: "copiar", copiado: "copiado", falhou: "no se pudo copiar", rotulo: "copiar e-mail" },
     voltarTopo: "volver arriba",
+    topo: "arriba",
   },
   perfil: {
     cargo: "Desarrollador full stack semi senior en Verzel, en São Paulo.",
