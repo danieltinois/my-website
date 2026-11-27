@@ -98,6 +98,12 @@
   color-scheme: dark;
 }
 
+/* japonês: a Martian Mono não tem os glifos; as fontes japonesas do sistema entram antes do
+   fallback genérico, para kana e kanji saírem no traço certo (o latim continua na Martian) */
+:lang(ja) {
+  font-family: var(--font-martian), "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
+}
+
 @layer base {
   *,
   ::before,

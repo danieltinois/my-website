@@ -1,9 +1,13 @@
 import snapshot from "@/src/data/contributions.json";
+import { idioma, preencher, TEXTOS, type Idioma } from "@/src/data/site";
 import { formatDate, formatNumber, toStats, toWeeks, type Snapshot } from "@/src/lib/contributions";
 
 // As contribuições no GitHub logo abaixo do castelo: legenda, quatro estatísticas e a tabela
 // semana a semana (para leitor de tela e para quem quer conferir).
-const ContributionStats = ({ data = snapshot as Snapshot }: { data?: Snapshot }) => {
+const ContributionStats = ({ lang, data = snapshot as Snapshot }: { lang: Idioma; data?: Snapshot }) => {
+  const t = TEXTOS[lang].ui.stats;
+  const { formato } = idioma(lang);
+  const data_ = (d: string) => formatDate(d, true, formato);
   const days = data.days;
   if (days.length === 0) return null;
   const weeks = toWeeks(days);
@@ -14,15 +18,15 @@ const ContributionStats = ({ data = snapshot as Snapshot }: { data?: Snapshot })
   return (
     <div>
       <p className="text-caption text-muted">
-        Minhas contribuições públicas no GitHub, de {formatDate(first)} a {formatDate(last)}.
+        {preencher(t.legenda, { de: data_(first), ate: data_(last) })}
       </p>
 
       <dl className="mt-6 grid grid-cols-2 border-t border-l md:grid-cols-4">
         {[
-          { k: "contribuições em 12 meses", v: formatNumber(stats.total) },
-          { k: "dias com contribuição", v: `${stats.activeDays}/${stats.totalDays}` },
-          { k: "maior sequência", v: `${stats.longestStreak} dias` },
-          { k: "semana mais intensa", v: `${stats.peakWeek.count}` },
+          { k: t.total, v: formatNumber(stats.total, formato) },
+          { k: t.dias, v: `${stats.activeDays}/${stats.totalDays}` },
+          { k: t.sequencia, v: preencher(t.unidadeDias, { n: stats.longestStreak }) },
+          { k: t.semanaPico, v: `${stats.peakWeek.count}` },
         ].map(({ k, v }) => (
           <div key={k} className="border-r border-b p-4">
             <dt className="text-caption font-stretch-condensed text-muted">{k}</dt>
@@ -32,15 +36,15 @@ const ContributionStats = ({ data = snapshot as Snapshot }: { data?: Snapshot })
       </dl>
 
       <details className="mt-4 text-caption">
-        <summary className="link w-max text-muted">ver os dados por semana</summary>
+        <summary className="link w-max text-muted">{t.ver}</summary>
         <table className="mt-3 w-full max-w-measure border-collapse text-left tabular-nums">
           <thead>
             <tr className="border-b">
               <th scope="col" className="py-2 font-regular text-muted">
-                semana de
+                {t.semanaDe}
               </th>
               <th scope="col" className="py-2 text-right font-regular text-muted">
-                contribuições
+                {t.contribuicoes}
               </th>
             </tr>
           </thead>
@@ -48,8 +52,8 @@ const ContributionStats = ({ data = snapshot as Snapshot }: { data?: Snapshot })
             {weeks.map((w) => (
               <tr key={w.start} className="border-b">
                 <td className="py-1">
-                  {formatDate(w.start)}
-                  {w.days < 7 && " (em curso)"}
+                  {data_(w.start)}
+                  {w.days < 7 && ` ${t.emCurso}`}
                 </td>
                 <td className="py-1 text-right">{w.count}</td>
               </tr>

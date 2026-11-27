@@ -3,7 +3,7 @@ import Dica from "@/src/components/Ascii/Dica";
 import ContributionStats from "@/src/components/ContributionStats";
 import Decifrar from "@/src/components/Decifrar";
 import EmailCta from "@/src/components/EmailCta";
-import { ESPECIFICACOES, LINKS, PERFIL } from "@/src/data/site";
+import { LINKS, NOME, TEXTOS, type Idioma } from "@/src/data/site";
 
 // A primeira tela: o castelo à noite em ASCII, com quem eu sou, o que faço e como falar comigo
 // por cima do céu (no desktop) ou acima da cena (no celular). É a única cena do site.
@@ -22,8 +22,9 @@ const GRADES = [
   { mq: "all", cols: 120 },
 ];
 
-const Hero = () => {
-  const [primeiro, ...resto] = PERFIL.nome.split(" ");
+const Hero = ({ lang }: { lang: Idioma }) => {
+  const t = TEXTOS[lang];
+  const [primeiro, ...resto] = NOME.split(" ");
 
   return (
     <section aria-labelledby="hero-nome" className="-mx-6 px-6 pb-16 lg:-mx-12 lg:px-12 lg:pb-24">
@@ -38,8 +39,8 @@ const Hero = () => {
                 <Decifrar texto={resto.join(" ")} atraso={250} />
               </span>
             </h1>
-            <p className="mt-6 text-lead font-semibold text-balance">{PERFIL.cargo}</p>
-            <p className="mt-3 text-muted">{PERFIL.resumo}</p>
+            <p className="mt-6 text-lead font-semibold text-balance">{t.perfil.cargo}</p>
+            <p className="mt-3 text-muted">{t.perfil.resumo}</p>
             <div className="mt-6">
               <EmailCta />
             </div>
@@ -55,26 +56,26 @@ const Hero = () => {
           <div
             className="bordas h-full"
             role="img"
-            aria-label="Cena em ASCII quase realista: um castelo iluminado sobre um penhasco à noite, com uma cachoeira caindo num lago que reflete a lua cheia, floresta de pinheiros ao redor e, de vez em quando, um dragão cruzando o céu."
+            aria-label={t.ui.cena}
           >
             <AsciiCanvas cena="castelo" imagem="/cenas/castelo.webp" grades={GRADES} revelar={0.15} interativa />
           </div>
           <div className="veu-hero pointer-events-none absolute inset-0 hidden lg:block" aria-hidden="true" />
           {/* o botão fica fora do role="img" (os filhos dele são apresentacionais) */}
           <p className="pointer-events-none absolute right-6 bottom-2 text-caption lg:right-12">
-            <Dica texto="clique no céu ou no lago" className="hidden motion-safe:sm:inline" />
+            <Dica texto={t.ui.dica} className="hidden motion-safe:sm:inline" />
           </p>
         </div>
       </div>
 
       <div className="mt-8">
-        <ContributionStats />
+        <ContributionStats lang={lang} />
       </div>
 
       <dl className="mt-12 grid grid-cols-2 border-t border-l md:grid-cols-3 xl:grid-cols-6">
-        {ESPECIFICACOES.map((e) => (
+        {t.especificacoes.map((e) => (
           <div key={e.k} className="border-r border-b p-4">
-            <dt className="text-caption font-stretch-condensed text-muted">{e.k.toLowerCase()}</dt>
+            <dt className="text-caption font-stretch-condensed text-muted">{e.k}</dt>
             <dd className="mt-1 text-caption">{e.v}</dd>
           </div>
         ))}

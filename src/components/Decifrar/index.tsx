@@ -15,7 +15,9 @@ const Decifrar = ({ texto, atraso = 0 }: { texto: string; atraso?: number }) => 
 
   useEffect(() => {
     const el = ref.current;
-    if (!el || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    // só alfabeto latino: num caractere de largura dupla (japonês) a troca por um sinal ASCII
+    // mudaria a largura da linha
+    if (!el || /[^\u0000-\u024f\u2000-\u206f]/.test(texto) || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let raf = 0;
     const rodar = () => {
       const inicio = performance.now() + atraso;

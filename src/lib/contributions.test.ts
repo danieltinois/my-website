@@ -107,4 +107,11 @@ describe("formatação", () => {
     assert.equal(formatDate("2026-10-18", false), "18 out");
     assert.equal(formatNumber(1399), "1.399");
   });
+
+  it("usa o formato de cada idioma fora do pt-BR", () => {
+    assert.equal(formatDate("2026-09-24", true, "en-US"), "Sep 24, 2026");
+    assert.equal(formatDate("2026-09-24", true, "ja-JP"), "2026年9月24日");
+    assert.equal(formatNumber(1399, "en-US"), "1,399");
+    assert.equal(formatNumber(1399, "es-ES"), "1399");
+  });
 });

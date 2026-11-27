@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PERFIL } from "@/src/data/site";
+import { NOME } from "@/src/data/site";
 
 export const metadata: Metadata = {
   title: "Página não encontrada",
@@ -14,7 +14,7 @@ const NotFound = () => (
       O endereço pode ter mudado com o redesenho do site. Tudo o que havia aqui está na página inicial.
     </p>
     <p className="mt-8">
-      <Link href="/">Ir para a página de {PERFIL.nome}</Link>
+      <Link href="/">Ir para a página de {NOME}</Link>
     </p>
   </main>
 );
